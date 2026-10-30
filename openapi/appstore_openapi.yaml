@@ -1,0 +1,518 @@
+openapi: 3.1.0
+info:
+  title: BizBox App Store API
+  version: 1.0.0
+  description: Platform API for BizBox App Store (FlutterFlirt Private Limited)
+servers:
+  - url: http://localhost:4000/v1
+    description: Local Development API Gateway
+  - url: https://api.bizbox.in/v1
+    description: Production API Gateway
+
+paths:
+  # ============================================================================
+  # 1. STOREFRONT
+  # ============================================================================
+  /store/apps:
+    get:
+      summary: Browse & search apps
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: businessType
+          in: query
+          schema: { type: string }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [popular, rating, new] }
+        - name: cursor
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of apps matching criteria
+  /store/featured:
+    get:
+      summary: Home page rails (featured, essentials for your business type, new)
+      responses:
+        '200':
+          description: Categorized lists of featured apps
+  /store/categories:
+    get:
+      summary: Categories with app counts
+      responses:
+        '200':
+          description: All available store categories
+  /store/apps/{slug}:
+    get:
+      summary: App details, plans, permissions, dependencies
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Detailed app listing
+  /store/apps/{slug}/ratings:
+    get:
+      summary: Ratings & reviews for an app
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: App ratings
+    post:
+      summary: Rate an installed app (one per business)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stars]
+              properties:
+                stars: { type: integer, minimum: 1, maximum: 5 }
+                comment: { type: string }
+      responses:
+        '201':
+          description: Rating recorded
+
+  # ============================================================================
+  # 2. INSTALLATIONS & SUBSCRIPTIONS
+  # ============================================================================
+  /installations:
+    post:
+      summary: Install app (checks deps -> creates subscription -> provisions cloud + edge)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [appId, planCode]
+              properties:
+                appId: { type: string, format: uuid }
+                planCode: { type: string }
+                outletIds: { type: array, items: { type: string, format: uuid } }
+      responses:
+        '201':
+          description: Installation initialized
+    get:
+      summary: My installed apps with update status
+      responses:
+        '200':
+          description: Tenant installed apps
+  /installations/{installationId}:
+    get:
+      summary: Installation details
+      parameters:
+        - name: installationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Details of the installation
+    patch:
+      summary: Change settings, outlets, auto-update
+      parameters:
+        - name: installationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Updated configuration
+    delete:
+      summary: Uninstall app (data kept 30 days, then purged)
+      parameters:
+        - name: installationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Uninstalled
+  /installations/{installationId}/update:
+    post:
+      summary: Update to latest (or given) version
+      parameters:
+        - name: installationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Update scheduled
+  /installations/{installationId}/rollback:
+    post:
+      summary: Roll back to previous version
+      parameters:
+        - name: installationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Rollback triggered
+  /installations/{installationId}/plan:
+    post:
+      summary: Upgrade / downgrade plan
+      parameters:
+        - name: installationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Plan changed
+  /installations/{installationId}/deployments:
+    get:
+      summary: Where it runs (edge boxes & health)
+      parameters:
+        - name: installationId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Deployment status on edge devices
+  /billing/subscriptions:
+    get:
+      summary: All app subscriptions & next invoice
+      responses:
+        '200':
+          description: Tenant subscriptions
+
+  # ============================================================================
+  # 3. APP RUNTIME
+  # ============================================================================
+  /oauth/token:
+    post:
+      summary: App gets a tenant-scoped token (client_credentials + installation_id)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, client_secret, installation_id]
+              properties:
+                client_id: { type: string }
+                client_secret: { type: string }
+                installation_id: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Access token issued
+  /app/context:
+    get:
+      summary: Installation context for calling app (tenant, outlets, scopes, settings)
+      responses:
+        '200':
+          description: App runtime context
+  /app/webhooks:
+    post:
+      summary: Subscribe the installation to platform events
+      responses:
+        '201':
+          description: Webhook registered
+  /app/events:
+    get:
+      summary: Event catalog the app may subscribe to
+      responses:
+        '200':
+          description: List of available platform events
+  /app/usage:
+    post:
+      summary: Report metered usage (messages sent, AI queries)
+      responses:
+        '200':
+          description: Metered usage ingested
+
+  # ============================================================================
+  # 4. DEVELOPER PORTAL & API
+  # ============================================================================
+  /dev/developers:
+    post:
+      summary: Create a publisher account (KYC + payout onboarding link)
+      responses:
+        '201':
+          description: Developer account created
+  /dev/me:
+    get:
+      summary: My publisher profile & team
+      responses:
+        '200':
+          description: Profile details
+  /dev/apps:
+    post:
+      summary: Create app listing (draft)
+      responses:
+        '201':
+          description: App listing created
+    get:
+      summary: My apps
+      responses:
+        '200':
+          description: Apps list
+  /dev/apps/{appId}:
+    patch:
+      summary: Edit listing text, icon, screenshots
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: App updated
+  /dev/apps/{appId}/assets:
+    post:
+      summary: Presigned upload URL for icon / screenshots
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Presigned upload url
+  /dev/apps/{appId}/plans:
+    put:
+      summary: Set pricing plans
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Pricing plans updated
+  /dev/apps/{appId}/versions:
+    post:
+      summary: Create version -> presigned bundle upload URL
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201':
+          description: Version created with bundle upload target
+  /dev/versions/{versionId}/submit:
+    post:
+      summary: Submit for automated checks + review
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Version submitted to pipeline
+  /dev/versions/{versionId}:
+    get:
+      summary: Version status, checks and reviewer notes
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Version status and checks
+  /dev/versions/{versionId}/rollout:
+    post:
+      summary: Change staged rollout % (after approval)
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Rollout percentage adjusted
+  /dev/versions/{versionId}/withdraw:
+    post:
+      summary: Withdraw a version (halts rollout)
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Version withdrawn
+  /dev/apps/{appId}/analytics:
+    get:
+      summary: Installs, revenue, ratings, errors
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: App performance metrics
+  /dev/apps/{appId}/oauth-clients:
+    post:
+      summary: Create OAuth client (secret shown once)
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '201':
+          description: OAuth client credentials generated
+  /dev/ratings/{ratingId}/reply:
+    post:
+      summary: Reply to a review
+      parameters:
+        - name: ratingId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Reply posted
+  /dev/payouts:
+    get:
+      summary: Monthly payouts statement
+      responses:
+        '200':
+          description: Payout records
+
+  # ============================================================================
+  # 5. REVIEW & ADMIN
+  # ============================================================================
+  /admin/review-queue:
+    get:
+      summary: Versions waiting for review with check results
+      responses:
+        '200':
+          description: Pending review queue
+  /admin/versions/{versionId}:
+    get:
+      summary: Full version details (manifest diff, scopes, scan reports)
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Full version inspection
+  /admin/versions/{versionId}/decision:
+    post:
+      summary: Approve / request changes / reject
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Decision applied
+  /admin/versions/{versionId}/publish:
+    post:
+      summary: Sign bundle (cosign) and publish at rollout %
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Version signed and published
+  /admin/apps/{appId}:
+    patch:
+      summary: Feature, mark core, change category
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: App properties updated
+  /admin/apps/{appId}/delist:
+    post:
+      summary: Delist app (security / policy)
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: App delisted
+  /admin/metrics:
+    get:
+      summary: Store dashboard KPIs
+      responses:
+        '200':
+          description: System-wide metrics
+  /admin/payouts/run:
+    post:
+      summary: Calculate & send monthly developer payouts
+      responses:
+        '200':
+          description: Payout run executed
+
+  # ============================================================================
+  # 6. EDGE AGENT
+  # ============================================================================
+  /edge/agent/register:
+    post:
+      summary: Box registers with device token, gets agent credentials
+      responses:
+        '200':
+          description: Edge box registered
+  /edge/agent/desired-state:
+    get:
+      summary: Apps & versions this box should run (ETag / generation)
+      responses:
+        '200':
+          description: Desired state document
+  /edge/agent/report:
+    post:
+      summary: Report container status & host health
+      responses:
+        '200':
+          description: Status logged
+  /edge/agent/registry-token:
+    get:
+      summary: Short-lived pull token for registry.bizbox.in
+      responses:
+        '200':
+          description: OCI registry pull token
+
+  # ============================================================================
+  # 7. WEBHOOKS
+  # ============================================================================
+  /webhooks/billing/razorpay:
+    post:
+      summary: Subscription charged / failed -> activate / suspend installs
+      responses:
+        '200':
+          description: Webhook received
+  /webhooks/pipeline:
+    post:
+      summary: CI pipeline posts check results back
+      responses:
+        '200':
+          description: Check results ingested

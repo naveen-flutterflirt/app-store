@@ -1,0 +1,11 @@
+{
+  "name": "@bizbox/ui",
+  "version": "1.0.0",
+  "description": "Shared FlutterFlirt design system tokens and components",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

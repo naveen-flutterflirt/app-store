@@ -1,0 +1,15 @@
+{
+  "name": "@bizbox/app-sdk",
+  "version": "1.0.0",
+  "description": "BizBox App SDK for building first-party and third-party apps",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

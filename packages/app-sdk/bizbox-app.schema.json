@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BizBoxAppManifest",
+  "description": "Manifest schema for BizBox apps (bizbox-app.json)",
+  "type": "object",
+  "required": ["id", "name", "version", "runtime", "minPlatform", "scopes", "ui"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z]{2,}(\\.[a-z0-9_-]+)+$",
+      "description": "Unique reverse-domain package id (e.g., in.kitchenmetrics.foodcost-pro)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 60
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9.]+)?$",
+      "description": "Semantic versioning (must be higher than live version)"
+    },
+    "runtime": {
+      "type": "string",
+      "enum": ["cloud", "edge", "hybrid"],
+      "description": "Execution environment: cloud, edge (Pi 5 box), or hybrid"
+    },
+    "minPlatform": {
+      "type": "string",
+      "description": "Minimum BizBox platform version required"
+    },
+    "requires": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["app", "minVersion"],
+        "properties": {
+          "app": { "type": "string" },
+          "minVersion": { "type": "string" }
+        }
+      }
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scope", "reason"],
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "orders:read",
+              "orders:write",
+              "menu:read",
+              "menu:write",
+              "stock:read",
+              "stock:write",
+              "invoices:read",
+              "invoices:write",
+              "customers:pii",
+              "payments:write",
+              "devices:control"
+            ]
+          },
+          "reason": { "type": "string", "minLength": 10 }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Platform events subscribed to (e.g. order.settled, stock.low)"
+    },
+    "ui": {
+      "type": "object",
+      "required": ["entry", "slots"],
+      "properties": {
+        "entry": {
+          "type": "string",
+          "description": "Path to entry file (e.g. /index.html for SPA/Next.js export)"
+        },
+        "slots": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "console.sidebar",
+              "console.dashboard.widget",
+              "pos.order.action",
+              "pos.receipt.footer",
+              "kds.ticket.badge",
+              "settings.page"
+            ]
+          }
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["image", "resources"],
+      "properties": {
+        "image": {
+          "type": "string",
+          "description": "OCI container image reference (must include linux/arm64)"
+        },
+        "resources": {
+          "type": "object",
+          "required": ["cpu", "memory"],
+          "properties": {
+            "cpu": { "type": "string", "example": "0.25" },
+            "memory": { "type": "string", "example": "256Mi" }
+          }
+        }
+      }
+    }
+  }
+}
