@@ -1,5 +1,6 @@
 import * as http from 'http';
 import { query } from './db';
+import { edgeService } from './modules/edge/edge.service';
 
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -237,6 +238,48 @@ const server = http.createServer(async (req, res) => {
       `, [tenantId]);
 
       return sendJson(res, 200, installs);
+    }
+
+    // ------------------------------------------------------------------------
+    // 3. EDGE AGENT APIS (Section 05 & OpenAPI: /edge/agent/*)
+    // ------------------------------------------------------------------------
+
+    // POST /v1/edge/agent/register
+    if (pathname === '/v1/edge/agent/register' && req.method === 'POST') {
+      const body = await parseJsonBody(req);
+      const { deviceId, hwModel = 'Raspberry Pi 5', platformVersion = '1.0.0' } = body;
+      if (!deviceId) {
+        return sendJson(res, 400, { code: 'BAD_REQUEST', message: 'Missing deviceId' });
+      }
+      const result = await edgeService.register({ deviceId, hwModel, platformVersion });
+      return sendJson(res, 201, result);
+    }
+
+    // GET /v1/edge/agent/desired-state
+    if (pathname === '/v1/edge/agent/desired-state' && req.method === 'GET') {
+      const authHeader = req.headers['authorization'] || '';
+      const deviceIdHeader = (req.headers['x-device-id'] as string) || searchParams.get('deviceId');
+      
+      // Extract device ID from header or query param
+      const deviceId = deviceIdHeader || '00000000-0000-0000-0000-000000000002';
+      const desiredState = await edgeService.getDesiredState(deviceId);
+      return sendJson(res, 200, desiredState);
+    }
+
+    // POST /v1/edge/agent/report
+    if (pathname === '/v1/edge/agent/report' && req.method === 'POST') {
+      const deviceIdHeader = (req.headers['x-device-id'] as string) || searchParams.get('deviceId');
+      const deviceId = deviceIdHeader || '00000000-0000-0000-0000-000000000002';
+      const body = await parseJsonBody(req);
+      await edgeService.processReport(deviceId, body);
+      return sendJson(res, 202, { acknowledged: true });
+    }
+
+    // GET /v1/edge/agent/registry-token
+    if (pathname === '/v1/edge/agent/registry-token' && req.method === 'GET') {
+      const deviceId = (req.headers['x-device-id'] as string) || '00000000-0000-0000-0000-000000000002';
+      const token = await edgeService.getRegistryToken(deviceId);
+      return sendJson(res, 200, token);
     }
 
     // ------------------------------------------------------------------------
