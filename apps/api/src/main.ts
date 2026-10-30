@@ -1,6 +1,7 @@
 import * as http from 'http';
 import { query } from './db';
 import { edgeService } from './modules/edge/edge.service';
+import { billingService } from './modules/billing/billing.service';
 
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -211,15 +212,39 @@ const server = http.createServer(async (req, res) => {
         RETURNING *
       `, [tenantId, appId, versionId, plan?.id || null]);
 
-      // If plan has cost or trial, create subscription record
+      // If plan has cost or trial, create subscription record via Billing Engine
+      let subscription = null;
       if (plan) {
-        await query(`
-          INSERT INTO store.subscriptions (installation_id, plan_id, status, current_period_end)
-          VALUES ($1, $2, 'active', NOW() + INTERVAL '30 days')
-        `, [installRes[0].id, plan.id]);
+        subscription = await billingService.createSubscription(installRes[0].id, plan.id);
       }
 
-      return sendJson(res, 201, installRes[0]);
+      return sendJson(res, 201, {
+        ...installRes[0],
+        subscription
+      });
+    }
+
+    // POST /v1/installations/:installationId/plan (Upgrade / downgrade plan)
+    if (pathname.startsWith('/v1/installations/') && pathname.endsWith('/plan') && req.method === 'POST') {
+      const parts = pathname.split('/');
+      const installationId = parts[3];
+      const body = await parseJsonBody(req);
+      const result = await billingService.changePlan(installationId, body);
+      return sendJson(res, 201, result);
+    }
+
+    // GET /v1/billing/subscriptions (Tenant subscriptions & next GST invoice)
+    if (pathname === '/v1/billing/subscriptions' && req.method === 'GET') {
+      const tenantId = searchParams.get('tenantId') || '00000000-0000-0000-0000-000000000001';
+      const result = await billingService.getTenantSubscriptions(tenantId);
+      return sendJson(res, 200, result);
+    }
+
+    // POST /v1/webhooks/billing/razorpay
+    if (pathname === '/v1/webhooks/billing/razorpay' && req.method === 'POST') {
+      const body = await parseJsonBody(req);
+      const result = await billingService.handleRazorpayWebhook(body.event, body.payload || body);
+      return sendJson(res, 200, result);
     }
 
     // GET /v1/installations
