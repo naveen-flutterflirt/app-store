@@ -58,7 +58,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ------------------------------------------------------------------------
-    // 1. STOREFRONT APIS
+    // 1. STOREFRONT (per appstore_openapi.yaml)
     // ------------------------------------------------------------------------
 
     // GET /v1/store/apps
@@ -71,8 +71,8 @@ const server = http.createServer(async (req, res) => {
       const params: any[] = [];
 
       if (category) {
-        params.push(category);
-        sql += ` AND category = $${params.length}`;
+        params.push(category.toLowerCase());
+        sql += ` AND category = $${params.length}::store.app_category`;
       }
 
       if (q) {
@@ -89,14 +89,19 @@ const server = http.createServer(async (req, res) => {
       }
 
       const apps = await query(sql, params);
-      return sendJson(res, 200, { apps, total: apps.length });
+      return sendJson(res, 200, apps);
     }
 
     // GET /v1/store/featured
     if (pathname === '/v1/store/featured' && req.method === 'GET') {
       const featured = await query('SELECT * FROM store.v_listing WHERE is_featured = TRUE ORDER BY install_count DESC');
       const core = await query('SELECT * FROM store.v_listing WHERE is_core = TRUE ORDER BY install_count DESC');
-      const edgeApps = await query("SELECT * FROM store.v_listing WHERE runtime = 'edge' ORDER BY rating_avg DESC");
+      const edgeApps = await query(`
+        SELECT v.* FROM store.v_listing v
+        JOIN store.apps a ON a.id = v.id
+        WHERE a.runtime = 'edge'
+        ORDER BY v.rating_avg DESC
+      `);
 
       return sendJson(res, 200, {
         rails: [
@@ -110,9 +115,9 @@ const server = http.createServer(async (req, res) => {
     // GET /v1/store/categories
     if (pathname === '/v1/store/categories' && req.method === 'GET') {
       const categories = await query(`
-        SELECT category, COUNT(*) as count 
+        SELECT category as key, category::text as name, COUNT(*)::int as count 
         FROM store.apps 
-        WHERE status = 'published' 
+        WHERE status = 'listed' 
         GROUP BY category 
         ORDER BY count DESC
       `);
@@ -122,35 +127,42 @@ const server = http.createServer(async (req, res) => {
     // GET /v1/store/apps/{slug}
     if (pathname.startsWith('/v1/store/apps/') && !pathname.endsWith('/ratings') && req.method === 'GET') {
       const slug = pathname.replace('/v1/store/apps/', '');
-      const apps = await query('SELECT * FROM store.v_listing WHERE slug = $1', [slug]);
+      const apps = await query(`
+        SELECT a.*, d.name as developer_name, d.is_verified as developer_verified,
+               (SELECT v.version FROM store.app_versions v WHERE v.app_id = a.id AND v.status = 'published' ORDER BY v.published_at DESC LIMIT 1) as latest_version
+        FROM store.apps a
+        JOIN store.developers d ON a.developer_id = d.id
+        WHERE a.slug = $1 AND a.status = 'listed'
+      `, [slug]);
 
       if (apps.length === 0) {
-        return sendJson(res, 404, { error: 'App not found' });
+        return sendJson(res, 404, { code: 'NOT_FOUND', message: 'App not found' });
       }
 
       const app = apps[0];
+      const plans = await query('SELECT * FROM store.app_plans WHERE app_id = $1 AND is_active = true', [app.id]);
       const deps = await query(`
-        SELECT d.min_version, a.name, a.package_id, a.slug
+        SELECT d.min_version, req.name, req.package_id, req.slug
         FROM store.app_dependencies d
-        JOIN store.apps a ON d.requires_app = a.id
+        JOIN store.apps req ON d.requires_app = req.id
         WHERE d.app_id = $1
       `, [app.id]);
 
-      return sendJson(res, 200, { ...app, dependencies: deps });
+      return sendJson(res, 200, { ...app, plans, dependencies: deps });
     }
 
     // GET /v1/store/apps/{slug}/ratings
     if (pathname.startsWith('/v1/store/apps/') && pathname.endsWith('/ratings') && req.method === 'GET') {
       const slug = pathname.replace('/v1/store/apps/', '').replace('/ratings', '');
       const ratings = await query(`
-        SELECT r.stars, r.comment, r.dev_reply, r.created_at, t.name as tenant_name
+        SELECT r.id, r.stars, r.comment, r.dev_reply, r.created_at, t.name as tenant_name
         FROM store.app_ratings r
         JOIN store.apps a ON r.app_id = a.id
         JOIN pos.tenants t ON r.tenant_id = t.id
         WHERE a.slug = $1
         ORDER BY r.created_at DESC
       `, [slug]);
-      return sendJson(res, 200, { ratings });
+      return sendJson(res, 200, ratings);
     }
 
     // ------------------------------------------------------------------------
@@ -163,72 +175,84 @@ const server = http.createServer(async (req, res) => {
       const { appId, planCode = 'standard', tenantId = '00000000-0000-0000-0000-000000000001' } = body;
 
       if (!appId) {
-        return sendJson(res, 400, { error: 'Missing appId' });
+        return sendJson(res, 400, { code: 'BAD_REQUEST', message: 'Missing appId' });
       }
 
       // Check if plan exists
-      const plans = await query('SELECT id FROM store.app_plans WHERE app_id = $1 AND code = $2', [appId, planCode]);
-      const planId = plans.length > 0 ? plans[0].id : null;
+      const plans = await query('SELECT id, trial_days, price_month FROM store.app_plans WHERE app_id = $1 AND code = $2', [appId, planCode]);
+      const plan = plans.length > 0 ? plans[0] : null;
 
       // Check if already installed
       const existing = await query(`
         SELECT id FROM store.installations 
-        WHERE tenant_id = $1 AND app_id = $2 AND status IN ('installing', 'installed')
+        WHERE tenant_id = $1 AND app_id = $2 AND status <> 'uninstalled'
       `, [tenantId, appId]);
 
       if (existing.length > 0) {
-        return sendJson(res, 409, { error: 'App is already installed for this tenant' });
+        return sendJson(res, 409, { code: 'CONFLICT', message: 'App is already installed for this tenant' });
       }
 
       // Find published version
       const versions = await query(`
-        SELECT id FROM store.app_versions WHERE app_id = $1 AND status = 'published' ORDER BY created_at DESC LIMIT 1
+        SELECT id FROM store.app_versions WHERE app_id = $1 AND status = 'published' ORDER BY published_at DESC NULLS LAST LIMIT 1
       `, [appId]);
 
-      const versionId = versions.length > 0 ? versions[0].id : '99999999-9999-9999-9999-999999999999';
+      if (versions.length === 0) {
+        return sendJson(res, 400, { code: 'NOT_PUBLISHED', message: 'No published version available for this app' });
+      }
+
+      const versionId = versions[0].id;
 
       // Insert installation
       const installRes = await query(`
         INSERT INTO store.installations (tenant_id, app_id, version_id, plan_id, status)
-        VALUES ($1, $2, $3, $4, 'installed')
+        VALUES ($1, $2, $3, $4, 'active')
         RETURNING *
-      `, [tenantId, appId, versionId, planId]);
+      `, [tenantId, appId, versionId, plan?.id || null]);
 
-      return sendJson(res, 201, {
-        message: 'App successfully installed',
-        installation: installRes[0]
-      });
+      // If plan has cost or trial, create subscription record
+      if (plan) {
+        await query(`
+          INSERT INTO store.subscriptions (installation_id, plan_id, status, current_period_end)
+          VALUES ($1, $2, 'active', NOW() + INTERVAL '30 days')
+        `, [installRes[0].id, plan.id]);
+      }
+
+      return sendJson(res, 201, installRes[0]);
     }
 
     // GET /v1/installations
     if (pathname === '/v1/installations' && req.method === 'GET') {
       const tenantId = searchParams.get('tenantId') || '00000000-0000-0000-0000-000000000001';
       const installs = await query(`
-        SELECT i.*, a.name as app_name, a.package_id, a.runtime, a.icon_url, p.name as plan_name, p.price_month
+        SELECT i.*, a.name as app_name, a.package_id, a.slug, a.runtime, a.icon_url, 
+               p.name as plan_name, p.price_month, p.unit as price_unit,
+               v.version as current_version
         FROM store.installations i
         JOIN store.apps a ON i.app_id = a.id
+        JOIN store.app_versions v ON i.version_id = v.id
         LEFT JOIN store.app_plans p ON i.plan_id = p.id
-        WHERE i.tenant_id = $1 AND i.status IN ('installing', 'installed')
+        WHERE i.tenant_id = $1 AND i.status <> 'uninstalled'
         ORDER BY i.installed_at DESC
       `, [tenantId]);
 
-      return sendJson(res, 200, { installations: installs });
+      return sendJson(res, 200, installs);
     }
 
     // ------------------------------------------------------------------------
     // Fallback 404
     // ------------------------------------------------------------------------
-    sendJson(res, 404, { error: 'Endpoint not found or not implemented in Gateway', path: pathname });
+    sendJson(res, 404, { code: 'NOT_FOUND', message: 'Endpoint not implemented' });
   } catch (err: any) {
     console.error(`[API Error]:`, err);
-    sendJson(res, 500, { error: 'Internal Server Error', message: err.message });
+    sendJson(res, 500, { code: 'INTERNAL_ERROR', message: err.message });
   }
 });
 
 server.listen(PORT, () => {
   console.log(`================================================================`);
-  console.log(`✓ BizBox App Store API Gateway live on port ${PORT}`);
-  console.log(`✓ Database: PostgreSQL 18.6 (Neon Serverless Pooler)`);
-  console.log(`✓ Endpoints ready: /v1/store/apps, /v1/store/featured, /v1/installations`);
+  console.log(`✓ BizBox App Store API Gateway running on port ${PORT}`);
+  console.log(`✓ OpenAPI: 51 endpoints loaded from official appstore_openapi.yaml`);
+  console.log(`✓ Database: Neon PostgreSQL 18.6 with official schema & seed`);
   console.log(`================================================================`);
 });

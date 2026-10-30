@@ -2,517 +2,2310 @@ openapi: 3.1.0
 info:
   title: BizBox App Store API
   version: 1.0.0
-  description: Platform API for BizBox App Store (FlutterFlirt Private Limited)
-servers:
-  - url: http://localhost:4000/v1
-    description: Local Development API Gateway
-  - url: https://api.bizbox.in/v1
-    description: Production API Gateway
+  description: 'Storefront, installations, developer publishing, review and the BizBox edge agent.
 
+    Same auth and error conventions as the BizBox POS API.'
+  contact:
+    name: FlutterFlirt Private Limited
+    email: info@flutterflirt.com
+    url: https://www.flutterflirt.com
+servers:
+- url: https://api.bizbox.flutterflirt.com/v1
+security:
+- bearerAuth: []
+tags:
+- name: Storefront
+- name: Installations
+- name: App runtime
+- name: Developer
+- name: Review & Admin
+- name: Edge agent
+- name: Webhooks
 paths:
-  # ============================================================================
-  # 1. STOREFRONT
-  # ============================================================================
   /store/apps:
     get:
-      summary: Browse & search apps
-      parameters:
-        - name: q
-          in: query
-          schema: { type: string }
-        - name: category
-          in: query
-          schema: { type: string }
-        - name: businessType
-          in: query
-          schema: { type: string }
-        - name: sort
-          in: query
-          schema: { type: string, enum: [popular, rating, new] }
-        - name: cursor
-          in: query
-          schema: { type: string }
+      tags:
+      - Storefront
+      summary: Browse & search apps (q, category, businessType, sort=popular|rating|new, cursor)
+      operationId: get_store_apps
       responses:
         '200':
-          description: List of apps matching criteria
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppSummary'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
   /store/featured:
     get:
-      summary: Home page rails (featured, essentials for your business type, new)
+      tags:
+      - Storefront
+      summary: 'Home page rails: featured, essentials for your business type, new'
+      operationId: get_store_featured
       responses:
         '200':
-          description: Categorized lists of featured apps
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
   /store/categories:
     get:
+      tags:
+      - Storefront
       summary: Categories with app counts
+      operationId: get_store_categories
       responses:
         '200':
-          description: All available store categories
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key:
+                      type: string
+                    name:
+                      type: string
+                    count:
+                      type: integer
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
   /store/apps/{slug}:
     get:
+      tags:
+      - Storefront
       summary: App details, plans, permissions, dependencies
+      operationId: get_store_apps_slug
       parameters:
-        - name: slug
-          in: path
-          required: true
-          schema: { type: string }
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
-          description: Detailed app listing
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppDetail'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
   /store/apps/{slug}/ratings:
     get:
-      summary: Ratings & reviews for an app
+      tags:
+      - Storefront
+      summary: Ratings & reviews
+      operationId: get_store_apps_slug_ratings
       parameters:
-        - name: slug
-          in: path
-          required: true
-          schema: { type: string }
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
       responses:
         '200':
-          description: App ratings
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rating'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
     post:
+      tags:
+      - Storefront
       summary: Rate an installed app (one per business)
+      operationId: post_store_apps_slug_ratings
       parameters:
-        - name: slug
-          in: path
-          required: true
-          schema: { type: string }
+      - name: slug
+        in: path
+        required: true
+        schema:
+          type: string
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [stars]
               properties:
-                stars: { type: integer, minimum: 1, maximum: 5 }
-                comment: { type: string }
+                stars:
+                  type: integer
+                comment:
+                  type: string
       responses:
         '201':
-          description: Rating recorded
-
-  # ============================================================================
-  # 2. INSTALLATIONS & SUBSCRIPTIONS
-  # ============================================================================
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.install
   /installations:
     post:
-      summary: Install app (checks deps -> creates subscription -> provisions cloud + edge)
+      tags:
+      - Installations
+      summary: 'Install app: checks deps → creates subscription → provisions cloud + edge'
+      operationId: post_installations
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [appId, planCode]
-              properties:
-                appId: { type: string, format: uuid }
-                planCode: { type: string }
-                outletIds: { type: array, items: { type: string, format: uuid } }
+              $ref: '#/components/schemas/InstallRequest'
       responses:
         '201':
-          description: Installation initialized
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.install
     get:
+      tags:
+      - Installations
       summary: My installed apps with update status
+      operationId: get_installations
       responses:
         '200':
-          description: Tenant installed apps
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
   /installations/{installationId}:
     get:
+      tags:
+      - Installations
       summary: Installation details
+      operationId: get_installations_installationId
       parameters:
-        - name: installationId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: installationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: Details of the installation
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
     patch:
+      tags:
+      - Installations
       summary: Change settings, outlets, auto-update
+      operationId: patch_installations_installationId
       parameters:
-        - name: installationId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Updated configuration
-    delete:
-      summary: Uninstall app (data kept 30 days, then purged)
-      parameters:
-        - name: installationId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '204':
-          description: Uninstalled
-  /installations/{installationId}/update:
-    post:
-      summary: Update to latest (or given) version
-      parameters:
-        - name: installationId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Update scheduled
-  /installations/{installationId}/rollback:
-    post:
-      summary: Roll back to previous version
-      parameters:
-        - name: installationId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Rollback triggered
-  /installations/{installationId}/plan:
-    post:
-      summary: Upgrade / downgrade plan
-      parameters:
-        - name: installationId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Plan changed
-  /installations/{installationId}/deployments:
-    get:
-      summary: Where it runs (edge boxes & health)
-      parameters:
-        - name: installationId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Deployment status on edge devices
-  /billing/subscriptions:
-    get:
-      summary: All app subscriptions & next invoice
-      responses:
-        '200':
-          description: Tenant subscriptions
-
-  # ============================================================================
-  # 3. APP RUNTIME
-  # ============================================================================
-  /oauth/token:
-    post:
-      summary: App gets a tenant-scoped token (client_credentials + installation_id)
+      - name: installationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [client_id, client_secret, installation_id]
               properties:
-                client_id: { type: string }
-                client_secret: { type: string }
-                installation_id: { type: string, format: uuid }
+                config:
+                  type: object
+                outletIds:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+                autoUpdate:
+                  type: boolean
       responses:
         '200':
-          description: Access token issued
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.install
+    delete:
+      tags:
+      - Installations
+      summary: Uninstall (data kept 30 days, then purged)
+      operationId: delete_installations_installationId
+      parameters:
+      - name: installationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.install
+  /installations/{installationId}/update:
+    post:
+      tags:
+      - Installations
+      summary: Update to latest (or given) version
+      operationId: post_installations_installationId_update
+      parameters:
+      - name: installationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.install
+  /installations/{installationId}/rollback:
+    post:
+      tags:
+      - Installations
+      summary: Roll back to previous version
+      operationId: post_installations_installationId_rollback
+      parameters:
+      - name: installationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.install
+  /installations/{installationId}/plan:
+    post:
+      tags:
+      - Installations
+      summary: Upgrade / downgrade plan
+      operationId: post_installations_installationId_plan
+      parameters:
+      - name: installationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planCode:
+                  type: string
+                billingCycle:
+                  type: string
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: billing.manage
+  /installations/{installationId}/deployments:
+    get:
+      tags:
+      - Installations
+      summary: 'Where it runs: edge boxes & health'
+      operationId: get_installations_installationId_deployments
+      parameters:
+      - name: installationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deployment'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.view
+  /billing/subscriptions:
+    get:
+      tags:
+      - Installations
+      summary: All app subscriptions & next invoice
+      operationId: get_billing_subscriptions
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: billing.manage
+  /oauth/token:
+    post:
+      tags:
+      - App runtime
+      summary: App gets a tenant-scoped token (client_credentials + installation_id)
+      operationId: post_oauth_token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+                installation_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security: []
   /app/context:
     get:
-      summary: Installation context for calling app (tenant, outlets, scopes, settings)
+      tags:
+      - App runtime
+      summary: Installation context for the calling app (tenant, outlets, scopes, settings)
+      operationId: get_app_context
       responses:
         '200':
-          description: App runtime context
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Installation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - appToken: []
   /app/webhooks:
     post:
+      tags:
+      - App runtime
       summary: Subscribe the installation to platform events
+      operationId: post_app_webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                targetUrl:
+                  type: string
       responses:
-        '201':
-          description: Webhook registered
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - appToken: []
   /app/events:
     get:
+      tags:
+      - App runtime
       summary: Event catalog the app may subscribe to
+      operationId: get_app_events
       responses:
         '200':
-          description: List of available platform events
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+                    scope:
+                      type: string
+                    sample:
+                      type: object
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - appToken: []
   /app/usage:
     post:
+      tags:
+      - App runtime
       summary: Report metered usage (messages sent, AI queries)
+      operationId: post_app_usage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                metric:
+                  type: string
+                quantity:
+                  type: integer
       responses:
-        '200':
-          description: Metered usage ingested
-
-  # ============================================================================
-  # 4. DEVELOPER PORTAL & API
-  # ============================================================================
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - appToken: []
   /dev/developers:
     post:
+      tags:
+      - Developer
       summary: Create a publisher account (KYC + payout onboarding link)
+      operationId: post_dev_developers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Developer'
       responses:
         '201':
-          description: Developer account created
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Developer'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
   /dev/me:
     get:
+      tags:
+      - Developer
       summary: My publisher profile & team
+      operationId: get_dev_me
       responses:
         '200':
-          description: Profile details
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Developer'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/apps:
     post:
+      tags:
+      - Developer
       summary: Create app listing (draft)
+      operationId: post_dev_apps
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevApp'
       responses:
         '201':
-          description: App listing created
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevApp'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
     get:
+      tags:
+      - Developer
       summary: My apps
+      operationId: get_dev_apps
       responses:
         '200':
-          description: Apps list
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DevApp'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/apps/{appId}:
     patch:
+      tags:
+      - Developer
       summary: Edit listing text, icon, screenshots
+      operationId: patch_dev_apps_appId
       parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevApp'
       responses:
         '200':
-          description: App updated
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevApp'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/apps/{appId}/assets:
     post:
-      summary: Presigned upload URL for icon / screenshots
+      tags:
+      - Developer
+      summary: Presigned upload for icon / screenshots
+      operationId: post_dev_apps_appId_assets
       parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind:
+                  type: string
+                contentType:
+                  type: string
       responses:
-        '200':
-          description: Presigned upload url
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploadUrl:
+                    type: string
+                  publicUrl:
+                    type: string
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/apps/{appId}/plans:
     put:
+      tags:
+      - Developer
       summary: Set pricing plans
+      operationId: put_dev_apps_appId_plans
       parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Plan'
       responses:
-        '200':
-          description: Pricing plans updated
+        '204':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/apps/{appId}/versions:
     post:
-      summary: Create version -> presigned bundle upload URL
+      tags:
+      - Developer
+      summary: Create version → presigned bundle upload URL
+      operationId: post_dev_apps_appId_versions
       parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVersionRequest'
       responses:
         '201':
-          description: Version created with bundle upload target
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateVersionResponse'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/versions/{versionId}/submit:
     post:
+      tags:
+      - Developer
       summary: Submit for automated checks + review
+      operationId: post_dev_versions_versionId_submit
       parameters:
-        - name: versionId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Version submitted to pipeline
-  /dev/versions/{versionId}:
-    get:
-      summary: Version status, checks and reviewer notes
-      parameters:
-        - name: versionId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Version status and checks
-  /dev/versions/{versionId}/rollout:
-    post:
-      summary: Change staged rollout % (after approval)
-      parameters:
-        - name: versionId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Rollout percentage adjusted
-  /dev/versions/{versionId}/withdraw:
-    post:
-      summary: Withdraw a version (halts rollout)
-      parameters:
-        - name: versionId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: Version withdrawn
-  /dev/apps/{appId}/analytics:
-    get:
-      summary: Installs, revenue, ratings, errors
-      parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
-      responses:
-        '200':
-          description: App performance metrics
-  /dev/apps/{appId}/oauth-clients:
-    post:
-      summary: Create OAuth client (secret shown once)
-      parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '201':
-          description: OAuth client credentials generated
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
+  /dev/versions/{versionId}:
+    get:
+      tags:
+      - Developer
+      summary: Version status, checks and reviewer notes
+      operationId: get_dev_versions_versionId
+      parameters:
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
+  /dev/versions/{versionId}/rollout:
+    post:
+      tags:
+      - Developer
+      summary: Change staged rollout % (after approval)
+      operationId: post_dev_versions_versionId_rollout
+      parameters:
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rolloutPct:
+                  type: integer
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
+  /dev/versions/{versionId}/withdraw:
+    post:
+      tags:
+      - Developer
+      summary: Withdraw a version (halts rollout)
+      operationId: post_dev_versions_versionId_withdraw
+      parameters:
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
+  /dev/apps/{appId}/analytics:
+    get:
+      tags:
+      - Developer
+      summary: Installs, revenue, ratings, errors
+      operationId: get_dev_apps_appId_analytics
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppAnalytics'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
+  /dev/apps/{appId}/oauth-clients:
+    post:
+      tags:
+      - Developer
+      summary: Create OAuth client (secret shown once)
+      operationId: post_dev_apps_appId_oauth_clients
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                redirectUris:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clientId:
+                    type: string
+                  clientSecret:
+                    type: string
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/ratings/{ratingId}/reply:
     post:
+      tags:
+      - Developer
       summary: Reply to a review
+      operationId: post_dev_ratings_ratingId_reply
       parameters:
-        - name: ratingId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: ratingId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reply:
+                  type: string
       responses:
-        '200':
-          description: Reply posted
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev
   /dev/payouts:
     get:
+      tags:
+      - Developer
       summary: Monthly payouts statement
+      operationId: get_dev_payouts
       responses:
         '200':
-          description: Payout records
-
-  # ============================================================================
-  # 5. REVIEW & ADMIN
-  # ============================================================================
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payout'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: dev.finance
   /admin/review-queue:
     get:
+      tags:
+      - Review & Admin
       summary: Versions waiting for review with check results
+      operationId: get_admin_review_queue
       responses:
         '200':
-          description: Pending review queue
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.review
   /admin/versions/{versionId}:
     get:
-      summary: Full version details (manifest diff, scopes, scan reports)
+      tags:
+      - Review & Admin
+      summary: 'Full version: manifest diff, scopes, scan reports'
+      operationId: get_admin_versions_versionId
       parameters:
-        - name: versionId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
       responses:
         '200':
-          description: Full version inspection
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.review
   /admin/versions/{versionId}/decision:
     post:
+      tags:
+      - Review & Admin
       summary: Approve / request changes / reject
+      operationId: post_admin_versions_versionId_decision
       parameters:
-        - name: versionId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewDecision'
       responses:
-        '200':
-          description: Decision applied
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.review
   /admin/versions/{versionId}/publish:
     post:
+      tags:
+      - Review & Admin
       summary: Sign bundle (cosign) and publish at rollout %
+      operationId: post_admin_versions_versionId_publish
       parameters:
-        - name: versionId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rolloutPct:
+                  type: integer
       responses:
-        '200':
-          description: Version signed and published
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.publish
   /admin/apps/{appId}:
     patch:
+      tags:
+      - Review & Admin
       summary: Feature, mark core, change category
+      operationId: patch_admin_apps_appId
       parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isFeatured:
+                  type: boolean
+                isCore:
+                  type: boolean
+                category:
+                  type: string
       responses:
         '200':
-          description: App properties updated
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DevApp'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.admin
   /admin/apps/{appId}/delist:
     post:
+      tags:
+      - Review & Admin
       summary: Delist app (security / policy)
+      operationId: post_admin_apps_appId_delist
       parameters:
-        - name: appId
-          in: path
-          required: true
-          schema: { type: string, format: uuid }
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                uninstall:
+                  type: boolean
       responses:
-        '200':
-          description: App delisted
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.admin
   /admin/metrics:
     get:
+      tags:
+      - Review & Admin
       summary: Store dashboard KPIs
+      operationId: get_admin_metrics
       responses:
         '200':
-          description: System-wide metrics
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreMetrics'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.admin
   /admin/payouts/run:
     post:
+      tags:
+      - Review & Admin
       summary: Calculate & send monthly developer payouts
+      operationId: post_admin_payouts_run
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                month:
+                  type: string
       responses:
-        '200':
-          description: Payout run executed
-
-  # ============================================================================
-  # 6. EDGE AGENT
-  # ============================================================================
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payout'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      x-permission: store.finance
   /edge/agent/register:
     post:
+      tags:
+      - Edge agent
       summary: Box registers with device token, gets agent credentials
+      operationId: post_edge_agent_register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                  format: uuid
+                hwModel:
+                  type: string
+                platformVersion:
+                  type: string
       responses:
-        '200':
-          description: Edge box registered
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agentToken:
+                    type: string
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - deviceAuth: []
   /edge/agent/desired-state:
     get:
+      tags:
+      - Edge agent
       summary: Apps & versions this box should run (ETag / generation)
+      operationId: get_edge_agent_desired_state
       responses:
         '200':
-          description: Desired state document
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DesiredState'
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - deviceAuth: []
   /edge/agent/report:
     post:
+      tags:
+      - Edge agent
       summary: Report container status & host health
+      operationId: post_edge_agent_report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentReport'
       responses:
-        '200':
-          description: Status logged
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - deviceAuth: []
   /edge/agent/registry-token:
     get:
+      tags:
+      - Edge agent
       summary: Short-lived pull token for registry.bizbox.in
+      operationId: get_edge_agent_registry_token
       responses:
         '200':
-          description: OCI registry pull token
-
-  # ============================================================================
-  # 7. WEBHOOKS
-  # ============================================================================
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security:
+      - deviceAuth: []
   /webhooks/billing/razorpay:
     post:
-      summary: Subscription charged / failed -> activate / suspend installs
+      tags:
+      - Webhooks
+      summary: Subscription charged / failed → activate / suspend installs
+      operationId: post_webhooks_billing_razorpay
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
-        '200':
-          description: Webhook received
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security: []
   /webhooks/pipeline:
     post:
+      tags:
+      - Webhooks
       summary: CI pipeline posts check results back
+      operationId: post_webhooks_pipeline
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                versionId:
+                  type: string
+                  format: uuid
+                kind:
+                  type: string
+                status:
+                  type: string
+                summary:
+                  type: string
+                reportUrl:
+                  type: string
       responses:
-        '200':
-          description: Check results ingested
+        '202':
+          description: OK
+        '400':
+          $ref: '#/components/responses/Error'
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+      security: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    appToken:
+      type: http
+      scheme: bearer
+      description: OAuth token issued to an installed app
+    deviceAuth:
+      type: apiKey
+      in: header
+      name: X-Agent-Token
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        requestId:
+          type: string
+    Plan:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        unit:
+          type: string
+          enum:
+          - free
+          - tenant
+          - outlet
+          - device
+          - user
+        priceMonth:
+          type: number
+        priceYear:
+          type: number
+        trialDays:
+          type: integer
+        limits:
+          type: object
+    AppSummary:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: kds
+        name:
+          type: string
+        tagline:
+          type: string
+        category:
+          type: string
+          enum:
+          - sales
+          - kitchen
+          - inventory
+          - customers
+          - finance
+          - people
+          - devices
+          - online
+          - analytics
+          - ai
+          - marketing
+          - industry
+        iconUrl:
+          type: string
+        developer:
+          type: string
+        verified:
+          type: boolean
+        ratingAvg:
+          type: number
+        ratingCount:
+          type: integer
+        installCount:
+          type: integer
+        priceFrom:
+          type: number
+        latestVersion:
+          type: string
+        isCore:
+          type: boolean
+        installed:
+          type: boolean
+    AppDetail:
+      allOf:
+      - $ref: '#/components/schemas/AppSummary'
+      - type: object
+        properties:
+          descriptionMd:
+            type: string
+          screenshots:
+            type: array
+            items:
+              type: string
+          businessTypes:
+            type: array
+            items:
+              type: string
+          runtime:
+            type: string
+            enum:
+            - cloud
+            - edge
+            - hybrid
+          scopes:
+            type: array
+            items:
+              type: object
+              properties:
+                scope:
+                  type: string
+                reason:
+                  type: string
+                sensitive:
+                  type: boolean
+          plans:
+            type: array
+            items:
+              $ref: '#/components/schemas/Plan'
+          requires:
+            type: array
+            items:
+              type: object
+              properties:
+                slug:
+                  type: string
+                minVersion:
+                  type: string
+          supportEmail:
+            type: string
+          privacyUrl:
+            type: string
+          releaseNotes:
+            type: string
+    Rating:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        stars:
+          type: integer
+        comment:
+          type: string
+        business:
+          type: string
+        devReply:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    InstallRequest:
+      type: object
+      properties:
+        appSlug:
+          type: string
+        planCode:
+          type: string
+        outletIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        grantedScopes:
+          type: array
+          items:
+            type: string
+        billingCycle:
+          type: string
+          enum:
+          - month
+          - year
+    Installation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        app:
+          $ref: '#/components/schemas/AppSummary'
+        version:
+          type: string
+        availableVersion:
+          type: string
+        plan:
+          $ref: '#/components/schemas/Plan'
+        status:
+          type: string
+          enum:
+          - pending_payment
+          - installing
+          - active
+          - update_available
+          - suspended
+          - uninstalled
+          - failed
+        outletIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        grantedScopes:
+          type: array
+          items:
+            type: string
+        autoUpdate:
+          type: boolean
+        config:
+          type: object
+        paymentLink:
+          type: string
+        installedAt:
+          type: string
+          format: date-time
+    Deployment:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        deviceName:
+          type: string
+        version:
+          type: string
+        status:
+          type: string
+          enum:
+          - queued
+          - pulling
+          - starting
+          - running
+          - failed
+          - rolled_back
+          - removed
+        cpuPct:
+          type: number
+        memMb:
+          type: integer
+        lastHeartbeat:
+          type: string
+          format: date-time
+        error:
+          type: string
+    Manifest:
+      type: object
+      properties:
+        id:
+          type: string
+          example: in.kitchenmetrics.foodcost-pro
+        name:
+          type: string
+        version:
+          type: string
+          example: 1.1.0
+        runtime:
+          type: string
+          enum:
+          - cloud
+          - edge
+          - hybrid
+        minPlatform:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: object
+            properties:
+              scope:
+                type: string
+              reason:
+                type: string
+        events:
+          type: array
+          items:
+            type: string
+        ui:
+          type: object
+          properties:
+            entry:
+              type: string
+            slots:
+              type: array
+              items:
+                type: string
+                enum:
+                - console.sidebar
+                - console.dashboard.widget
+                - pos.order.action
+                - pos.receipt.footer
+                - kds.ticket.badge
+                - settings.page
+        edge:
+          type: object
+          properties:
+            image:
+              type: string
+            ports:
+              type: array
+              items:
+                type: integer
+            resources:
+              type: object
+              properties:
+                cpu:
+                  type: string
+                memory:
+                  type: string
+            volumes:
+              type: array
+              items:
+                type: string
+        webhooks:
+          type: array
+          items:
+            type: object
+            properties:
+              event:
+                type: string
+              path:
+                type: string
+        settingsSchema:
+          type: object
+    Developer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+          - first_party
+          - partner
+          - independent
+        email:
+          type: string
+        isVerified:
+          type: boolean
+        revenueSharePct:
+          type: number
+    DevApp:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        packageId:
+          type: string
+        name:
+          type: string
+        tagline:
+          type: string
+        category:
+          type: string
+          enum:
+          - sales
+          - kitchen
+          - inventory
+          - customers
+          - finance
+          - people
+          - devices
+          - online
+          - analytics
+          - ai
+          - marketing
+          - industry
+        status:
+          type: string
+          enum:
+          - draft
+          - listed
+          - unlisted
+          - delisted
+        descriptionMd:
+          type: string
+        iconUrl:
+          type: string
+        screenshots:
+          type: array
+          items:
+            type: string
+        businessTypes:
+          type: array
+          items:
+            type: string
+        supportEmail:
+          type: string
+        privacyUrl:
+          type: string
+    CreateVersionRequest:
+      type: object
+      properties:
+        version:
+          type: string
+        channel:
+          type: string
+          enum:
+          - stable
+          - beta
+          - internal
+        releaseNotes:
+          type: string
+        bundleSha256:
+          type: string
+        bundleSize:
+          type: integer
+    CreateVersionResponse:
+      type: object
+      properties:
+        versionId:
+          type: string
+          format: uuid
+        uploadUrl:
+          type: string
+          description: presigned S3 PUT URL, 15 min
+        uploadHeaders:
+          type: object
+    Check:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - manifest
+          - dependencies
+          - security_scan
+          - license
+          - arm64_build
+          - permissions
+          - performance
+          - accessibility
+        status:
+          type: string
+          enum:
+          - pending
+          - running
+          - passed
+          - warning
+          - failed
+        summary:
+          type: string
+        reportUrl:
+          type: string
+    Version:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        appSlug:
+          type: string
+        version:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+          enum:
+          - draft
+          - submitted
+          - checking
+          - in_review
+          - changes_requested
+          - approved
+          - published
+          - rejected
+          - withdrawn
+          - superseded
+        rolloutPct:
+          type: integer
+        manifest:
+          $ref: '#/components/schemas/Manifest'
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Check'
+        reviews:
+          type: array
+          items:
+            type: object
+            properties:
+              decision:
+                type: string
+              notes:
+                type: string
+              reviewer:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+        submittedAt:
+          type: string
+          format: date-time
+        publishedAt:
+          type: string
+          format: date-time
+    ReviewDecision:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum:
+          - approve
+          - request_changes
+          - reject
+        notes:
+          type: string
+        checklist:
+          type: object
+    AppAnalytics:
+      type: object
+      properties:
+        installs:
+          type: integer
+        activeInstalls:
+          type: integer
+        uninstalls30d:
+          type: integer
+        mrr:
+          type: number
+        ratingAvg:
+          type: number
+        apiCalls30d:
+          type: integer
+        errorRate:
+          type: number
+        byDay:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              installs:
+                type: integer
+              uninstalls:
+                type: integer
+              revenue:
+                type: number
+        versions:
+          type: array
+          items:
+            type: object
+            properties:
+              version:
+                type: string
+              installs:
+                type: integer
+    Payout:
+      type: object
+      properties:
+        periodStart:
+          type: string
+        periodEnd:
+          type: string
+        gross:
+          type: number
+        platformFee:
+          type: number
+        tds:
+          type: number
+        net:
+          type: number
+        status:
+          type: string
+          enum:
+          - pending
+          - processing
+          - paid
+          - failed
+    DesiredState:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        generation:
+          type: integer
+        apps:
+          type: array
+          items:
+            type: object
+            properties:
+              installationId:
+                type: string
+                format: uuid
+              packageId:
+                type: string
+              version:
+                type: string
+              image:
+                type: string
+              signature:
+                type: string
+              env:
+                type: object
+              resources:
+                type: object
+              config:
+                type: object
+    AgentReport:
+      type: object
+      properties:
+        generation:
+          type: integer
+        deployments:
+          type: array
+          items:
+            type: object
+            properties:
+              installationId:
+                type: string
+                format: uuid
+              status:
+                type: string
+              containerId:
+                type: string
+              cpuPct:
+                type: number
+              memMb:
+                type: integer
+              error:
+                type: string
+        host:
+          type: object
+          properties:
+            cpuPct:
+              type: number
+            memFreeMb:
+              type: integer
+            diskFreeGb:
+              type: number
+            tempC:
+              type: number
+            uptimeS:
+              type: integer
+            platformVersion:
+              type: string
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+        scope:
+          type: string
+    StoreMetrics:
+      type: object
+      properties:
+        listedApps:
+          type: integer
+        developers:
+          type: integer
+        installs:
+          type: integer
+        pendingReviews:
+          type: integer
+        gmvMonth:
+          type: number
+        platformRevenueMonth:
+          type: number
+        topApps:
+          type: array
+          items:
+            type: object
+            properties:
+              slug:
+                type: string
+              installs:
+                type: integer
+              mrr:
+                type: number

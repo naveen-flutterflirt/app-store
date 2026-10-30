@@ -1,659 +1,439 @@
--- ==============================================================================
--- BizBox Platform Database Schema (PostgreSQL 16)
--- FlutterFlirt Private Limited · Version 1.0
--- ==============================================================================
-
+-- =====================================================================
+-- Prerequisites for shared database (pos schema & helper functions)
+-- =====================================================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "citext";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
--- ------------------------------------------------------------------------------
--- Mock / Reference POS Schema (to satisfy foreign keys in shared database)
--- ------------------------------------------------------------------------------
 CREATE SCHEMA IF NOT EXISTS pos;
 
-CREATE TABLE IF NOT EXISTS pos.tenants (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name TEXT NOT NULL,
-    business_type TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS pos.users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id UUID REFERENCES pos.tenants(id) ON DELETE CASCADE,
-    email CITEXT NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'staff',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS pos.devices (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id UUID REFERENCES pos.tenants(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    device_type TEXT NOT NULL DEFAULT 'pi5_box',
-    serial_number TEXT UNIQUE NOT NULL,
-    device_token TEXT NOT NULL,
-    is_online BOOLEAN NOT NULL DEFAULT false,
-    last_seen_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ------------------------------------------------------------------------------
--- STORE SCHEMA
--- ------------------------------------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS store;
-
--- Enums
-DO $$ BEGIN
-    CREATE TYPE store.dev_type AS ENUM ('individual', 'company');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.app_category AS ENUM (
-        'Sales & POS',
-        'Kitchen',
-        'Online orders',
-        'Inventory',
-        'Customers',
-        'Marketing',
-        'Finance & GST',
-        'Staff',
-        'Devices',
-        'Industry',
-        'Analytics',
-        'AI'
-    );
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.runtime_kind AS ENUM ('cloud', 'edge', 'hybrid');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.listing_status AS ENUM ('draft', 'in_review', 'published', 'delisted', 'archived');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.price_unit AS ENUM ('outlet', 'device', 'month', 'user');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.release_channel AS ENUM ('alpha', 'beta', 'stable');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.version_status AS ENUM (
-        'draft',
-        'submitted',
-        'checking',
-        'in_review',
-        'changes_requested',
-        'rejected',
-        'approved',
-        'published',
-        'withdrawn',
-        'superseded'
-    );
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.check_kind AS ENUM (
-        'manifest',
-        'sbom',
-        'security',
-        'licence',
-        'arm64_boot',
-        'permissions'
-    );
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.check_status AS ENUM ('pending', 'running', 'passed', 'warned', 'failed');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.review_decision AS ENUM ('approved', 'changes_requested', 'rejected');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.install_status AS ENUM ('installing', 'installed', 'suspended', 'uninstalled');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.deploy_status AS ENUM ('pending', 'pulling', 'running', 'error', 'stopped');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
-DO $$ BEGIN
-    CREATE TYPE store.sub_status AS ENUM ('trialing', 'active', 'past_due', 'cancelled', 'halted');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
-
--- ------------------------------------------------------------------------------
--- 1. developers (11 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.developers (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    slug VARCHAR(40) UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    type store.dev_type NOT NULL DEFAULT 'company',
-    email CITEXT NOT NULL,
-    website TEXT,
-    gstin VARCHAR(15),
-    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    revenue_share_pct NUMERIC(5,2) NOT NULL DEFAULT 80.00,
-    payout_ref TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ------------------------------------------------------------------------------
--- 2. developer_members (4 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.developer_members (
-    developer_id UUID NOT NULL REFERENCES store.developers(id) ON DELETE CASCADE,
-    email CITEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'member',
-    added_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (developer_id, email)
-);
-
--- ------------------------------------------------------------------------------
--- 3. apps (22 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.apps (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    developer_id UUID NOT NULL REFERENCES store.developers(id) ON DELETE RESTRICT,
-    slug VARCHAR(50) UNIQUE NOT NULL,
-    package_id VARCHAR(80) UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    tagline VARCHAR(90) NOT NULL,
-    category store.app_category NOT NULL,
-    business_types TEXT[] NOT NULL DEFAULT '{}',
-    description_md TEXT NOT NULL,
-    icon_url TEXT,
-    screenshots TEXT[] NOT NULL DEFAULT '{}',
-    support_email CITEXT,
-    privacy_url TEXT,
-    runtime store.runtime_kind NOT NULL DEFAULT 'cloud',
-    status store.listing_status NOT NULL DEFAULT 'draft',
-    is_featured BOOLEAN NOT NULL DEFAULT FALSE,
-    is_core BOOLEAN NOT NULL DEFAULT FALSE,
-    rating_avg NUMERIC(3,2) NOT NULL DEFAULT 0.00,
-    rating_count INTEGER NOT NULL DEFAULT 0,
-    install_count INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_apps_category ON store.apps(category);
-CREATE INDEX IF NOT EXISTS idx_apps_status ON store.apps(status);
-CREATE INDEX IF NOT EXISTS idx_apps_name_trgm ON store.apps USING gin (name gin_trgm_ops);
-
--- ------------------------------------------------------------------------------
--- 4. oauth_clients (6 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.oauth_clients (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    app_id UUID NOT NULL REFERENCES store.apps(id) ON DELETE CASCADE,
-    client_id VARCHAR(40) UNIQUE NOT NULL,
-    secret_hash TEXT NOT NULL,
-    redirect_uris TEXT[] NOT NULL DEFAULT '{}',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ------------------------------------------------------------------------------
--- 5. app_dependencies (3 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.app_dependencies (
-    app_id UUID NOT NULL REFERENCES store.apps(id) ON DELETE CASCADE,
-    requires_app UUID NOT NULL REFERENCES store.apps(id) ON DELETE CASCADE,
-    min_version VARCHAR(20) NOT NULL,
-    PRIMARY KEY (app_id, requires_app)
-);
-
--- ------------------------------------------------------------------------------
--- 6. app_plans (10 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.app_plans (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    app_id UUID NOT NULL REFERENCES store.apps(id) ON DELETE CASCADE,
-    code VARCHAR(30) NOT NULL,
-    name TEXT NOT NULL,
-    unit store.price_unit NOT NULL,
-    price_month NUMERIC(10,2) NOT NULL,
-    price_year NUMERIC(10,2),
-    trial_days INTEGER NOT NULL DEFAULT 14,
-    limits JSONB NOT NULL DEFAULT '{}',
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    UNIQUE (app_id, code)
-);
-
--- ------------------------------------------------------------------------------
--- 7. app_ratings (8 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.app_ratings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    app_id UUID NOT NULL REFERENCES store.apps(id) ON DELETE CASCADE,
-    tenant_id UUID NOT NULL REFERENCES pos.tenants(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES pos.users(id) ON DELETE SET NULL,
-    stars SMALLINT NOT NULL CHECK (stars >= 1 AND stars <= 5),
-    comment TEXT,
-    dev_reply TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (app_id, tenant_id)
-);
-
--- ------------------------------------------------------------------------------
--- 8. app_versions (18 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.app_versions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    app_id UUID NOT NULL REFERENCES store.apps(id) ON DELETE CASCADE,
-    version VARCHAR(20) NOT NULL,
-    channel store.release_channel NOT NULL DEFAULT 'stable',
-    manifest JSONB NOT NULL,
-    bundle_url TEXT NOT NULL,
-    bundle_sha256 CHAR(64) NOT NULL,
-    image_ref TEXT,
-    signature TEXT,
-    sbom_url TEXT,
-    min_platform VARCHAR(20) NOT NULL DEFAULT '1.0.0',
-    release_notes TEXT NOT NULL,
-    status store.version_status NOT NULL DEFAULT 'draft',
-    rollout_pct SMALLINT NOT NULL DEFAULT 0 CHECK (rollout_pct >= 0 AND rollout_pct <= 100),
-    submitted_by CITEXT,
-    submitted_at TIMESTAMPTZ,
-    published_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (app_id, version)
-);
-
--- ------------------------------------------------------------------------------
--- 9. version_scopes (4 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.version_scopes (
-    version_id UUID NOT NULL REFERENCES store.app_versions(id) ON DELETE CASCADE,
-    scope TEXT NOT NULL,
-    reason TEXT NOT NULL,
-    is_sensitive BOOLEAN NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (version_id, scope)
-);
-
--- ------------------------------------------------------------------------------
--- 10. version_checks (8 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.version_checks (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    version_id UUID NOT NULL REFERENCES store.app_versions(id) ON DELETE CASCADE,
-    kind store.check_kind NOT NULL,
-    status store.check_status NOT NULL DEFAULT 'pending',
-    summary TEXT,
-    report JSONB,
-    started_at TIMESTAMPTZ,
-    finished_at TIMESTAMPTZ,
-    UNIQUE (version_id, kind)
-);
-
--- ------------------------------------------------------------------------------
--- 11. version_reviews (7 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.version_reviews (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    version_id UUID NOT NULL REFERENCES store.app_versions(id) ON DELETE CASCADE,
-    reviewer CITEXT NOT NULL,
-    decision store.review_decision NOT NULL,
-    notes TEXT NOT NULL,
-    checklist JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ------------------------------------------------------------------------------
--- 12. installations (14 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.installations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    tenant_id UUID NOT NULL REFERENCES pos.tenants(id) ON DELETE CASCADE,
-    app_id UUID NOT NULL REFERENCES store.apps(id) ON DELETE RESTRICT,
-    version_id UUID NOT NULL REFERENCES store.app_versions(id) ON DELETE RESTRICT,
-    plan_id UUID REFERENCES store.app_plans(id) ON DELETE SET NULL,
-    status store.install_status NOT NULL DEFAULT 'installing',
-    outlet_ids UUID[] NOT NULL DEFAULT '{}',
-    granted_scopes TEXT[] NOT NULL DEFAULT '{}',
-    config JSONB NOT NULL DEFAULT '{}',
-    auto_update BOOLEAN NOT NULL DEFAULT TRUE,
-    installed_by UUID REFERENCES pos.users(id) ON DELETE SET NULL,
-    installed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    uninstalled_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Rule: A business can have only one live installation of an app
-CREATE UNIQUE INDEX IF NOT EXISTS one_live_install 
-ON store.installations(tenant_id, app_id) 
-WHERE status IN ('installing', 'installed');
-
--- ------------------------------------------------------------------------------
--- 13. edge_deployments (11 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.edge_deployments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    installation_id UUID NOT NULL REFERENCES store.installations(id) ON DELETE CASCADE,
-    device_id UUID NOT NULL REFERENCES pos.devices(id) ON DELETE CASCADE,
-    version_id UUID NOT NULL REFERENCES store.app_versions(id) ON DELETE RESTRICT,
-    status store.deploy_status NOT NULL DEFAULT 'pending',
-    container_id TEXT,
-    cpu_pct NUMERIC(5,2),
-    mem_mb INTEGER,
-    error TEXT,
-    last_heartbeat TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ------------------------------------------------------------------------------
--- 14. subscriptions (9 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.subscriptions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    installation_id UUID NOT NULL REFERENCES store.installations(id) ON DELETE CASCADE,
-    plan_id UUID NOT NULL REFERENCES store.app_plans(id) ON DELETE RESTRICT,
-    status store.sub_status NOT NULL DEFAULT 'trialing',
-    quantity INTEGER NOT NULL DEFAULT 1,
-    current_period_end TIMESTAMPTZ NOT NULL,
-    provider TEXT NOT NULL DEFAULT 'razorpay',
-    provider_sub_id TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ------------------------------------------------------------------------------
--- 15. webhook_subscriptions (6 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.webhook_subscriptions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    installation_id UUID NOT NULL REFERENCES store.installations(id) ON DELETE CASCADE,
-    event TEXT NOT NULL,
-    target_url TEXT NOT NULL,
-    secret_ref TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
--- ------------------------------------------------------------------------------
--- 16. usage_daily (5 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.usage_daily (
-    installation_id UUID NOT NULL REFERENCES store.installations(id) ON DELETE CASCADE,
-    day DATE NOT NULL,
-    api_calls INTEGER NOT NULL DEFAULT 0,
-    active_users INTEGER NOT NULL DEFAULT 0,
-    errors INTEGER NOT NULL DEFAULT 0,
-    PRIMARY KEY (installation_id, day)
-);
-
--- ------------------------------------------------------------------------------
--- 17. payouts (10 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.payouts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    developer_id UUID NOT NULL REFERENCES store.developers(id) ON DELETE RESTRICT,
-    period_start DATE NOT NULL,
-    period_end DATE NOT NULL,
-    gross NUMERIC(12,2) NOT NULL DEFAULT 0.00,
-    platform_fee NUMERIC(12,2) NOT NULL DEFAULT 0.00,
-    tds NUMERIC(12,2) NOT NULL DEFAULT 0.00,
-    net NUMERIC(12,2) NOT NULL DEFAULT 0.00,
-    status TEXT NOT NULL DEFAULT 'draft',
-    provider_ref TEXT
-);
-
--- ------------------------------------------------------------------------------
--- 18. store_audit (7 columns)
--- ------------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS store.store_audit (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    actor CITEXT NOT NULL,
-    action TEXT NOT NULL,
-    entity TEXT NOT NULL,
-    entity_id UUID,
-    detail JSONB NOT NULL DEFAULT '{}',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- ------------------------------------------------------------------------------
--- Triggers, Business Logic Rules & Functions
--- ------------------------------------------------------------------------------
-
--- Rule: guard_publish()
--- Blocks status = 'published' unless all checks passed/warned, a reviewer approved and bundle is signed
-CREATE OR REPLACE FUNCTION store.guard_publish()
+CREATE OR REPLACE FUNCTION pos.set_updated_at()
 RETURNS TRIGGER AS $$
-DECLARE
-    v_failed_checks INTEGER;
-    v_approved INTEGER;
 BEGIN
-    IF NEW.status = 'published' AND OLD.status IS DISTINCT FROM 'published' THEN
-        -- 1. Check CI Checks
-        SELECT COUNT(*) INTO v_failed_checks
-        FROM store.version_checks
-        WHERE version_id = NEW.id AND status NOT IN ('passed', 'warned');
-
-        IF v_failed_checks > 0 THEN
-            RAISE EXCEPTION 'Cannot publish version %: automated CI checks have not all passed/warned.', NEW.version;
-        END IF;
-
-        -- 2. Check Human Reviewer Approval
-        SELECT COUNT(*) INTO v_approved
-        FROM store.version_reviews
-        WHERE version_id = NEW.id AND decision = 'approved';
-
-        IF v_approved = 0 THEN
-            RAISE EXCEPTION 'Cannot publish version %: must have approval from reviewer in version_reviews.', NEW.version;
-        END IF;
-
-        -- 3. Check Cosign Signature
-        IF NEW.signature IS NULL OR LENGTH(TRIM(NEW.signature)) = 0 THEN
-            RAISE EXCEPTION 'Cannot publish version %: bundle is not cryptographically signed (missing signature).', NEW.version;
-        END IF;
-
-        -- Set published_at timestamp
-        NEW.published_at := NOW();
-
-        -- Record audit
-        INSERT INTO store.store_audit(actor, action, entity, entity_id, detail)
-        VALUES (
-            COALESCE(NEW.submitted_by, 'system'),
-            'publish_version',
-            'app_versions',
-            NEW.id,
-            jsonb_build_object('version', NEW.version, 'app_id', NEW.app_id, 'rollout_pct', NEW.rollout_pct)
-        );
-    END IF;
-    RETURN NEW;
+  NEW.updated_at = NOW();
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_guard_publish ON store.app_versions;
-CREATE TRIGGER trg_guard_publish
-BEFORE UPDATE OF status ON store.app_versions
-FOR EACH ROW
-EXECUTE FUNCTION store.guard_publish();
-
-
--- Rule: Staged Rollout Bucket Calculator
--- Returns the version a business should get under staged rollout: hash(tenant) mod 100
-CREATE OR REPLACE FUNCTION store.version_for_tenant(p_app_id UUID, p_tenant_id UUID)
+CREATE OR REPLACE FUNCTION pos.current_tenant()
 RETURNS UUID AS $$
-DECLARE
-    v_tenant_bucket INTEGER;
-    v_selected_version_id UUID;
 BEGIN
-    -- Hash the tenant uuid to an integer between 0 and 99
-    v_tenant_bucket := ABS(('x' || SUBSTRING(MD5(p_tenant_id::TEXT), 1, 8))::BIT(32)::INTEGER) % 100;
-
-    -- Pick the highest published version matching the bucket, or latest fully published version (rollout_pct = 100)
-    SELECT id INTO v_selected_version_id
-    FROM store.app_versions
-    WHERE app_id = p_app_id
-      AND status = 'published'
-      AND (rollout_pct >= 100 OR v_tenant_bucket < rollout_pct)
-    ORDER BY created_at DESC
-    LIMIT 1;
-
-    RETURN v_selected_version_id;
+  RETURN NULLIF(current_setting('app.current_tenant_id', true), '')::UUID;
 END;
 $$ LANGUAGE plpgsql STABLE;
 
+CREATE TABLE IF NOT EXISTS pos.tenants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  business_type text NOT NULL DEFAULT 'restaurant',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
 
--- Triggers: Rating & Install Count Refresher
-CREATE OR REPLACE FUNCTION store.refresh_rating()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_target_app_id UUID;
+CREATE TABLE IF NOT EXISTS pos.users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES pos.tenants(id) ON DELETE CASCADE,
+  email citext NOT NULL,
+  name text NOT NULL,
+  role text NOT NULL DEFAULT 'staff',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS pos.devices (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES pos.tenants(id) ON DELETE CASCADE,
+  name text NOT NULL,
+  type text NOT NULL DEFAULT 'edge',
+  serial_number text UNIQUE,
+  is_online boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+DO $$ BEGIN
+  CREATE ROLE pos_app;
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DROP SCHEMA IF EXISTS store CASCADE;
+-- =====================================================================
+--  BizBox App Store — PostgreSQL schema (v1.0)
+--  FlutterFlirt Private Limited
+--  Runs alongside the POS schema (pos.tenants, pos.users, pos.devices).
+--  Covers: developer accounts, app listings, versions & publishing pipeline,
+--          automated checks, human review, pricing plans, installs per tenant,
+--          deployment to BizBox edge boxes, subscriptions, ratings, payouts.
+-- =====================================================================
+CREATE SCHEMA IF NOT EXISTS store;
+SET search_path = store, pos, public;
+
+CREATE TYPE store.app_category   AS ENUM ('sales','kitchen','inventory','customers','finance','people','devices','online','analytics','ai','marketing','industry');
+CREATE TYPE store.dev_type       AS ENUM ('first_party','partner','independent');
+CREATE TYPE store.listing_status AS ENUM ('draft','listed','unlisted','delisted');
+CREATE TYPE store.version_status AS ENUM ('draft','submitted','checking','in_review','changes_requested','approved','published','rejected','withdrawn','superseded');
+CREATE TYPE store.release_channel AS ENUM ('stable','beta','internal');
+CREATE TYPE store.check_kind     AS ENUM ('manifest','dependencies','security_scan','license','arm64_build','permissions','performance','accessibility');
+CREATE TYPE store.check_status   AS ENUM ('pending','running','passed','warning','failed');
+CREATE TYPE store.review_decision AS ENUM ('approve','request_changes','reject');
+CREATE TYPE store.price_unit     AS ENUM ('free','tenant','outlet','device','user');
+CREATE TYPE store.install_status AS ENUM ('pending_payment','installing','active','update_available','suspended','uninstalled','failed');
+CREATE TYPE store.deploy_status  AS ENUM ('queued','pulling','starting','running','failed','rolled_back','removed');
+CREATE TYPE store.sub_status     AS ENUM ('trialing','active','past_due','cancelled','expired');
+CREATE TYPE store.runtime_kind   AS ENUM ('cloud','edge','hybrid');
+
+-- ---------------------------------------------------------------------
+--  DEVELOPERS (publishers)
+-- ---------------------------------------------------------------------
+CREATE TABLE developers (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug             varchar(40) NOT NULL UNIQUE,
+  name             text NOT NULL,
+  type             dev_type NOT NULL DEFAULT 'partner',
+  email            citext NOT NULL,
+  website          text,
+  gstin            varchar(15),
+  is_verified      boolean NOT NULL DEFAULT false,
+  revenue_share_pct numeric(5,2) NOT NULL DEFAULT 80 CHECK (revenue_share_pct BETWEEN 0 AND 100),  -- developer's share
+  payout_ref       text,                                -- Razorpay Route linked account id (never raw bank details)
+  created_at       timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE developer_members (
+  developer_id  uuid NOT NULL REFERENCES developers(id) ON DELETE CASCADE,
+  email         citext NOT NULL,
+  role          text NOT NULL CHECK (role IN ('owner','admin','developer','finance')),
+  added_at      timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (developer_id, email)
+);
+
+-- ---------------------------------------------------------------------
+--  APPS & LISTINGS
+-- ---------------------------------------------------------------------
+CREATE TABLE apps (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  developer_id    uuid NOT NULL REFERENCES developers(id),
+  slug            varchar(50) NOT NULL UNIQUE,          -- bizbox.app/pos, used as package id: in.flutterflirt.pos
+  package_id      varchar(80) NOT NULL UNIQUE,
+  name            text NOT NULL,
+  tagline         varchar(90) NOT NULL,
+  category        app_category NOT NULL,
+  business_types  text[] NOT NULL DEFAULT '{}',         -- cafe, restaurant, retail, pharmacy, salon, ...
+  description_md  text NOT NULL DEFAULT '',
+  icon_url        text,
+  screenshots     text[] NOT NULL DEFAULT '{}',
+  support_email   citext,
+  privacy_url     text,
+  runtime         runtime_kind NOT NULL DEFAULT 'hybrid',
+  status          listing_status NOT NULL DEFAULT 'draft',
+  is_featured     boolean NOT NULL DEFAULT false,
+  is_core         boolean NOT NULL DEFAULT false,       -- pre-installed on every BizBox (POS, Devices)
+  rating_avg      numeric(3,2) NOT NULL DEFAULT 0,
+  rating_count    int NOT NULL DEFAULT 0,
+  install_count   int NOT NULL DEFAULT 0,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX apps_search ON apps USING gin ((name || ' ' || tagline) gin_trgm_ops);
+CREATE INDEX ON apps (category) WHERE status = 'listed';
+
+CREATE TABLE app_dependencies (                         -- e.g. KDS requires POS >= 1.4
+  app_id         uuid NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+  requires_app   uuid NOT NULL REFERENCES apps(id),
+  min_version    varchar(20) NOT NULL DEFAULT '0.0.0',
+  PRIMARY KEY (app_id, requires_app),
+  CHECK (app_id <> requires_app)
+);
+
+-- ---------------------------------------------------------------------
+--  VERSIONS & PUBLISHING PIPELINE
+-- ---------------------------------------------------------------------
+CREATE TABLE app_versions (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  app_id            uuid NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+  version           varchar(20) NOT NULL CHECK (version ~ '^\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$'),  -- semver
+  channel           release_channel NOT NULL DEFAULT 'stable',
+  manifest          jsonb NOT NULL,                     -- bizbox-app.json (scopes, events, UI slots, resources)
+  bundle_url        text NOT NULL,                      -- s3://bizbox-apps/<pkg>/<ver>/bundle.tgz
+  bundle_sha256     char(64) NOT NULL,
+  image_ref         text,                               -- OCI image for edge: registry.bizbox.in/<pkg>@sha256:...
+  signature         text,                               -- cosign signature, added on approval
+  sbom_url          text,
+  min_platform      varchar(20) NOT NULL DEFAULT '1.0.0',
+  release_notes     text NOT NULL DEFAULT '',
+  status            version_status NOT NULL DEFAULT 'draft',
+  rollout_pct       smallint NOT NULL DEFAULT 0 CHECK (rollout_pct BETWEEN 0 AND 100),
+  submitted_by      citext,
+  submitted_at      timestamptz,
+  published_at      timestamptz,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (app_id, version)
+);
+CREATE INDEX ON app_versions (status) WHERE status IN ('submitted','checking','in_review');
+
+CREATE TABLE version_scopes (                           -- permissions the app asks for
+  version_id   uuid NOT NULL REFERENCES app_versions(id) ON DELETE CASCADE,
+  scope        text NOT NULL,                           -- orders:read, menu:write, customers:pii, devices:control
+  reason       text NOT NULL,
+  is_sensitive boolean NOT NULL DEFAULT false,
+  PRIMARY KEY (version_id, scope)
+);
+
+CREATE TABLE version_checks (                           -- automated pipeline results
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  version_id   uuid NOT NULL REFERENCES app_versions(id) ON DELETE CASCADE,
+  kind         check_kind NOT NULL,
+  status       check_status NOT NULL DEFAULT 'pending',
+  summary      text,
+  report       jsonb NOT NULL DEFAULT '{}',
+  started_at   timestamptz,
+  finished_at  timestamptz,
+  UNIQUE (version_id, kind)
+);
+
+CREATE TABLE version_reviews (                          -- human review by FlutterFlirt team
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  version_id   uuid NOT NULL REFERENCES app_versions(id) ON DELETE CASCADE,
+  reviewer     citext NOT NULL,
+  decision     review_decision NOT NULL,
+  notes        text NOT NULL DEFAULT '',
+  checklist    jsonb NOT NULL DEFAULT '{}',             -- {"listing_accurate":true,"privacy_ok":true,...}
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+-- ---------------------------------------------------------------------
+--  PRICING
+-- ---------------------------------------------------------------------
+CREATE TABLE app_plans (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  app_id        uuid NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+  code          varchar(30) NOT NULL,                   -- free, starter, pro
+  name          text NOT NULL,
+  unit          price_unit NOT NULL DEFAULT 'tenant',
+  price_month   numeric(10,2) NOT NULL DEFAULT 0,       -- INR, excl. GST
+  price_year    numeric(10,2),
+  trial_days    int NOT NULL DEFAULT 0,
+  limits        jsonb NOT NULL DEFAULT '{}',            -- {"outlets":1,"devices":3}
+  is_active     boolean NOT NULL DEFAULT true,
+  UNIQUE (app_id, code)
+);
+
+-- ---------------------------------------------------------------------
+--  INSTALLATIONS (per business / tenant)
+-- ---------------------------------------------------------------------
+CREATE TABLE installations (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id       uuid NOT NULL REFERENCES pos.tenants(id),
+  app_id          uuid NOT NULL REFERENCES apps(id),
+  version_id      uuid NOT NULL REFERENCES app_versions(id),
+  plan_id         uuid REFERENCES app_plans(id),
+  status          install_status NOT NULL DEFAULT 'installing',
+  outlet_ids      uuid[] NOT NULL DEFAULT '{}',         -- empty = all outlets
+  granted_scopes  text[] NOT NULL DEFAULT '{}',
+  config          jsonb NOT NULL DEFAULT '{}',
+  auto_update     boolean NOT NULL DEFAULT true,
+  installed_by    uuid REFERENCES pos.users(id),
+  installed_at    timestamptz NOT NULL DEFAULT now(),
+  uninstalled_at  timestamptz,
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX one_live_install ON installations (tenant_id, app_id) WHERE status <> 'uninstalled';
+CREATE INDEX ON installations (app_id, status);
+
+CREATE TABLE edge_deployments (                         -- the app running on a BizBox box
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  installation_id  uuid NOT NULL REFERENCES installations(id) ON DELETE CASCADE,
+  device_id        uuid NOT NULL REFERENCES pos.devices(id),   -- device of type 'edge'
+  version_id       uuid NOT NULL REFERENCES app_versions(id),
+  status           deploy_status NOT NULL DEFAULT 'queued',
+  container_id     text,
+  cpu_pct          numeric(5,2),
+  mem_mb           int,
+  error            text,
+  last_heartbeat   timestamptz,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (installation_id, device_id)
+);
+
+CREATE TABLE subscriptions (
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  installation_id     uuid NOT NULL REFERENCES installations(id) ON DELETE CASCADE,
+  plan_id             uuid NOT NULL REFERENCES app_plans(id),
+  status              sub_status NOT NULL DEFAULT 'trialing',
+  quantity            int NOT NULL DEFAULT 1,           -- outlets / devices / users billed
+  current_period_end  timestamptz NOT NULL,
+  provider            text NOT NULL DEFAULT 'razorpay',
+  provider_sub_id     text UNIQUE,
+  created_at          timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE oauth_clients (                            -- how an app calls the BizBox API
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  app_id         uuid NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+  client_id      varchar(40) NOT NULL UNIQUE,
+  secret_hash    text NOT NULL,
+  redirect_uris  text[] NOT NULL DEFAULT '{}',
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE webhook_subscriptions (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  installation_id  uuid NOT NULL REFERENCES installations(id) ON DELETE CASCADE,
+  event            text NOT NULL,                       -- order.created, payment.succeeded, stock.low
+  target_url       text NOT NULL,
+  secret_ref       text NOT NULL,
+  is_active        boolean NOT NULL DEFAULT true,
+  UNIQUE (installation_id, event, target_url)
+);
+
+-- ---------------------------------------------------------------------
+--  RATINGS, USAGE, PAYOUTS
+-- ---------------------------------------------------------------------
+CREATE TABLE app_ratings (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  app_id      uuid NOT NULL REFERENCES apps(id) ON DELETE CASCADE,
+  tenant_id   uuid NOT NULL REFERENCES pos.tenants(id),
+  user_id     uuid REFERENCES pos.users(id),
+  stars       smallint NOT NULL CHECK (stars BETWEEN 1 AND 5),
+  comment     text,
+  dev_reply   text,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (app_id, tenant_id)
+);
+
+CREATE TABLE usage_daily (
+  installation_id  uuid NOT NULL REFERENCES installations(id) ON DELETE CASCADE,
+  day              date NOT NULL,
+  api_calls        int NOT NULL DEFAULT 0,
+  active_users     int NOT NULL DEFAULT 0,
+  errors           int NOT NULL DEFAULT 0,
+  PRIMARY KEY (installation_id, day)
+);
+
+CREATE TABLE payouts (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  developer_id   uuid NOT NULL REFERENCES developers(id),
+  period_start   date NOT NULL,
+  period_end     date NOT NULL,
+  gross          numeric(12,2) NOT NULL,
+  platform_fee   numeric(12,2) NOT NULL,
+  tds            numeric(12,2) NOT NULL DEFAULT 0,
+  net            numeric(12,2) NOT NULL,
+  status         text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','paid','failed')),
+  provider_ref   text,
+  UNIQUE (developer_id, period_start)
+);
+
+CREATE TABLE store_audit (
+  id          bigserial PRIMARY KEY,
+  actor       citext NOT NULL,
+  action      text NOT NULL,                            -- version.submit, version.approve, install.create, app.delist
+  entity      text NOT NULL,
+  entity_id   uuid,
+  detail      jsonb NOT NULL DEFAULT '{}',
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- =====================================================================
+--  RULES (triggers & functions)
+-- =====================================================================
+CREATE TRIGGER trg_apps_upd BEFORE UPDATE ON apps FOR EACH ROW EXECUTE FUNCTION pos.set_updated_at();
+CREATE TRIGGER trg_inst_upd BEFORE UPDATE ON installations FOR EACH ROW EXECUTE FUNCTION pos.set_updated_at();
+
+-- Keep rating average and count on the app row
+CREATE OR REPLACE FUNCTION store.refresh_rating() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE a uuid := COALESCE(NEW.app_id, OLD.app_id);
 BEGIN
-    v_target_app_id := COALESCE(NEW.app_id, OLD.app_id);
+  UPDATE store.apps SET rating_avg = COALESCE((SELECT ROUND(AVG(stars)::numeric, 2) FROM store.app_ratings WHERE app_id = a), 0),
+                        rating_count = (SELECT COUNT(*) FROM store.app_ratings WHERE app_id = a)
+  WHERE id = a;
+  RETURN NULL;
+END $$;
+CREATE TRIGGER trg_rating AFTER INSERT OR UPDATE OR DELETE ON app_ratings FOR EACH ROW EXECUTE FUNCTION store.refresh_rating();
 
-    UPDATE store.apps
-    SET rating_avg = COALESCE((SELECT ROUND(AVG(stars)::NUMERIC, 2) FROM store.app_ratings WHERE app_id = v_target_app_id), 0.00),
-        rating_count = (SELECT COUNT(*) FROM store.app_ratings WHERE app_id = v_target_app_id),
-        updated_at = NOW()
-    WHERE id = v_target_app_id;
-
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS trg_refresh_rating ON store.app_ratings;
-CREATE TRIGGER trg_refresh_rating
-AFTER INSERT OR UPDATE OR DELETE ON store.app_ratings
-FOR EACH ROW
-EXECUTE FUNCTION store.refresh_rating();
-
-CREATE OR REPLACE FUNCTION store.refresh_installs()
-RETURNS TRIGGER AS $$
-DECLARE
-    v_target_app_id UUID;
+-- Keep install_count = live installations
+CREATE OR REPLACE FUNCTION store.refresh_installs() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE a uuid := COALESCE(NEW.app_id, OLD.app_id);
 BEGIN
-    v_target_app_id := COALESCE(NEW.app_id, OLD.app_id);
+  UPDATE store.apps SET install_count = (SELECT COUNT(*) FROM store.installations WHERE app_id = a AND status NOT IN ('uninstalled','failed')) WHERE id = a;
+  RETURN NULL;
+END $$;
+CREATE TRIGGER trg_installs AFTER INSERT OR UPDATE OF status OR DELETE ON installations FOR EACH ROW EXECUTE FUNCTION store.refresh_installs();
 
-    UPDATE store.apps
-    SET install_count = (
-        SELECT COUNT(*) 
-        FROM store.installations 
-        WHERE app_id = v_target_app_id 
-          AND status IN ('installing', 'installed')
-    ),
-    updated_at = NOW()
-    WHERE id = v_target_app_id;
+-- A version can only be published when every automated check passed (or warned) and a reviewer approved it.
+CREATE OR REPLACE FUNCTION store.guard_publish() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.status = 'published' AND OLD.status <> 'published' THEN
+    IF EXISTS (SELECT 1 FROM store.version_checks WHERE version_id = NEW.id AND status NOT IN ('passed','warning'))
+       OR NOT EXISTS (SELECT 1 FROM store.version_checks WHERE version_id = NEW.id) THEN
+      RAISE EXCEPTION 'version % cannot be published: automated checks not all passed', NEW.version;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM store.version_reviews WHERE version_id = NEW.id AND decision = 'approve') THEN
+      RAISE EXCEPTION 'version % cannot be published: no reviewer approval', NEW.version;
+    END IF;
+    IF NEW.signature IS NULL THEN
+      RAISE EXCEPTION 'version % cannot be published: bundle is not signed', NEW.version;
+    END IF;
+    NEW.published_at := now();
+    -- older published versions on the same channel become superseded once rollout reaches 100%
+    IF NEW.rollout_pct = 100 THEN
+      UPDATE store.app_versions SET status = 'superseded'
+       WHERE app_id = NEW.app_id AND channel = NEW.channel AND status = 'published' AND id <> NEW.id;
+    END IF;
+    UPDATE store.apps SET status = 'listed' WHERE id = NEW.app_id AND status = 'draft';
+  END IF;
+  RETURN NEW;
+END $$;
+CREATE TRIGGER trg_guard_publish BEFORE UPDATE OF status ON app_versions FOR EACH ROW EXECUTE FUNCTION store.guard_publish();
 
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
+-- Which version should a tenant get? Staged rollout: stable hash of tenant id picks a bucket 0–99.
+CREATE OR REPLACE FUNCTION store.version_for_tenant(p_app uuid, p_tenant uuid, p_channel release_channel DEFAULT 'stable')
+RETURNS uuid LANGUAGE sql STABLE AS $$
+  SELECT v.id FROM store.app_versions v
+  WHERE v.app_id = p_app AND v.channel = p_channel AND v.status = 'published'
+    AND (abs(hashtext(p_tenant::text)) % 100) < v.rollout_pct
+  ORDER BY string_to_array(split_part(v.version, '-', 1), '.')::int[] DESC
+  LIMIT 1
+$$;
 
-DROP TRIGGER IF EXISTS trg_refresh_installs ON store.installations;
-CREATE TRIGGER trg_refresh_installs
-AFTER INSERT OR UPDATE OR DELETE ON store.installations
-FOR EACH ROW
-EXECUTE FUNCTION store.refresh_installs();
+-- =====================================================================
+--  VIEWS for the dashboards
+-- =====================================================================
+CREATE VIEW store.v_listing AS
+SELECT a.id, a.slug, a.name, a.tagline, a.category, a.icon_url, a.rating_avg, a.rating_count, a.install_count,
+       a.is_featured, a.is_core, d.name AS developer, d.is_verified,
+       (SELECT v.version FROM store.app_versions v WHERE v.app_id = a.id AND v.status = 'published' AND v.channel = 'stable'
+         ORDER BY v.published_at DESC LIMIT 1) AS latest_version,
+       (SELECT MIN(p.price_month) FROM store.app_plans p WHERE p.app_id = a.id AND p.is_active) AS price_from
+FROM store.apps a JOIN store.developers d ON d.id = a.developer_id
+WHERE a.status = 'listed';
 
--- ------------------------------------------------------------------------------
--- Views: v_listing, v_review_queue, v_developer_mrr
--- ------------------------------------------------------------------------------
-
--- Store front listings view
-CREATE OR REPLACE VIEW store.v_listing AS
-SELECT 
-    a.id,
-    a.slug,
-    a.package_id,
-    a.name,
-    a.tagline,
-    a.category,
-    a.business_types,
-    a.icon_url,
-    a.runtime,
-    a.rating_avg,
-    a.rating_count,
-    a.install_count,
-    a.is_featured,
-    a.is_core,
-    d.id AS developer_id,
-    d.name AS developer_name,
-    d.slug AS developer_slug,
-    d.is_verified AS developer_verified,
-    (
-        SELECT jsonb_agg(jsonb_build_object(
-            'id', p.id,
-            'code', p.code,
-            'name', p.name,
-            'unit', p.unit,
-            'price_month', p.price_month,
-            'price_year', p.price_year,
-            'trial_days', p.trial_days
-        ))
-        FROM store.app_plans p
-        WHERE p.app_id = a.id AND p.is_active = TRUE
-    ) AS plans
-FROM store.apps a
-JOIN store.developers d ON a.developer_id = d.id
-WHERE a.status = 'published';
-
--- Review queue for internal FlutterFlirt reviewers
-CREATE OR REPLACE VIEW store.v_review_queue AS
-SELECT 
-    v.id AS version_id,
-    v.version,
-    v.channel,
-    v.submitted_at,
-    v.submitted_by,
-    v.min_platform,
-    a.id AS app_id,
-    a.name AS app_name,
-    a.package_id,
-    d.name AS developer_name,
-    (
-        SELECT jsonb_object_agg(vc.kind, vc.status)
-        FROM store.version_checks vc
-        WHERE vc.version_id = v.id
-    ) AS check_summary,
-    (
-        SELECT jsonb_agg(jsonb_build_object('scope', vs.scope, 'reason', vs.reason, 'is_sensitive', vs.is_sensitive))
-        FROM store.version_scopes vs
-        WHERE vs.version_id = v.id
-    ) AS scopes
+CREATE VIEW store.v_review_queue AS
+SELECT v.id AS version_id, a.name AS app, d.name AS developer, v.version, v.channel, v.status, v.submitted_at,
+       (SELECT COUNT(*) FROM store.version_checks c WHERE c.version_id = v.id AND c.status = 'failed')  AS checks_failed,
+       (SELECT COUNT(*) FROM store.version_checks c WHERE c.version_id = v.id AND c.status = 'warning') AS checks_warning,
+       (SELECT COUNT(*) FROM store.version_scopes s WHERE s.version_id = v.id AND s.is_sensitive)       AS sensitive_scopes
 FROM store.app_versions v
-JOIN store.apps a ON v.app_id = a.id
-JOIN store.developers d ON a.developer_id = d.id
-WHERE v.status = 'in_review';
+JOIN store.apps a ON a.id = v.app_id JOIN store.developers d ON d.id = a.developer_id
+WHERE v.status IN ('submitted','checking','in_review');
 
--- Monthly Recurring Revenue (MRR) view per developer
-CREATE OR REPLACE VIEW store.v_developer_mrr AS
-SELECT 
-    d.id AS developer_id,
-    d.name AS developer_name,
-    d.revenue_share_pct,
-    COUNT(DISTINCT i.id) AS active_installs,
-    COALESCE(SUM(p.price_month), 0.00) AS total_gross_mrr,
-    COALESCE(SUM(p.price_month) * (d.revenue_share_pct / 100.0), 0.00) AS developer_net_mrr,
-    COALESCE(SUM(p.price_month) * ((100.0 - d.revenue_share_pct) / 100.0), 0.00) AS platform_net_mrr
-FROM store.developers d
-LEFT JOIN store.apps a ON a.developer_id = d.id
-LEFT JOIN store.installations i ON i.app_id = a.id AND i.status = 'installed'
-LEFT JOIN store.app_plans p ON i.plan_id = p.id
-GROUP BY d.id, d.name, d.revenue_share_pct;
+CREATE VIEW store.v_developer_mrr AS
+SELECT d.id AS developer_id, d.name, a.name AS app,
+       COUNT(s.*) FILTER (WHERE s.status IN ('active','trialing')) AS paying_installs,
+       COALESCE(SUM(p.price_month * s.quantity) FILTER (WHERE s.status = 'active'), 0) AS mrr,
+       ROUND(COALESCE(SUM(p.price_month * s.quantity) FILTER (WHERE s.status = 'active'), 0) * d.revenue_share_pct / 100, 2) AS developer_share
+FROM store.developers d JOIN store.apps a ON a.developer_id = d.id
+LEFT JOIN store.installations i ON i.app_id = a.id
+LEFT JOIN store.subscriptions s ON s.installation_id = i.id
+LEFT JOIN store.app_plans p ON p.id = s.plan_id
+GROUP BY d.id, d.name, a.name, d.revenue_share_pct;
 
--- ------------------------------------------------------------------------------
--- Row-Level Security (RLS) Setup
--- ------------------------------------------------------------------------------
-ALTER TABLE store.installations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE store.app_ratings ENABLE ROW LEVEL SECURITY;
+-- Tenant isolation on tenant-owned rows
+ALTER TABLE installations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON installations USING (tenant_id = pos.current_tenant()) WITH CHECK (tenant_id = pos.current_tenant());
+ALTER TABLE app_ratings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_read_all ON app_ratings FOR SELECT USING (true);
+CREATE POLICY tenant_write_own ON app_ratings FOR INSERT WITH CHECK (tenant_id = pos.current_tenant());
+CREATE POLICY tenant_update_own ON app_ratings FOR UPDATE USING (tenant_id = pos.current_tenant());
 
--- Installations visible only to their own business (tenant)
-CREATE POLICY tenant_installations_isolation ON store.installations
-    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);
-
--- Ratings readable by all, but writable only by the authenticated tenant
-CREATE POLICY ratings_public_read ON store.app_ratings
-    FOR SELECT USING (true);
-
-CREATE POLICY ratings_tenant_write ON store.app_ratings
-    FOR ALL
-    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID)
-    WITH CHECK (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::UUID);
+GRANT USAGE ON SCHEMA store TO pos_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store TO pos_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO pos_app;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA store TO pos_app;

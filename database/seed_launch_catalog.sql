@@ -1,182 +1,440 @@
--- ==============================================================================
--- Seed Data: BizBox App Store Launch Catalog (22 Apps)
--- FlutterFlirt Private Limited & Partner Pilot Apps
--- ==============================================================================
 
--- 1. Insert Developers
-INSERT INTO store.developers (id, slug, name, type, email, website, gstin, is_verified, revenue_share_pct)
-VALUES 
-    ('11111111-1111-1111-1111-111111111111', 'flutterflirt', 'FlutterFlirt Private Limited', 'company', 'dev@flutterflirt.com', 'https://www.flutterflirt.com', '27AABCF1234F1Z1', true, 100.00),
-    ('22222222-2222-2222-2222-222222222222', 'ledgerly', 'Ledgerly Technologies', 'company', 'support@ledgerly.in', 'https://ledgerly.in', '27AABCL5678L1Z2', true, 80.00),
-    ('33333333-3333-3333-3333-333333333333', 'kitchenmetrics', 'KitchenMetrics Solutions', 'company', 'hello@kitchenmetrics.io', 'https://kitchenmetrics.io', '27AABCK9999K1Z3', true, 80.00)
-ON CONFLICT (slug) DO NOTHING;
-
--- 2. Insert Mock Tenant for testing
+-- Test Tenant & Device
 INSERT INTO pos.tenants (id, name, business_type)
-VALUES ('00000000-0000-0000-0000-000000000001', 'Brew & Bites Cafe', 'Cafe')
+VALUES ('00000000-0000-0000-0000-000000000001', 'Brew & Bites Cafe', 'cafe')
 ON CONFLICT (id) DO NOTHING;
 
--- 3. Insert 22 Launch Apps
-INSERT INTO store.apps (
-    id, developer_id, slug, package_id, name, tagline, category, 
-    business_types, description_md, icon_url, runtime, status, is_featured, is_core, rating_avg, rating_count, install_count
-) VALUES
--- 1. POS & Billing
-('a0000000-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'pos-billing', 'in.flutterflirt.pos', 
- 'POS & Billing', 'Fast GST billing, tables, tokens and split payments', 'Sales & POS', 
- ARRAY['Restaurant', 'Cafe', 'Retail', 'QSR'], '# POS & Billing\nFast billing engine for all retail and dining outlets.', 
- '/icons/pos.svg', 'hybrid', 'published', true, true, 4.9, 120, 540),
+INSERT INTO pos.devices (id, tenant_id, name, device_type, serial_number, device_token, is_online)
+VALUES ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'Counter Pi5', 'pi5_box', 'PI5-BLR-001', 'tok_pi5_mock_device', true)
+ON CONFLICT (id) DO NOTHING;
 
--- 2. Kitchen Display
-('a0000000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111', 'kitchen-display', 'in.flutterflirt.kds', 
- 'Kitchen Display', 'Paperless kitchen with station routing and prep timers', 'Kitchen', 
- ARRAY['Restaurant', 'Cafe', 'Cloud Kitchen'], '# Kitchen Display System\nRoute orders across multiple kitchen stations.', 
- '/icons/kds.svg', 'edge', 'published', true, false, 4.8, 85, 310),
+SET search_path = store, pos, public;
 
--- 3. Captain App
-('a0000000-0000-0000-0000-000000000003', '11111111-1111-1111-1111-111111111111', 'captain-app', 'in.flutterflirt.captain', 
- 'Captain App', 'Waiters take orders at the table on a tablet', 'Sales & POS', 
- ARRAY['Restaurant', 'Dine-In'], '# Captain App\nEnable mobile table-side ordering for waiters.', 
- '/icons/captain.svg', 'edge', 'published', false, false, 4.7, 45, 180),
+INSERT INTO developers (slug, name, type, email, is_verified, revenue_share_pct) VALUES
+  ('flutterflirt','FlutterFlirt','first_party','info@flutterflirt.com',true,100),
+  ('ledgerly','Ledgerly','partner','ledgerly@example.com',true,80),
+  ('kitchenmetrics','KitchenMetrics','partner','kitchenmetrics@example.com',true,80);
 
--- 4. Self-Order Kiosk
-('a0000000-0000-0000-0000-000000000004', '11111111-1111-1111-1111-111111111111', 'self-order-kiosk', 'in.flutterflirt.kiosk', 
- 'Self-Order Kiosk', 'Customers order and pay themselves, get a token', 'Sales & POS', 
- ARRAY['QSR', 'Food Court'], '# Self-Order Kiosk\nTouchscreen ordering kiosk app for guests.', 
- '/icons/kiosk.svg', 'edge', 'published', false, false, 4.6, 30, 95),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'pos', 'in.flutterflirt.pos', 'POS & Billing', 'Fast GST billing, tables, tokens and split payments', 'sales', ARRAY['all']::text[],
+         'hybrid', 'draft', true, true FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.pos", "version": "1.0.0", "runtime": "hybrid", "scopes": ["orders:write", "menu:read", "payments:write", "customers:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/pos/1.0.0/bundle.tgz', '7160f8688035138fcbc9a6c8041949ebea0c0d21a1b1d063f839f38d5c2be8f9',
+         'registry.bizbox.in/pos@sha256:7160f8688035138fcbc9a6c8041949ebea0c0d21a1b1d063f839f38d5c2be8f9', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'free', 'Free', 'free', 0, 0, 0 FROM a;
 
--- 5. QR Table Ordering
-('a0000000-0000-0000-0000-000000000005', '11111111-1111-1111-1111-111111111111', 'qr-table-ordering', 'in.flutterflirt.qr', 
- 'QR Table Ordering', 'Scan the table QR, browse the menu, order to kitchen', 'Online orders', 
- ARRAY['Restaurant', 'Cafe', 'Brewery'], '# QR Table Ordering\nContactless digital menu and order management.', 
- '/icons/qr.svg', 'cloud', 'published', false, false, 4.8, 62, 240),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'kds', 'in.flutterflirt.kds', 'Kitchen Display', 'Paperless kitchen with station routing and prep timers', 'kitchen', ARRAY['cafe','restaurant','qsr','cloud_kitchen']::text[],
+         'edge', 'draft', false, true FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.kds", "version": "1.0.0", "runtime": "edge", "scopes": ["orders:read", "kots:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/kds/1.0.0/bundle.tgz', '6a7e57a704c8e4c67bb13a32072cf06b9c8d272fc0591b91fc6784e11b58188f',
+         'registry.bizbox.in/kds@sha256:6a7e57a704c8e4c67bb13a32072cf06b9c8d272fc0591b91fc6784e11b58188f', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'outlet', 499, 4990, 14 FROM a;
 
--- 6. Online Orders Hub
-('a0000000-0000-0000-0000-000000000006', '11111111-1111-1111-1111-111111111111', 'online-orders-hub', 'in.flutterflirt.hub', 
- 'Online Orders Hub', 'Swiggy, Zomato, ONDC and website orders in one screen', 'Online orders', 
- ARRAY['Restaurant', 'Cloud Kitchen'], '# Online Orders Hub\nAggregate all 3rd party food aggregators.', 
- '/icons/hub.svg', 'cloud', 'published', true, false, 4.9, 140, 480),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'captain', 'in.flutterflirt.captain', 'Captain App', 'Waiters take orders at the table on a tablet', 'sales', ARRAY['restaurant','cafe']::text[],
+         'edge', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.captain", "version": "1.0.0", "runtime": "edge", "scopes": ["orders:write", "tables:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/captain/1.0.0/bundle.tgz', '2780b8eef998d6eaca5dbfe00e4043e626c79bc214195e1848af17a85d51519c',
+         'registry.bizbox.in/captain@sha256:2780b8eef998d6eaca5dbfe00e4043e626c79bc214195e1848af17a85d51519c', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'device', 299, 2990, 14 FROM a;
 
--- 7. Inventory & Recipes
-('a0000000-0000-0000-0000-000000000007', '11111111-1111-1111-1111-111111111111', 'inventory-recipes', 'in.flutterflirt.inventory', 
- 'Inventory & Recipes', 'Recipe-based stock, wastage, reorder alerts', 'Inventory', 
- ARRAY['Restaurant', 'Bakery', 'Retail'], '# Inventory & Recipes\nReal-time ingredient deduction on every bill.', 
- '/icons/inventory.svg', 'hybrid', 'published', true, false, 4.7, 98, 360),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'kiosk', 'in.flutterflirt.kiosk', 'Self-Order Kiosk', 'Customers order and pay themselves, get a token', 'sales', ARRAY['qsr','cafe']::text[],
+         'edge', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.kiosk", "version": "1.0.0", "runtime": "edge", "scopes": ["orders:write", "payments:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/kiosk/1.0.0/bundle.tgz', 'd99cff6fc8a2f1fbc39e1c8f4f9eb28d692c40900bbb3486b426a13da37b79a0',
+         'registry.bizbox.in/kiosk@sha256:d99cff6fc8a2f1fbc39e1c8f4f9eb28d692c40900bbb3486b426a13da37b79a0', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'device', 799, 7990, 14 FROM a;
 
--- 8. Purchase & Suppliers
-('a0000000-0000-0000-0000-000000000008', '11111111-1111-1111-1111-111111111111', 'purchase-suppliers', 'in.flutterflirt.purchases', 
- 'Purchase & Suppliers', 'Purchase orders, goods receipt, supplier ledger', 'Inventory', 
- ARRAY['Retail', 'Restaurant', 'Supermarket'], '# Purchase & Suppliers\nTrack supplier inward and payments.', 
- '/icons/po.svg', 'cloud', 'published', false, false, 4.5, 34, 110),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'qr-order', 'in.flutterflirt.qr-order', 'QR Table Ordering', 'Scan the table QR, browse the menu, order to kitchen', 'online', ARRAY['cafe','restaurant']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.qr-order", "version": "1.0.0", "runtime": "cloud", "scopes": ["orders:write", "menu:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/qr-order/1.0.0/bundle.tgz', '7d65929799dd39553743f2786893b10dea139cd81a5d6450bcb63e24b747c651',
+         'registry.bizbox.in/qr-order@sha256:7d65929799dd39553743f2786893b10dea139cd81a5d6450bcb63e24b747c651', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'outlet', 399, 3990, 14 FROM a;
 
--- 9. CRM & Loyalty
-('a0000000-0000-0000-0000-000000000009', '11111111-1111-1111-1111-111111111111', 'crm-loyalty', 'in.flutterflirt.crm', 
- 'CRM & Loyalty', 'Customer profiles, points, coupons and feedback', 'Customers', 
- ARRAY['All'], '# CRM & Loyalty\nBoost repeat visits with loyalty points and coupons.', 
- '/icons/crm.svg', 'cloud', 'published', false, false, 4.6, 75, 290),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'online-hub', 'in.flutterflirt.online-hub', 'Online Orders Hub', 'Swiggy, Zomato, ONDC and website orders in one screen', 'online', ARRAY['restaurant','cloud_kitchen','qsr']::text[],
+         'cloud', 'draft', false, true FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.online-hub", "version": "1.0.0", "runtime": "cloud", "scopes": ["orders:write", "menu:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/online-hub/1.0.0/bundle.tgz', '62c2509f4c0ff877b689386fadcabd8518b971dd83e543ddfbc98a9fcd001f1e',
+         'registry.bizbox.in/online-hub@sha256:62c2509f4c0ff877b689386fadcabd8518b971dd83e543ddfbc98a9fcd001f1e', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'outlet', 999, 9990, 14 FROM a;
 
--- 10. WhatsApp Marketing
-('a0000000-0000-0000-0000-000000000010', '11111111-1111-1111-1111-111111111111', 'whatsapp-marketing', 'in.flutterflirt.whatsapp', 
- 'WhatsApp Marketing', 'E-receipts, campaigns and order updates on WhatsApp', 'Marketing', 
- ARRAY['All'], '# WhatsApp Marketing\nDeliver paperless bills and promotional messages via Meta API.', 
- '/icons/whatsapp.svg', 'cloud', 'published', true, false, 4.8, 110, 420),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'inventory', 'in.flutterflirt.inventory', 'Inventory & Recipes', 'Recipe-based stock, wastage, reorder alerts', 'inventory', ARRAY['all']::text[],
+         'hybrid', 'draft', false, true FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.inventory", "version": "1.0.0", "runtime": "hybrid", "scopes": ["stock:write", "menu:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/inventory/1.0.0/bundle.tgz', 'b11a85b296a90afc460430434a504e7acb04b064575b7277724688af0e59d189',
+         'registry.bizbox.in/inventory@sha256:b11a85b296a90afc460430434a504e7acb04b064575b7277724688af0e59d189', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'outlet', 799, 7990, 14 FROM a;
 
--- 11. GST & Accounting
-('a0000000-0000-0000-0000-000000000011', '11111111-1111-1111-1111-111111111111', 'gst-accounting', 'in.flutterflirt.gst', 
- 'GST & Accounting', 'GSTR-1 ready reports, day books and Tally export', 'Finance & GST', 
- ARRAY['All'], '# GST & Accounting\nAutomate GST reconciliation and daily book closures.', 
- '/icons/gst.svg', 'cloud', 'published', false, false, 4.9, 130, 490),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'purchase', 'in.flutterflirt.purchase', 'Purchase & Suppliers', 'Purchase orders, goods receipt, supplier ledger', 'inventory', ARRAY['all']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.purchase", "version": "1.0.0", "runtime": "cloud", "scopes": ["stock:write", "suppliers:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/purchase/1.0.0/bundle.tgz', '7048dc8aa7663e713097535171b4ed72ab015705a885de9636e66d4b1fa18804',
+         'registry.bizbox.in/purchase@sha256:7048dc8aa7663e713097535171b4ed72ab015705a885de9636e66d4b1fa18804', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 499, 4990, 14 FROM a;
 
--- 12. Staff & Payroll
-('a0000000-0000-0000-0000-000000000012', '11111111-1111-1111-1111-111111111111', 'staff-payroll', 'in.flutterflirt.hr', 
- 'Staff & Payroll', 'Attendance, shifts, salary and incentives', 'Staff', 
- ARRAY['All'], '# Staff & Payroll\nBiometric/PIN staff check-in and shift management.', 
- '/icons/hr.svg', 'hybrid', 'published', false, false, 4.4, 40, 160),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'crm', 'in.flutterflirt.crm', 'CRM & Loyalty', 'Customer profiles, points, coupons and feedback', 'customers', ARRAY['all']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.crm", "version": "1.0.0", "runtime": "cloud", "scopes": ["customers:pii", "orders:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/crm/1.0.0/bundle.tgz', '9261ceef0b969e70ac20f1510f07a1e0d8db05f20c75161a2ef43b4eba27a7aa',
+         'registry.bizbox.in/crm@sha256:9261ceef0b969e70ac20f1510f07a1e0d8db05f20c75161a2ef43b4eba27a7aa', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 599, 5990, 14 FROM a;
 
--- 13. Device Manager
-('a0000000-0000-0000-0000-000000000013', '11111111-1111-1111-1111-111111111111', 'device-manager', 'in.flutterflirt.devices', 
- 'Device Manager', 'Monitor printers, screens, sensors and IoT units', 'Devices', 
- ARRAY['All'], '# Device Manager\nDiagnostic health and printer spooling management.', 
- '/icons/devices.svg', 'hybrid', 'published', false, true, 4.9, 150, 540),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'whatsapp', 'in.flutterflirt.whatsapp', 'WhatsApp Marketing', 'E-receipts, campaigns and order updates on WhatsApp', 'marketing', ARRAY['all']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.whatsapp", "version": "1.0.0", "runtime": "cloud", "scopes": ["customers:pii", "invoices:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/whatsapp/1.0.0/bundle.tgz', 'ec8202b6f9fb16f9e26b66367afa4e037752f3c09a18cefab426165e06a424b1',
+         'registry.bizbox.in/whatsapp@sha256:ec8202b6f9fb16f9e26b66367afa4e037752f3c09a18cefab426165e06a424b1', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 699, 6990, 7 FROM a;
 
--- 14. Service Desk
-('a0000000-0000-0000-0000-000000000014', '11111111-1111-1111-1111-111111111111', 'service-desk', 'in.flutterflirt.servicedesk', 
- 'Service Desk', 'Customer tickets, technician visits and SLAs', 'Customers', 
- ARRAY['Service Centers', 'Repair Shops'], '# Service Desk\nTrack repair work orders and job sheets.', 
- '/icons/servicedesk.svg', 'cloud', 'published', false, false, 4.3, 18, 70),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'accounts', 'in.flutterflirt.accounts', 'GST & Accounting', 'GSTR-1 ready reports, day books and Tally export', 'finance', ARRAY['all']::text[],
+         'cloud', 'draft', false, true FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.accounts", "version": "1.0.0", "runtime": "cloud", "scopes": ["invoices:read", "payments:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/accounts/1.0.0/bundle.tgz', 'bc62a3c14fec277e3dc6b504bf7c6348c2e421f8acc42032deddb0a96070f078',
+         'registry.bizbox.in/accounts@sha256:bc62a3c14fec277e3dc6b504bf7c6348c2e421f8acc42032deddb0a96070f078', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 999, 9990, 14 FROM a;
 
--- 15. Subscriptions & Billing
-('a0000000-0000-0000-0000-000000000015', '11111111-1111-1111-1111-111111111111', 'subscriptions-billing', 'in.flutterflirt.subscriptions', 
- 'Subscriptions & Billing', 'Recurring plans, auto-invoices and UPI AutoPay', 'Finance & GST', 
- ARRAY['Gyms', 'Classes', 'Clubs'], '# Subscriptions & Billing\nCollect repeat membership payments automatically.', 
- '/icons/sub.svg', 'cloud', 'published', false, false, 4.5, 29, 115),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'staff', 'in.flutterflirt.staff', 'Staff & Payroll', 'Attendance, shifts, salary and incentives', 'people', ARRAY['all']::text[],
+         'hybrid', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.staff", "version": "1.0.0", "runtime": "hybrid", "scopes": ["staff:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/staff/1.0.0/bundle.tgz', '1562206543da764123c21bd524674f0a8aaf49c8a89744c97352fe677f7e4006',
+         'registry.bizbox.in/staff@sha256:1562206543da764123c21bd524674f0a8aaf49c8a89744c97352fe677f7e4006', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'user', 49, 490, 14 FROM a;
 
--- 16. Reports & Analytics
-('a0000000-0000-0000-0000-000000000016', '11111111-1111-1111-1111-111111111111', 'reports-analytics', 'in.flutterflirt.bi', 
- 'Reports & Analytics', 'Live dashboards across outlets, exports and alerts', 'Analytics', 
- ARRAY['All'], '# Reports & Analytics\nExecutive dashboard with hourly sales and heatmaps.', 
- '/icons/bi.svg', 'cloud', 'published', false, false, 4.8, 88, 380),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'devices', 'in.flutterflirt.devices', 'Device Manager', 'Monitor printers, screens, sensors and IoT units', 'devices', ARRAY['all']::text[],
+         'hybrid', 'draft', true, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.devices", "version": "1.0.0", "runtime": "hybrid", "scopes": ["devices:control"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/devices/1.0.0/bundle.tgz', 'ade15a1287dabe92c77ad32bbfada2ba4f6593433011b090530bd2fa0d86d8a0',
+         'registry.bizbox.in/devices@sha256:ade15a1287dabe92c77ad32bbfada2ba4f6593433011b090530bd2fa0d86d8a0', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'free', 'Free', 'free', 0, 0, 0 FROM a;
 
--- 17. BizBox AI Assistant
-('a0000000-0000-0000-0000-000000000017', '11111111-1111-1111-1111-111111111111', 'bizbox-ai-assistant', 'in.flutterflirt.ai', 
- 'BizBox AI Assistant', 'Ask your business anything — runs on the box, offline', 'AI', 
- ARRAY['All'], '# BizBox AI Assistant\nNatural language insights powered by local on-box LLM.', 
- '/icons/ai.svg', 'edge', 'published', true, false, 4.9, 95, 220),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'service-desk', 'in.flutterflirt.service-desk', 'Service Desk', 'Customer tickets, technician visits and SLAs', 'customers', ARRAY['retail','services']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.service-desk", "version": "1.0.0", "runtime": "cloud", "scopes": ["customers:pii", "tickets:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/service-desk/1.0.0/bundle.tgz', 'd163cc6102309298fe1638cdb8a273e4c15f5d28bf1b546f6cd40f95780843ca',
+         'registry.bizbox.in/service-desk@sha256:d163cc6102309298fe1638cdb8a273e4c15f5d28bf1b546f6cd40f95780843ca', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 499, 4990, 14 FROM a;
 
--- 18. Online Store
-('a0000000-0000-0000-0000-000000000018', '11111111-1111-1111-1111-111111111111', 'online-store', 'in.flutterflirt.store', 
- 'Online Store', 'Your own ordering website with UPI checkout', 'Online orders', 
- ARRAY['Retail', 'Restaurant'], '# Online Store\nLaunch a branded direct-to-consumer store.', 
- '/icons/store.svg', 'cloud', 'published', false, false, 4.6, 52, 210),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'subscriptions', 'in.flutterflirt.subscriptions', 'Subscriptions & Billing', 'Recurring plans, auto-invoices and UPI AutoPay', 'finance', ARRAY['services','retail']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.subscriptions", "version": "1.0.0", "runtime": "cloud", "scopes": ["invoices:write", "customers:pii"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/subscriptions/1.0.0/bundle.tgz', '9cac91c1f544236a75db4457d3f608dc9c4c6d02b7df74a1b7eed08ccc24437c',
+         'registry.bizbox.in/subscriptions@sha256:9cac91c1f544236a75db4457d3f608dc9c4c6d02b7df74a1b7eed08ccc24437c', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 599, 5990, 14 FROM a;
 
--- 19. Appointments
-('a0000000-0000-0000-0000-000000000019', '11111111-1111-1111-1111-111111111111', 'appointments', 'in.flutterflirt.appointments', 
- 'Appointments', 'Bookings for salons, clinics and studios with reminders', 'Industry', 
- ARRAY['Salons', 'Clinics', 'Spas'], '# Appointments\nCalendar booking system with automated SMS/WhatsApp alerts.', 
- '/icons/appointments.svg', 'cloud', 'published', false, false, 4.7, 36, 140),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'analytics', 'in.flutterflirt.analytics', 'Reports & Analytics', 'Live dashboards across outlets, exports and alerts', 'analytics', ARRAY['all']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.analytics", "version": "1.0.0", "runtime": "cloud", "scopes": ["orders:read", "invoices:read", "stock:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/analytics/1.0.0/bundle.tgz', '65f98121a162a56ad8ee919ed9ea394b9eabd8714616acf30636c6092ee350b9',
+         'registry.bizbox.in/analytics@sha256:65f98121a162a56ad8ee919ed9ea394b9eabd8714616acf30636c6092ee350b9', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 499, 4990, 14 FROM a;
 
--- 20. Pharmacy Suite
-('a0000000-0000-0000-0000-000000000020', '11111111-1111-1111-1111-111111111111', 'pharmacy-suite', 'in.flutterflirt.pharmacy', 
- 'Pharmacy Suite', 'Batches, expiry alerts, schedule-drug register', 'Industry', 
- ARRAY['Pharmacy', 'Healthcare'], '# Pharmacy Suite\nStrict batch expiry controls and schedule H compliance.', 
- '/icons/pharmacy.svg', 'hybrid', 'published', false, false, 4.8, 27, 90),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'ai', 'in.flutterflirt.ai', 'BizBox AI Assistant', 'Ask your business anything — runs on the box, offline', 'ai', ARRAY['all']::text[],
+         'edge', 'draft', false, true FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.ai", "version": "1.0.0", "runtime": "edge", "scopes": ["orders:read", "stock:read", "invoices:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/ai/1.0.0/bundle.tgz', '32e83e92d45d71f69dcf9d214688f0375542108631b45d344e5df2eb91c11566',
+         'registry.bizbox.in/ai@sha256:32e83e92d45d71f69dcf9d214688f0375542108631b45d344e5df2eb91c11566', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 999, 9990, 14 FROM a;
 
--- 21. TallyBridge (Partner App: Ledgerly)
-('a0000000-0000-0000-0000-000000000021', '22222222-2222-2222-2222-222222222222', 'tallybridge', 'in.ledgerly.tallybridge', 
- 'TallyBridge', 'Two-way sync of sales, purchases and stock with Tally', 'Finance & GST', 
- ARRAY['All'], '# TallyBridge\nSeamless real-time synchronization with TallyPrime.', 
- '/icons/tally.svg', 'cloud', 'published', false, false, 4.7, 60, 230),
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'webstore', 'in.flutterflirt.webstore', 'Online Store', 'Your own ordering website with UPI checkout', 'online', ARRAY['retail','bakery','restaurant']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.webstore", "version": "1.0.0", "runtime": "cloud", "scopes": ["menu:read", "orders:write", "payments:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/webstore/1.0.0/bundle.tgz', '64aa12d9f2757efe74a1a57c4a40f430da428eb72b244477a68329e60cdb35f8',
+         'registry.bizbox.in/webstore@sha256:64aa12d9f2757efe74a1a57c4a40f430da428eb72b244477a68329e60cdb35f8', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 799, 7990, 14 FROM a;
 
--- 22. FoodCost Pro (Partner App: KitchenMetrics)
-('a0000000-0000-0000-0000-000000000022', '33333333-3333-3333-3333-333333333333', 'foodcost-pro', 'in.kitchenmetrics.foodcost-pro', 
- 'FoodCost Pro', 'Menu engineering and food-cost % by dish', 'Analytics', 
- ARRAY['Restaurant', 'Cafe', 'Bar'], '# FoodCost Pro\nOptimize plate margins and discover star dishes.', 
- '/icons/foodcost.svg', 'cloud', 'published', true, false, 4.8, 48, 190)
-ON CONFLICT (slug) DO NOTHING;
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'booking', 'in.flutterflirt.booking', 'Appointments', 'Bookings for salons, clinics and studios with reminders', 'industry', ARRAY['salon','clinic']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.booking", "version": "1.0.0", "runtime": "cloud", "scopes": ["customers:pii", "calendar:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/booking/1.0.0/bundle.tgz', '001d057c49888db925f47ba4f0cbb75edf527893381dc5a27d7a965c766508c4',
+         'registry.bizbox.in/booking@sha256:001d057c49888db925f47ba4f0cbb75edf527893381dc5a27d7a965c766508c4', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 599, 5990, 14 FROM a;
 
--- 4. Pricing Plans for the 22 Launch Apps
-INSERT INTO store.app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
-VALUES
-('a0000000-0000-0000-0000-000000000001', 'free', 'Core Billing Free', 'outlet', 0.00, 0.00, 0),
-('a0000000-0000-0000-0000-000000000002', 'standard', 'KDS Standard', 'outlet', 499.00, 4990.00, 14),
-('a0000000-0000-0000-0000-000000000003', 'standard', 'Captain Per Device', 'device', 299.00, 2990.00, 14),
-('a0000000-0000-0000-0000-000000000004', 'standard', 'Kiosk Per Device', 'device', 799.00, 7990.00, 14),
-('a0000000-0000-0000-0000-000000000005', 'standard', 'QR Ordering', 'outlet', 399.00, 3990.00, 14),
-('a0000000-0000-0000-0000-000000000006', 'standard', 'Aggregator Sync', 'outlet', 999.00, 9990.00, 14),
-('a0000000-0000-0000-0000-000000000007', 'standard', 'Recipe Stock Engine', 'outlet', 799.00, 7990.00, 14),
-('a0000000-0000-0000-0000-000000000008', 'standard', 'PO & Vendors', 'month', 499.00, 4990.00, 14),
-('a0000000-0000-0000-0000-000000000009', 'standard', 'Loyalty Pro', 'month', 599.00, 5990.00, 14),
-('a0000000-0000-0000-0000-000000000010', 'standard', 'WhatsApp Suite', 'month', 699.00, 6990.00, 14),
-('a0000000-0000-0000-0000-000000000011', 'standard', 'GST Filing Ready', 'month', 999.00, 9990.00, 14),
-('a0000000-0000-0000-0000-000000000012', 'standard', 'Payroll Per User', 'user', 49.00, 490.00, 14),
-('a0000000-0000-0000-0000-000000000013', 'free', 'Device Hub Free', 'outlet', 0.00, 0.00, 0),
-('a0000000-0000-0000-0000-000000000014', 'standard', 'Help Desk Pro', 'month', 499.00, 4990.00, 14),
-('a0000000-0000-0000-0000-000000000015', 'standard', 'AutoPay Mandates', 'month', 599.00, 5990.00, 14),
-('a0000000-0000-0000-0000-000000000016', 'standard', 'Multi-Outlet Analytics', 'month', 499.00, 4990.00, 14),
-('a0000000-0000-0000-0000-000000000017', 'standard', 'On-Box AI Core', 'month', 999.00, 9990.00, 14),
-('a0000000-0000-0000-0000-000000000018', 'standard', 'Custom Web Store', 'month', 799.00, 7990.00, 14),
-('a0000000-0000-0000-0000-000000000019', 'standard', 'Salon & Clinic Booking', 'month', 599.00, 5990.00, 14),
-('a0000000-0000-0000-0000-000000000020', 'standard', 'Pharma Batch Control', 'outlet', 999.00, 9990.00, 14),
-('a0000000-0000-0000-0000-000000000021', 'standard', 'Tally Sync Bridge', 'month', 349.00, 3490.00, 14),
-('a0000000-0000-0000-0000-000000000022', 'standard', 'Food Cost & Margins', 'month', 449.00, 4490.00, 14)
-ON CONFLICT (app_id, code) DO NOTHING;
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'pharmacy', 'in.flutterflirt.pharmacy', 'Pharmacy Suite', 'Batches, expiry alerts, schedule-drug register', 'industry', ARRAY['pharmacy']::text[],
+         'hybrid', 'draft', false, false FROM developers WHERE slug = 'flutterflirt'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.flutterflirt.pharmacy", "version": "1.0.0", "runtime": "hybrid", "scopes": ["stock:write", "orders:write"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/pharmacy/1.0.0/bundle.tgz', '20b04a4f018b89f369ce009213afc6369f59fe1c903c0770732ec7402163c358',
+         'registry.bizbox.in/pharmacy@sha256:20b04a4f018b89f369ce009213afc6369f59fe1c903c0770732ec7402163c358', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'outlet', 999, 9990, 14 FROM a;
+
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'tally-bridge', 'in.ledgerly.tally-bridge', 'TallyBridge', 'Two-way sync of sales, purchases and stock with Tally', 'finance', ARRAY['all']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'ledgerly'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.ledgerly.tally-bridge", "version": "1.0.0", "runtime": "cloud", "scopes": ["invoices:read", "stock:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/tally-bridge/1.0.0/bundle.tgz', '9f47f5daf0736cc3be72087f666baaa09ceb153a417d7a28b9bea49bb185c569',
+         'registry.bizbox.in/tally-bridge@sha256:9f47f5daf0736cc3be72087f666baaa09ceb153a417d7a28b9bea49bb185c569', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 349, 3490, 7 FROM a;
+
+WITH a AS (
+  INSERT INTO apps (developer_id, slug, package_id, name, tagline, category, business_types, runtime, status, is_core, is_featured)
+  SELECT id, 'foodcost-pro', 'in.kitchenmetrics.foodcost-pro', 'FoodCost Pro', 'Menu engineering and food-cost % by dish', 'analytics', ARRAY['restaurant','cafe']::text[],
+         'cloud', 'draft', false, false FROM developers WHERE slug = 'kitchenmetrics'
+  RETURNING id
+), v AS (
+  INSERT INTO app_versions (app_id, version, manifest, bundle_url, bundle_sha256, image_ref, signature, status, rollout_pct, submitted_at)
+  SELECT id, '1.0.0', '{"id": "in.kitchenmetrics.foodcost-pro", "version": "1.0.0", "runtime": "cloud", "scopes": ["orders:read", "stock:read", "menu:read"], "ui": {"slots": ["console.sidebar"]}, "resources": {"cpu": "0.25", "memory": "256Mi"}}'::jsonb, 's3://bizbox-apps/foodcost-pro/1.0.0/bundle.tgz', '87b4be705ad5e4bb42d470d94ce48d1405343693f1ccd55a80cc3c69092c2fe1',
+         'registry.bizbox.in/foodcost-pro@sha256:87b4be705ad5e4bb42d470d94ce48d1405343693f1ccd55a80cc3c69092c2fe1', 'cosign:demo', 'approved', 100, now() - interval '30 days' FROM a
+  RETURNING id
+), c AS (
+  INSERT INTO version_checks (version_id, kind, status, summary)
+  SELECT v.id, k::check_kind, 'passed', 'ok' FROM v, unnest(ARRAY['manifest','security_scan','arm64_build','permissions']) k
+), r AS (
+  INSERT INTO version_reviews (version_id, reviewer, decision, notes) SELECT id, 'review@flutterflirt.com', 'approve', 'Launch catalog' FROM v
+)
+INSERT INTO app_plans (app_id, code, name, unit, price_month, price_year, trial_days)
+SELECT id, 'standard', 'Standard', 'tenant', 449, 4490, 14 FROM a;
+
+UPDATE app_versions SET status = 'published' WHERE status = 'approved';
+
+INSERT INTO app_dependencies (app_id, requires_app, min_version)
+SELECT a.id, p.id, '1.0.0' FROM apps a, apps p
+WHERE p.slug = 'pos' AND a.slug IN ('kds','captain','kiosk','qr-order','online-hub','crm','inventory');
