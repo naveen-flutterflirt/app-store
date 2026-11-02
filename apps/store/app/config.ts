@@ -3,18 +3,18 @@ export const API_URL = (
 ).replace(/\/$/, '').replace(/\/v1$/, '') + '/v1';
 
 export const STORE_URL = (
-  process.env.NEXT_PUBLIC_STORE_URL || 'http://localhost:3000'
+  process.env.NEXT_PUBLIC_STORE_URL || 'https://app-store-taupe-two.vercel.app'
 ).replace(/\/$/, '');
 
 export const CONSOLE_URL = (
-  process.env.NEXT_PUBLIC_CONSOLE_URL || 'http://localhost:3001'
+  process.env.NEXT_PUBLIC_CONSOLE_URL || 'https://app-store-742z.vercel.app'
 ).replace(/\/$/, '');
 
 export const DEV_URL = (
-  process.env.NEXT_PUBLIC_DEV_URL || 'http://localhost:3002'
+  process.env.NEXT_PUBLIC_DEV_URL || 'https://app-store-ubpt.vercel.app'
 ).replace(/\/$/, '');
 
 export const ADMIN_URL = (
-  process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3003'
+  process.env.NEXT_PUBLIC_ADMIN_URL || 'https://app-store-mnlu.vercel.app'
 ).replace(/\/$/, '');
 
