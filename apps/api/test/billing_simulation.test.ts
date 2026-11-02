@@ -9,7 +9,7 @@ async function runBillingSimulation() {
 
   // 1. Install an app with a 14-day trial (e.g. Online Orders Hub: online-hub, 14 days trial, ₹999/mo)
   console.log('[Step 1] Installing Online Orders Hub with 14-day trial...');
-  
+
   // Find app ID for online-hub
   const appsRes = await fetch(`${baseUrl}/store/apps?q=Online%20Orders%20Hub`);
   const apps = await appsRes.json() as any[];
@@ -23,6 +23,7 @@ async function runBillingSimulation() {
       appId: hubApp.id,
       planCode: 'standard'
     })
+
   });
 
   const installData = await installRes.json() as any;

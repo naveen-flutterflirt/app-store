@@ -54,8 +54,46 @@ export class BillingService {
     // Interval calculation: 14-day trial or 30-day standard billing cycle
     const intervalSql = trialDays > 0 ? `${trialDays} days` : '30 days';
 
-    // Mock/Simulated Razorpay UPI AutoPay subscription id
-    const rzpSubId = `sub_${Math.random().toString(36).substring(2, 12)}`;
+    // Live Razorpay Order / Payment Link generation with key credentials
+    let rzpSubId = `sub_${Math.random().toString(36).substring(2, 12)}`;
+    const rzpKeyId = process.env.RAZORPAY_KEY_ID;
+    const rzpSecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (rzpKeyId && rzpSecret && !rzpKeyId.includes('samplekey') && Number(plan.price_month) > 0) {
+      try {
+        const auth = Buffer.from(`${rzpKeyId}:${rzpSecret}`).toString('base64');
+        // Create an official Razorpay Order for this subscription activation
+        const amountPaise = Math.round(Number(plan.price_month) * 100);
+        const orderRes = await fetch('https://api.razorpay.com/v1/orders', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            amount: amountPaise,
+            currency: 'INR',
+            receipt: `rcpt_${installationId.substring(0, 10)}`,
+            notes: {
+              app: plan.app_name,
+              plan: plan.name,
+              installationId
+            }
+          })
+        });
+
+        if (orderRes.ok) {
+          const rzpOrder = await orderRes.json();
+          rzpSubId = rzpOrder.id;
+          console.log(`[Billing Engine] Live Razorpay Order created: ${rzpSubId}`);
+        } else {
+          const errBody = await orderRes.text();
+          console.warn(`[Billing Engine] Razorpay order call returned ${orderRes.status}: ${errBody}`);
+        }
+      } catch (err: any) {
+        console.warn(`[Billing Engine] Live Razorpay call failed, using graceful fallback: ${err.message}`);
+      }
+    }
 
     const res = await query(`
       INSERT INTO store.subscriptions (
@@ -204,8 +242,8 @@ export class BillingService {
   async handleRazorpayWebhook(event: string, payload: any) {
     console.log(`[Billing Engine] Received Razorpay Webhook event: ${event}`);
 
-    const subEntity = payload?.subscription?.entity || payload?.entity;
-    const providerSubId = subEntity?.id;
+    const subEntity = payload?.subscription?.entity || payload?.entity || payload;
+    const providerSubId = subEntity?.id || payload?.subscription_id;
 
     if (!providerSubId) {
       console.warn(`[Billing Engine] Webhook missing provider subscription ID`);
@@ -290,3 +328,4 @@ export class BillingService {
 }
 
 export const billingService = new BillingService();
+

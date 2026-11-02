@@ -21,3 +21,4 @@ echo "Applying database/seed_launch_catalog.sql (22 launch apps)..."
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f database/seed_launch_catalog.sql
 
 echo "✓ BizBox Database initialized successfully."
+

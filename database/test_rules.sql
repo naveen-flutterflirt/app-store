@@ -59,3 +59,4 @@ BEGIN
     PERFORM store.version_for_tenant(v_app_id, '00000000-0000-0000-0000-000000000001');
     RAISE NOTICE 'SUCCESS: Staged rollout algorithm successfully resolved tenant version!';
 END $$;
+

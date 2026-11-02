@@ -81,3 +81,4 @@ chmod +x scripts/db-init.sh
 - [ ] **Phase 2: Edge & Deployment** (BizBox agent, desired state, k3s sandbox, cosign verification).
 - [ ] **Phase 3: Billing** (Razorpay subscriptions, UPI AutoPay, trials, GST invoicing).
 - [ ] **Phase 4: Developer Ecosystem** (Developer console, CI checks: SBOM & CVE scanner, payouts).
+

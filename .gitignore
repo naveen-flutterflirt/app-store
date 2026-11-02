@@ -35,3 +35,4 @@ Thumbs.db
 # Docker / Storage
 .minio.sys/
 certs/cosign.key
+
