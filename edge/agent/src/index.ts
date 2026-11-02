@@ -26,7 +26,7 @@ export class BizBoxEdgeAgent {
 
   constructor(deviceId?: string, apiGatewayUrl?: string) {
     this.deviceId = deviceId || process.env.BIZBOX_DEVICE_ID || '00000000-0000-0000-0000-000000000002';
-    this.apiGatewayUrl = apiGatewayUrl || process.env.BIZBOX_API_GATEWAY || 'http://localhost:4000/v1';
+    this.apiGatewayUrl = apiGatewayUrl || process.env.BIZBOX_API_GATEWAY || 'https://app-store-api-ochre.vercel.app/v1';
     this.sandbox = new ContainerSandbox();
   }
 

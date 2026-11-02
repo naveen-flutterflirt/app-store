@@ -1,5 +1,5 @@
 export const API_URL = (
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'https://app-store-api-ochre.vercel.app/v1'
 ).replace(/\/$/, '').replace(/\/v1$/, '') + '/v1';
 
 export const STORE_URL = (

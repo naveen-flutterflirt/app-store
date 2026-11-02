@@ -5,7 +5,7 @@
 
 async function runDeveloperPipelineSimulation() {
   console.log('>>> STARTING BIZBOX DEVELOPER & REVIEW PIPELINE SIMULATION TEST <<<\n');
-  const baseUrl = 'http://localhost:4000/v1';
+  const baseUrl = process.env.API_URL || 'https://app-store-api-ochre.vercel.app/v1';
 
   // 1. Developer creates a new app listing
   console.log('[Step 1] Developer creates a new app listing (POST /dev/apps)...');

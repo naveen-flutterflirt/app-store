@@ -8,7 +8,7 @@ import { BizBoxEdgeAgent } from '../src/index';
 async function runEdgeSimulation() {
   console.log('>>> STARTING BIZBOX EDGE AGENT SIMULATION TEST <<<\n');
 
-  const agent = new BizBoxEdgeAgent('00000000-0000-0000-0000-000000000002', 'http://localhost:4000/v1');
+  const agent = new BizBoxEdgeAgent('00000000-0000-0000-0000-000000000002', process.env.API_URL || 'https://app-store-api-ochre.vercel.app/v1');
 
   // 1. Test Device Registration
   console.log('[Step 1] Testing Device Registration...');

@@ -5,7 +5,7 @@
 
 async function runBillingSimulation() {
   console.log('>>> STARTING BIZBOX BILLING & SUBSCRIPTION SIMULATION TEST <<<\n');
-  const baseUrl = 'http://localhost:4000/v1';
+  const baseUrl = process.env.API_URL || 'https://app-store-api-ochre.vercel.app/v1';
 
   // 1. Install an app with a 14-day trial (e.g. Online Orders Hub: online-hub, 14 days trial, ₹999/mo)
   console.log('[Step 1] Installing Online Orders Hub with 14-day trial...');

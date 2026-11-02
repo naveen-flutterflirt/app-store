@@ -3,14 +3,14 @@
  * Tests all 4 phases, DB triggers, 51 OpenAPI endpoints, edge daemon, billing math, and frontend HTML
  */
 
-const API_BASE = 'http://localhost:4000/v1';
+const API_BASE = process.env.API_URL || 'https://app-store-api-ochre.vercel.app/v1';
 const FRONTENDS = [
-  { name: 'Storefront', url: 'http://localhost:3000' },
-  { name: 'App Details', url: 'http://localhost:3000/apps/inventory' },
-  { name: 'Console My Apps', url: 'http://localhost:3001/apps' },
-  { name: 'Developer Console', url: 'http://localhost:3002' },
-  { name: 'Admin Review Queue', url: 'http://localhost:3003/review-queue' },
-  { name: 'Admin Dashboard', url: 'http://localhost:3003/dashboard' },
+  { name: 'Storefront', url: 'https://app-store-taupe-two.vercel.app' },
+  { name: 'App Details', url: 'https://app-store-taupe-two.vercel.app/apps/inventory' },
+  { name: 'Console My Apps', url: 'https://app-store-742z.vercel.app/apps' },
+  { name: 'Developer Console', url: 'https://app-store-ubpt.vercel.app' },
+  { name: 'Admin Review Queue', url: 'https://app-store-mnlu.vercel.app/review-queue' },
+  { name: 'Admin Dashboard', url: 'https://app-store-mnlu.vercel.app/dashboard' },
 ];
 
 async function runTestSuite() {

@@ -65,7 +65,7 @@ switch (command) {
 
   case 'dev': {
     console.log('Starting BizBox local dev runtime inside sandbox tenant: demo-cafe...');
-    console.log('Listening for local events and emulating POS API at http://localhost:4000/v1');
+    console.log(`Listening for local events and emulating POS API at ${process.env.BIZBOX_API_GATEWAY || 'https://app-store-api-ochre.vercel.app/v1'}`);
     break;
   }
 

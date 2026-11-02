@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../src/index");
 async function runEdgeSimulation() {
     console.log('>>> STARTING BIZBOX EDGE AGENT SIMULATION TEST <<<\n');
-    const agent = new index_1.BizBoxEdgeAgent('00000000-0000-0000-0000-000000000002', 'http://localhost:4000/v1');
+    const agent = new index_1.BizBoxEdgeAgent('00000000-0000-0000-0000-000000000002', process.env.API_URL || 'https://app-store-api-ochre.vercel.app/v1');
     // 1. Test Device Registration
     console.log('[Step 1] Testing Device Registration...');
     const registered = await agent.register();
