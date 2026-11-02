@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
+import { API_URL, CONSOLE_URL } from '../../../config';
 
 interface AppShellProps {
   params: {
@@ -59,7 +60,7 @@ export default function AppShellPage({ params }: AppShellProps) {
     // 1. Fetch live installation context from API Gateway
     async function loadAppContext() {
       try {
-        const res = await fetch(`http://localhost:4000/v1/installations/by-package/${packageId}/context`);
+        const res = await fetch(`${API_URL}/installations/by-package/${packageId}/context`);
         if (res.ok) {
           const data = await res.json();
           setAppContext(data);
@@ -207,7 +208,7 @@ export default function AppShellPage({ params }: AppShellProps) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
           <a
-            href="http://localhost:3001/apps"
+            href={`${CONSOLE_URL}/apps`}
             style={{
               display: 'flex',
               alignItems: 'center',

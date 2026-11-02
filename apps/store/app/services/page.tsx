@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
 
 interface ServiceInfo {
   id: string;
@@ -44,7 +45,7 @@ export default function ServicesHubPage() {
       badgeBg: '#fdf2f8',
       badgeBorder: '#fbcfe8',
       port: 3000,
-      url: 'http://localhost:3000',
+      url: STORE_URL,
       iconSvg: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -73,7 +74,7 @@ export default function ServicesHubPage() {
       badgeBg: '#eff6ff',
       badgeBorder: '#bfdbfe',
       port: 3001,
-      url: 'http://localhost:3001/apps',
+      url: `${CONSOLE_URL}/apps`,
       iconSvg: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
@@ -102,7 +103,7 @@ export default function ServicesHubPage() {
       badgeBg: '#ecfdf5',
       badgeBorder: '#a7f3d0',
       port: 3002,
-      url: 'http://localhost:3002',
+      url: DEV_URL,
       iconSvg: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="16 18 22 12 16 6"/>
@@ -130,7 +131,7 @@ export default function ServicesHubPage() {
       badgeBg: '#fffbeb',
       badgeBorder: '#fde68a',
       port: 3003,
-      url: 'http://localhost:3003/review-queue',
+      url: `${ADMIN_URL}/review-queue`,
       iconSvg: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -158,7 +159,7 @@ export default function ServicesHubPage() {
       badgeBg: '#f5f3ff',
       badgeBorder: '#ddd6fe',
       port: 3003,
-      url: 'http://localhost:3003/dashboard',
+      url: `${ADMIN_URL}/dashboard`,
       iconSvg: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="20" x2="18" y2="10"/>
@@ -187,7 +188,7 @@ export default function ServicesHubPage() {
       badgeBg: '#ecfeff',
       badgeBorder: '#a5f3fc',
       port: 3000,
-      url: 'http://localhost:3000/api-docs',
+      url: `${STORE_URL}/api-docs`,
       iconSvg: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
@@ -208,12 +209,12 @@ export default function ServicesHubPage() {
 
   useEffect(() => {
     const endpoints: Record<string, string> = {
-      store: 'http://localhost:3000',
-      console: 'http://localhost:3001/apps',
-      developer: 'http://localhost:3002',
-      review: 'http://localhost:3003/review-queue',
-      dashboard: 'http://localhost:3003/dashboard',
-      api: 'http://localhost:4000/v1/store/apps'
+      store: STORE_URL,
+      console: `${CONSOLE_URL}/apps`,
+      developer: DEV_URL,
+      review: `${ADMIN_URL}/review-queue`,
+      dashboard: `${ADMIN_URL}/dashboard`,
+      api: `${API_URL}/store/apps`
     };
 
     Object.entries(endpoints).forEach(([key, url]) => {
@@ -257,7 +258,7 @@ export default function ServicesHubPage() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href="http://localhost:3000" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+          <a href={STORE_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
             <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
             <span style={{
               fontSize: '0.65rem',
@@ -270,17 +271,17 @@ export default function ServicesHubPage() {
             }}>Apps</span>
           </a>
           <nav className="nav-desktop" style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href="http://localhost:3000" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
-            <a href="http://localhost:3000/services" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
-            <a href="http://localhost:3001/apps" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
-            <a href="http://localhost:3002" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
-            <a href="http://localhost:3002" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Publish</a>
+            <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
+            <a href={`${STORE_URL}/services`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
+            <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
+            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
+            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Publish</a>
             <div style={{ height: '16px', width: '1px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }} />
-            <a href="http://localhost:3003/review-queue" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               Review queue
               <span style={{ backgroundColor: '#fef3c7', color: '#b45309', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '999px' }}>1</span>
             </a>
-            <a href="http://localhost:3003/dashboard" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
+            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -328,12 +329,12 @@ export default function ServicesHubPage() {
           flexDirection: 'column',
           gap: '0.5rem'
         }}>
-          <a href="http://localhost:3000" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Store</a>
-          <a href="http://localhost:3000/services" style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Services Hub</a>
-          <a href="http://localhost:3001/apps" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Merchant Console (My Apps)</a>
-          <a href="http://localhost:3002" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Developer Console</a>
-          <a href="http://localhost:3003/review-queue" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Review Queue</a>
-          <a href="http://localhost:3003/dashboard" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</a>
+          <a href={STORE_URL} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Store</a>
+          <a href={`${STORE_URL}/services`} style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Services Hub</a>
+          <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Merchant Console (My Apps)</a>
+          <a href={DEV_URL} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Developer Console</a>
+          <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Review Queue</a>
+          <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</a>
         </div>
       )}
 

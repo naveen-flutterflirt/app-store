@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../../config';
 
 interface AppDetail {
   id: string;
@@ -33,7 +34,7 @@ export default function AppDetailPage({ params }: { params: { slug: string } }) 
   const [installError, setInstallError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`http://localhost:4000/v1/store/apps/${params.slug}`)
+    fetch(`${API_URL}/store/apps/${params.slug}`)
       .then(res => res.json())
       .then(data => {
         setApp(data);
@@ -62,7 +63,7 @@ export default function AppDetailPage({ params }: { params: { slug: string } }) 
 
     try {
       if (app) {
-        const res = await fetch('http://localhost:4000/v1/installations', {
+        const res = await fetch(`${API_URL}/installations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -181,12 +182,12 @@ export default function AppDetailPage({ params }: { params: { slug: string } }) 
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <a href="http://localhost:3000" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+          <a href={STORE_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
             <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
             <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ec4899', backgroundColor: '#fdf2f8', border: '1px solid #fbcfe8', padding: '1px 6px', borderRadius: '4px' }}>Apps</span>
           </a>
           <nav style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href="http://localhost:3000" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>← Back to Store</a>
+            <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>← Back to Store</a>
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.3rem 0.65rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
@@ -472,7 +473,7 @@ export default function AppDetailPage({ params }: { params: { slug: string } }) 
               )}
               {installed && !installError && (
                 <a
-                  href="http://localhost:3001/apps"
+                  href={`${CONSOLE_URL}/apps`}
                   style={{
                     padding: '0.55rem 1.15rem',
                     borderRadius: '8px',

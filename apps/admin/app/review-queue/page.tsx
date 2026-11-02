@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
 
 interface QueueItem {
   version_id: string;
@@ -35,7 +36,7 @@ export default function ReviewQueuePage() {
 
   const fetchQueue = () => {
     setLoading(true);
-    fetch('http://localhost:4000/v1/admin/review-queue')
+    fetch(`${API_URL}/admin/review-queue`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -65,7 +66,7 @@ export default function ReviewQueuePage() {
     setActionFeedback(null);
     try {
       const decisionNote = (customNote || notes).trim() || (decision === 'reject' ? 'Rejected due to policy / security requirements' : 'Please address security and permission review items');
-      const res = await fetch(`http://localhost:4000/v1/admin/versions/${selectedItem.version_id}/decision`, {
+      const res = await fetch(`${API_URL}/admin/versions/${selectedItem.version_id}/decision`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,7 +109,7 @@ export default function ReviewQueuePage() {
     setActionFeedback(null);
     try {
       // Step A: Approve decision
-      const approveRes = await fetch(`http://localhost:4000/v1/admin/versions/${selectedItem.version_id}/decision`, {
+      const approveRes = await fetch(`${API_URL}/admin/versions/${selectedItem.version_id}/decision`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -127,7 +128,7 @@ export default function ReviewQueuePage() {
       }
 
       // Step B: Publish with Ed25519 Cosign bundle signing & rollout percentage
-      const pubRes = await fetch(`http://localhost:4000/v1/admin/versions/${selectedItem.version_id}/publish`, {
+      const pubRes = await fetch(`${API_URL}/admin/versions/${selectedItem.version_id}/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ rolloutPct })
@@ -197,7 +198,7 @@ export default function ReviewQueuePage() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href="http://localhost:3000" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+          <a href={STORE_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
             <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
             <span style={{
               fontSize: '0.65rem',
@@ -210,19 +211,19 @@ export default function ReviewQueuePage() {
             }}>Apps</span>
           </a>
           <nav className="nav-desktop" style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href="http://localhost:3000" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
-            <a href="http://localhost:3000/services" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
-            <a href="http://localhost:3001/apps" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
-            <a href="http://localhost:3002" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
-            <a href="http://localhost:3002" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Publish</a>
+            <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
+            <a href={`${STORE_URL}/services`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
+            <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
+            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
+            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Publish</a>
             <div style={{ height: '16px', width: '1px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }} />
-            <a href="/review-queue" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               Review queue
               <span style={{ backgroundColor: '#fef3c7', color: '#b45309', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '999px' }}>
                 {queue.length}
               </span>
             </a>
-            <a href="/dashboard" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
+            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -262,12 +263,12 @@ export default function ReviewQueuePage() {
           flexDirection: 'column',
           gap: '0.5rem'
         }}>
-          <a href="http://localhost:3000" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Store</a>
-          <a href="http://localhost:3000/services" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Services Hub</a>
-          <a href="http://localhost:3001/apps" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Merchant Console (My Apps)</a>
-          <a href="http://localhost:3002" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Developer Console</a>
-          <a href="/review-queue" style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Admin Review Queue</a>
-          <a href="/dashboard" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</a>
+          <a href={STORE_URL} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Store</a>
+          <a href={`${STORE_URL}/services`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Services Hub</a>
+          <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Merchant Console (My Apps)</a>
+          <a href={DEV_URL} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Developer Console</a>
+          <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Admin Review Queue</a>
+          <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</a>
         </div>
       )}
 

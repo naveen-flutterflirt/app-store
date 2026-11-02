@@ -4,6 +4,9 @@
   "description": "Shared FlutterFlirt design system tokens and components",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "dependencies": {},
   "devDependencies": {
     "typescript": "^5.4.5"

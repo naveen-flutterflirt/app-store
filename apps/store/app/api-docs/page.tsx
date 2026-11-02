@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
 
 interface Endpoint {
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE';
@@ -161,7 +162,7 @@ export default function ApiDocsPage() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href="http://localhost:3000" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+          <a href={STORE_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
             <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
             <span style={{
               fontSize: '0.65rem',
@@ -174,17 +175,17 @@ export default function ApiDocsPage() {
             }}>API Docs</span>
           </a>
           <nav style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href="http://localhost:3000" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
-            <a href="http://localhost:3000/services" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
-            <a href="http://localhost:3000/api-docs" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>API Reference</a>
-            <a href="http://localhost:3001/apps" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
-            <a href="http://localhost:3002" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
+            <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
+            <a href={`${STORE_URL}/services`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
+            <a href={`${STORE_URL}/api-docs`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>API Reference</a>
+            <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
+            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
           </nav>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <a
-            href="http://localhost:4000/health"
+            href={`${API_URL.replace('/v1', '')}/health`}
             target="_blank"
             rel="noreferrer"
             style={{
@@ -327,7 +328,7 @@ export default function ApiDocsPage() {
                 </div>
               </div>
               <a
-                href={`http://localhost:4000${activeEndpoint.path.replace('/:slug', '/inventory').replace('/:id/versions', '/draft/versions').replace('/:id', '')}`}
+                href={`${API_URL.replace('/v1', '')}${activeEndpoint.path.replace('/:slug', '/inventory').replace('/:id/versions', '/draft/versions').replace('/:id', '')}`}
                 target="_blank"
                 rel="noreferrer"
                 style={{

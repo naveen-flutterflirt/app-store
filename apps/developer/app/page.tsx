@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from './config';
 
 interface DevApp {
   id: string;
@@ -75,8 +76,8 @@ export default function DeveloperConsolePage() {
   const loadDeveloperData = () => {
     setLoading(true);
     Promise.all([
-      fetch('http://localhost:4000/v1/dev/apps').then(r => r.json()),
-      fetch('http://localhost:4000/v1/dev/submissions').then(r => r.json())
+      fetch(`${API_URL}/dev/apps`).then(r => r.json()),
+      fetch(`${API_URL}/dev/submissions`).then(r => r.json())
     ])
       .then(([appsData, subsData]) => {
         if (Array.isArray(appsData)) {
@@ -125,7 +126,7 @@ export default function DeveloperConsolePage() {
 
     setCreatingApp(true);
     try {
-      const res = await fetch('http://localhost:4000/v1/dev/apps', {
+      const res = await fetch(`${API_URL}/dev/apps`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -207,7 +208,7 @@ export default function DeveloperConsolePage() {
 
     try {
       // Step A: Create version & generate AWS S3 presigned upload URL
-      const verRes = await fetch(`http://localhost:4000/v1/dev/apps/${targetAppId}/versions`, {
+      const verRes = await fetch(`${API_URL}/dev/apps/${targetAppId}/versions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -237,7 +238,7 @@ export default function DeveloperConsolePage() {
       setCiStep(3);
       await new Promise(r => setTimeout(r, 500));
 
-      const submitRes = await fetch(`http://localhost:4000/v1/dev/versions/${verData.version.id}/submit`, {
+      const submitRes = await fetch(`${API_URL}/dev/versions/${verData.version.id}/submit`, {
         method: 'POST'
       });
 
@@ -280,7 +281,7 @@ export default function DeveloperConsolePage() {
       // Find latest submission version for this app if available
       const latestSub = submissions.find(s => s.app_id === selectedApp.id);
       if (latestSub) {
-        const res = await fetch(`http://localhost:4000/v1/dev/versions/${latestSub.id}/rollout`, {
+        const res = await fetch(`${API_URL}/dev/versions/${latestSub.id}/rollout`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ rolloutPct: manageRollout })
@@ -350,7 +351,7 @@ export default function DeveloperConsolePage() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href="http://localhost:3000" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+          <a href={STORE_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
             <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
             <span style={{
               fontSize: '0.65rem',
@@ -363,10 +364,10 @@ export default function DeveloperConsolePage() {
             }}>Developer</span>
           </a>
           <nav className="nav-desktop" style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href="http://localhost:3000" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
-            <a href="http://localhost:3000/services" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
-            <a href="http://localhost:3001/apps" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
-            <a href="http://localhost:3002" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
+            <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
+            <a href={`${STORE_URL}/services`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
+            <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
+            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
             <button
               onClick={() => handleOpenPublishModal()}
               style={{
@@ -382,13 +383,13 @@ export default function DeveloperConsolePage() {
               Publish
             </button>
             <div style={{ height: '16px', width: '1px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }} />
-            <a href="http://localhost:3003/review-queue" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               Review queue
               <span style={{ backgroundColor: '#fef3c7', color: '#b45309', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '999px' }}>
                 {submissions.filter(s => s.status === 'in_review').length || 1}
               </span>
             </a>
-            <a href="http://localhost:3003/dashboard" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
+            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -428,12 +429,12 @@ export default function DeveloperConsolePage() {
           flexDirection: 'column',
           gap: '0.5rem'
         }}>
-          <a href="http://localhost:3000" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Store</a>
-          <a href="http://localhost:3000/services" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Services Hub</a>
-          <a href="http://localhost:3001/apps" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Merchant Console (My Apps)</a>
-          <a href="http://localhost:3002" style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Developer Console</a>
-          <a href="http://localhost:3003/review-queue" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Review Queue</a>
-          <a href="http://localhost:3003/dashboard" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</a>
+          <a href={STORE_URL} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Store</a>
+          <a href={`${STORE_URL}/services`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Services Hub</a>
+          <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Merchant Console (My Apps)</a>
+          <a href={DEV_URL} style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Developer Console</a>
+          <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Review Queue</a>
+          <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</a>
         </div>
       )}
 
@@ -702,7 +703,7 @@ export default function DeveloperConsolePage() {
                       <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                         {sub.status === 'in_review' ? (
                           <a
-                            href="http://localhost:3003/review-queue"
+                            href={`${ADMIN_URL}/review-queue`}
                             style={{
                               padding: '0.35rem 0.65rem',
                               borderRadius: '6px',
@@ -717,7 +718,7 @@ export default function DeveloperConsolePage() {
                           </a>
                         ) : sub.status === 'published' ? (
                           <a
-                            href={`http://localhost:3000/apps/${sub.slug}`}
+                            href={`${STORE_URL}/apps/${sub.slug}`}
                             style={{
                               padding: '0.35rem 0.65rem',
                               borderRadius: '6px',
@@ -1071,7 +1072,7 @@ export default function DeveloperConsolePage() {
                 </button>
               ) : ciStep >= 6 ? (
                 <a
-                  href="http://localhost:3003/review-queue"
+                  href={`${ADMIN_URL}/review-queue`}
                   style={{
                     padding: '0.55rem 1.15rem',
                     borderRadius: '8px',
@@ -1166,7 +1167,7 @@ export default function DeveloperConsolePage() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', paddingBottom: '0.4rem' }}>
                 <span style={{ color: '#64748b' }}>Public Store Listing</span>
-                <a href={`http://localhost:3000/apps/${selectedApp.slug}`} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: '#0284c7', textDecoration: 'none' }}>
+                <a href={`${STORE_URL}/apps/${selectedApp.slug}`} target="_blank" rel="noreferrer" style={{ fontWeight: 700, color: '#0284c7', textDecoration: 'none' }}>
                   Open Storefront ↗
                 </a>
               </div>
