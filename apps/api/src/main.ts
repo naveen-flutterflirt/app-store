@@ -91,12 +91,12 @@ const server = http.createServer(async (req, res) => {
                 <div class="box">
                   <h3>Browse the Visual Storefront</h3>
                   <p>Discover apps, test installs, 14-day trials and 18% GST invoices on Port 3000.</p>
-                  <a href="http://localhost:3000" class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">Open Storefront (Port 3000) &rarr;</a>
+                  <a href="${process.env.STORE_URL || process.env.NEXT_PUBLIC_STORE_URL || '#'}" class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">Open Storefront &rarr;</a>
                 </div>
                 <div class="box">
                   <h3>Merchant Console</h3>
                   <p>Monitor Edge hardware node telemetry (CPU, RAM, Sync) and launch sandboxed apps.</p>
-                  <a href="http://localhost:3001/apps" class="btn btn-outline" style="margin-left: 0; padding: 0.4rem 0.85rem; font-size: 0.8rem;">Open Console (Port 3001) &rarr;</a>
+                  <a href="${process.env.CONSOLE_URL || process.env.NEXT_PUBLIC_CONSOLE_URL || '#'}/apps" class="btn btn-outline" style="margin-left: 0; padding: 0.4rem 0.85rem; font-size: 0.8rem;">Open Console &rarr;</a>
                 </div>
               </div>
 

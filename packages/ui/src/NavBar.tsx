@@ -42,7 +42,7 @@ export function NavBar({ active = 'store', businessName = 'Brew Street Cafe', on
     }}>
       {/* Left brand + tabs */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        <a href="http://localhost:3000" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+        <a href={process.env.NEXT_PUBLIC_STORE_URL || '/'} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
           <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>BizBox</span>
           <span style={{
             fontSize: '0.65rem',
@@ -57,19 +57,19 @@ export function NavBar({ active = 'store', businessName = 'Brew Street Cafe', on
         </a>
 
         <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <a href="http://localhost:3000" style={getTabStyle('store')}>Store</a>
-          <a href="http://localhost:3000/services" style={getTabStyle('services')}>Services Hub</a>
-          <a href="http://localhost:3001/apps" style={getTabStyle('myapps')}>My Apps</a>
-          <a href="http://localhost:3002" style={getTabStyle('developer')}>Developer</a>
+          <a href={process.env.NEXT_PUBLIC_STORE_URL || '/'} style={getTabStyle('store')}>Store</a>
+          <a href={`${process.env.NEXT_PUBLIC_STORE_URL || ''}/services`} style={getTabStyle('services')}>Services Hub</a>
+          <a href={`${process.env.NEXT_PUBLIC_CONSOLE_URL || ''}/apps`} style={getTabStyle('myapps')}>My Apps</a>
+          <a href={process.env.NEXT_PUBLIC_DEV_URL || '/'} style={getTabStyle('developer')}>Developer</a>
           <a 
-            href="http://localhost:3002" 
+            href={process.env.NEXT_PUBLIC_DEV_URL || '/'} 
             onClick={onPublishClick ? (e) => { e.preventDefault(); onPublishClick(); } : undefined}
             style={getTabStyle('publish')}
           >
             Publish
           </a>
           <div style={{ height: '16px', width: '1px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }} />
-          <a href="http://localhost:3003/review-queue" style={getTabStyle('review')}>
+          <a href={`${process.env.NEXT_PUBLIC_ADMIN_URL || ''}/review-queue`} style={getTabStyle('review')}>
             Review queue
             <span style={{
               backgroundColor: '#fef3c7',
@@ -81,7 +81,7 @@ export function NavBar({ active = 'store', businessName = 'Brew Street Cafe', on
               border: '1px solid #fde68a'
             }}>1</span>
           </a>
-          <a href="http://localhost:3003/dashboard" style={getTabStyle('dashboard')}>Dashboard</a>
+          <a href={`${process.env.NEXT_PUBLIC_ADMIN_URL || ''}/dashboard`} style={getTabStyle('dashboard')}>Dashboard</a>
         </nav>
       </div>
 
