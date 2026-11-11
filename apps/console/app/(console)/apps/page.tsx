@@ -522,21 +522,6 @@ export default function MyAppsPage() {
                       <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.4rem', alignItems: 'center' }}>
                           <a
-                            href={`/x/${app.package_id}`}
-                            style={{
-                              padding: '0.35rem 0.65rem',
-                              borderRadius: '6px',
-                              backgroundColor: '#0284c7',
-                              color: '#ffffff',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              textDecoration: 'none',
-                              boxShadow: '0 1px 3px rgba(2, 132, 199, 0.2)'
-                            }}
-                          >
-                            Launch ↗
-                          </a>
-                          <a
                             href={`${STORE_URL}/apps/${app.slug}`}
                             target="_blank"
                             rel="noreferrer"

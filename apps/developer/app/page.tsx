@@ -364,7 +364,7 @@ export default function DeveloperConsolePage() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href={STORE_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
+          <a href={DEV_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
             <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
             <span style={{
               fontSize: '0.65rem',
@@ -377,10 +377,7 @@ export default function DeveloperConsolePage() {
             }}>Developer</span>
           </a>
           <nav className="nav-desktop" style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
-            <a href={`${STORE_URL}/services`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
-            <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
-            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
+            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Developer Console</a>
             <button
               onClick={() => handleOpenPublishModal()}
               style={{
@@ -393,16 +390,9 @@ export default function DeveloperConsolePage() {
                 cursor: 'pointer'
               }}
             >
-              Publish
+              Publish New Version
             </button>
-            <div style={{ height: '16px', width: '1px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }} />
-            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              Review queue
-              <span style={{ backgroundColor: '#fef3c7', color: '#b45309', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '999px' }}>
-                {submissions.filter(s => s.status === 'in_review').length || 1}
-              </span>
-            </a>
-            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
+            <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Public Store ↗</a>
           </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -413,6 +403,26 @@ export default function DeveloperConsolePage() {
               <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Partner developer • 80% RevShare</div>
             </div>
           </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem('bizbox_token');
+              localStorage.removeItem('bizbox_user');
+              window.location.href = '/login';
+            }}
+            style={{
+              padding: '0.35rem 0.65rem',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              color: '#dc2626',
+              cursor: 'pointer'
+            }}
+            title="Sign out of Developer console"
+          >
+            Sign Out
+          </button>
           <button
             className="nav-mobile-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -442,12 +452,24 @@ export default function DeveloperConsolePage() {
           flexDirection: 'column',
           gap: '0.5rem'
         }}>
-          <a href={STORE_URL} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Store</a>
-          <a href={`${STORE_URL}/services`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Services Hub</a>
-          <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Merchant Console (My Apps)</a>
           <a href={DEV_URL} style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Developer Console</a>
-          <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Review Queue</a>
-          <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</a>
+          <button
+            onClick={() => { setMobileMenuOpen(false); handleOpenPublishModal(); }}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, fontSize: '0.9rem', cursor: 'pointer' }}
+          >
+            Publish New Version
+          </button>
+          <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Public Store ↗</a>
+          <button
+            onClick={() => {
+              localStorage.removeItem('bizbox_token');
+              localStorage.removeItem('bizbox_user');
+              window.location.href = '/login';
+            }}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.5rem', borderRadius: '6px', color: '#dc2626', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
+          >
+            Sign Out
+          </button>
         </div>
       )}
 
