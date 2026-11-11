@@ -164,7 +164,6 @@ export default function StoreHomePage() {
           {/* Desktop Nav: Clean public view for Business Owners */}
           <nav className="nav-links-desktop">
             <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
-            <a href={`${STORE_URL}/services`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
             <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
           </nav>
         </div>
@@ -222,7 +221,6 @@ export default function StoreHomePage() {
           zIndex: 99
         }}>
           <a href={STORE_URL} style={{ padding: '0.5rem', color: '#0f172a', fontWeight: 700, textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Storefront Home</a>
-          <a href={`${STORE_URL}/services`} style={{ padding: '0.5rem', color: '#475569', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Services Hub</a>
           <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.5rem', color: '#475569', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Merchant Console (My Apps)</a>
           <a href={`${CONSOLE_URL}/login`} style={{ padding: '0.5rem', color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}>Console Sign In →</a>
         </div>
