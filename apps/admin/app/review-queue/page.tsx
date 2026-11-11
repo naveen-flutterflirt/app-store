@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
+import { useAuthGuard } from '../useAuthGuard';
 
 interface QueueItem {
   version_id: string;
@@ -16,6 +17,7 @@ interface QueueItem {
 }
 
 export default function ReviewQueuePage() {
+  const { authorized, checking } = useAuthGuard('admin');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<QueueItem | null>(null);
@@ -35,6 +37,7 @@ export default function ReviewQueuePage() {
   const [modalReason, setModalReason] = useState('');
 
   const fetchQueue = () => {
+    if (!authorized) return;
     setLoading(true);
     fetch(`${API_URL}/admin/review-queue`)
       .then(res => res.json())
@@ -56,8 +59,18 @@ export default function ReviewQueuePage() {
   };
 
   useEffect(() => {
-    fetchQueue();
-  }, []);
+    if (authorized) {
+      fetchQueue();
+    }
+  }, [authorized]);
+
+  if (checking || !authorized) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#090d16', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontFamily: 'sans-serif' }}>
+        Verifying administrator permissions...
+      </div>
+    );
+  }
 
   // 1. Dynamic Decision Handler (Reject / Request Changes)
   const handleDecision = async (decision: 'reject' | 'request_changes', customNote?: string) => {

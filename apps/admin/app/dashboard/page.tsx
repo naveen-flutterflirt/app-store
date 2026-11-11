@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
+import { useAuthGuard } from '../useAuthGuard';
 
 interface MetricsData {
   listed_apps: number;
@@ -12,11 +13,13 @@ interface MetricsData {
 }
 
 export default function DashboardPage() {
+  const { authorized, checking } = useAuthGuard('admin');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!authorized) return;
     fetch(`${API_URL}/admin/metrics`)
       .then(res => res.json())
       .then(data => {
@@ -27,7 +30,15 @@ export default function DashboardPage() {
         console.error('Failed to load metrics:', err);
         setLoading(false);
       });
-  }, []);
+  }, [authorized]);
+
+  if (checking || !authorized) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#090d16', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontFamily: 'sans-serif' }}>
+        Verifying administrator permissions...
+      </div>
+    );
+  }
 
   const defaultCategoryData = [
     { label: 'Sales & POS', count: 8800, color: '#4338ca' },

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from './config';
+import { useAuthGuard } from './useAuthGuard';
 
 interface DevApp {
   id: string;
@@ -30,6 +31,7 @@ interface SubmissionItem {
 }
 
 export default function DeveloperConsolePage() {
+  const { authorized, checking } = useAuthGuard('developer');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [apps, setApps] = useState<DevApp[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
@@ -74,6 +76,7 @@ export default function DeveloperConsolePage() {
   ];
 
   const loadDeveloperData = () => {
+    if (!authorized) return;
     setLoading(true);
     Promise.all([
       fetch(`${API_URL}/dev/apps`).then(r => r.json()),
@@ -98,8 +101,10 @@ export default function DeveloperConsolePage() {
   };
 
   useEffect(() => {
-    loadDeveloperData();
-  }, []);
+    if (authorized) {
+      loadDeveloperData();
+    }
+  }, [authorized]);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -306,6 +311,14 @@ export default function DeveloperConsolePage() {
   // Aggregate Metrics
   const totalInstalls = apps.reduce((acc, a) => acc + (Number(a.installs) || 0), 0) + 184;
   const totalMrr = apps.reduce((acc, a) => acc + (Number(a.est_mrr) || 0), 0);
+
+  if (checking || !authorized) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#064e3b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontFamily: 'sans-serif' }}>
+        Verifying partner developer permissions...
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '100vh' }}>

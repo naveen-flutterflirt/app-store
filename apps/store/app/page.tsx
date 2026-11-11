@@ -161,38 +161,34 @@ export default function StoreHomePage() {
             }}>Apps</span>
           </a>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav: Clean public view for Business Owners */}
           <nav className="nav-links-desktop">
             <a href={STORE_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Store</a>
             <a href={`${STORE_URL}/services`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Services Hub</a>
             <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>My Apps</a>
-            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Developer</a>
-            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Publish</a>
-            <div style={{ height: '16px', width: '1px', backgroundColor: '#e2e8f0', margin: '0 0.25rem' }} />
-            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              Review queue
-              <span style={{ backgroundColor: '#fef3c7', color: '#b45309', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '999px' }}>1</span>
-            </a>
-            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Dashboard</a>
           </nav>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            padding: '0.3rem 0.65rem',
-            backgroundColor: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px'
-          }}>
+          <a
+            href={`${CONSOLE_URL}/login`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              padding: '0.3rem 0.65rem',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              textDecoration: 'none'
+            }}
+          >
             <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: '#0ea5e9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.68rem', fontWeight: 700 }}>B</div>
             <div style={{ textAlign: 'left', lineHeight: 1.1 }}>
               <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#0f172a' }}>Brew Street Cafe</div>
-              <div style={{ fontSize: '0.62rem', color: '#64748b' }}>Business owner</div>
+              <div style={{ fontSize: '0.62rem', color: '#64748b' }}>Console Sign In →</div>
             </div>
-          </div>
+          </a>
 
           {/* Mobile Menu Toggle Button */}
           <button
@@ -228,9 +224,7 @@ export default function StoreHomePage() {
           <a href={STORE_URL} style={{ padding: '0.5rem', color: '#0f172a', fontWeight: 700, textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Storefront Home</a>
           <a href={`${STORE_URL}/services`} style={{ padding: '0.5rem', color: '#475569', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Services Hub</a>
           <a href={`${CONSOLE_URL}/apps`} style={{ padding: '0.5rem', color: '#475569', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Merchant Console (My Apps)</a>
-          <a href={DEV_URL} style={{ padding: '0.5rem', color: '#475569', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Developer Console & Publish</a>
-          <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.5rem', color: '#475569', textDecoration: 'none', borderBottom: '1px solid #f1f5f9' }}>Admin Review Queue (1)</a>
-          <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.5rem', color: '#475569', textDecoration: 'none' }}>Admin Metrics Dashboard</a>
+          <a href={`${CONSOLE_URL}/login`} style={{ padding: '0.5rem', color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}>Console Sign In →</a>
         </div>
       )}
 
