@@ -44,6 +44,17 @@ export default function MyAppsPage() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [overnightUpdates, setOvernightUpdates] = useState(true);
 
+  // Authenticated business owner state
+  const [user, setUser] = useState<{ name: string; email: string; role: string }>({
+    name: 'Aarav Sharma',
+    email: 'owner@brewstreet.com',
+    role: 'owner'
+  });
+  const [tenant, setTenant] = useState<{ name: string; businessType: string; activeApps?: number }>({
+    name: 'Brew Street Cafe',
+    businessType: 'cafe'
+  });
+
   const fetchInstallations = () => {
     fetch(`${API_URL}/installations`)
       .then(res => res.json())
@@ -60,8 +71,28 @@ export default function MyAppsPage() {
   };
 
   useEffect(() => {
+    // Check localStorage session or set default
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('bizbox_user');
+      const storedTenant = localStorage.getItem('bizbox_tenant');
+      if (storedUser) {
+        try { setUser(JSON.parse(storedUser)); } catch (e) {}
+      }
+      if (storedTenant) {
+        try { setTenant(JSON.parse(storedTenant)); } catch (e) {}
+      }
+    }
     fetchInstallations();
   }, []);
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('bizbox_token');
+      localStorage.removeItem('bizbox_user');
+      localStorage.removeItem('bizbox_tenant');
+      window.location.href = '/login';
+    }
+  };
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -189,12 +220,30 @@ export default function MyAppsPage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0.75rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#0ea5e9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>B</div>
+            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#0ea5e9', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
+              {tenant.name.slice(0, 1)}
+            </div>
             <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>Brew Street Cafe</div>
-              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Business owner · ₹0.00</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{tenant.name}</div>
+              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{user.name} ({user.role})</div>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '0.35rem 0.65rem',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              color: '#dc2626',
+              cursor: 'pointer'
+            }}
+            title="Sign out of Business Owner console"
+          >
+            Sign Out
+          </button>
           <button
             className="nav-mobile-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
