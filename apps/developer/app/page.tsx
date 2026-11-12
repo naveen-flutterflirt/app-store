@@ -1327,8 +1327,19 @@ export default function DeveloperConsolePage() {
             {/* 6 Automated CI Pipeline Progress */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem', backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
               {checks.map((chk, idx) => {
-                const isPassed = ciStep > idx;
-                const isCurrent = ciStep === idx + 1;
+                // Find actual result returned from backend pipeline execution
+                const actualResult = ciResults.find(r => r.kind === (
+                  idx === 0 ? 'manifest' :
+                  idx === 1 ? 'dependencies' :
+                  idx === 2 ? 'security_scan' :
+                  idx === 3 ? 'license' :
+                  idx === 4 ? 'arm64_build' : 'permissions'
+                ));
+
+                const isFailed = actualResult && actualResult.status === 'failed';
+                const isPassed = (ciStep > idx && (!actualResult || actualResult.status !== 'failed')) || (actualResult && actualResult.status === 'passed');
+                const isCurrent = ciStep === idx + 1 && !isFailed;
+
                 return (
                   <div key={chk.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
@@ -1336,27 +1347,29 @@ export default function DeveloperConsolePage() {
                         width: '20px',
                         height: '20px',
                         borderRadius: '50%',
-                        backgroundColor: isPassed ? '#dcfce7' : (isCurrent ? '#e0f2fe' : '#ffffff'),
-                        border: isPassed ? '1px solid #bbf7d0' : (isCurrent ? '1px solid #38bdf8' : '1px solid #cbd5e1'),
-                        color: isPassed ? '#15803d' : (isCurrent ? '#0284c7' : '#94a3b8'),
+                        backgroundColor: isFailed ? '#fee2e2' : (isPassed ? '#dcfce7' : (isCurrent ? '#e0f2fe' : '#ffffff')),
+                        border: isFailed ? '1px solid #f87171' : (isPassed ? '1px solid #bbf7d0' : (isCurrent ? '1px solid #38bdf8' : '1px solid #cbd5e1')),
+                        color: isFailed ? '#dc2626' : (isPassed ? '#15803d' : (isCurrent ? '#0284c7' : '#94a3b8')),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '0.7rem',
                         fontWeight: 700
                       }}>
-                        {isPassed ? '✓' : (isCurrent ? '•' : (idx + 1))}
+                        {isFailed ? '✕' : (isPassed ? '✓' : (isCurrent ? '•' : (idx + 1)))}
                       </div>
                       <div>
-                        <div style={{ fontSize: '0.82rem', color: isPassed ? '#0f172a' : (isCurrent ? '#0284c7' : '#64748b'), fontWeight: isPassed || isCurrent ? 600 : 400 }}>
+                        <div style={{ fontSize: '0.82rem', color: isFailed ? '#dc2626' : (isPassed ? '#0f172a' : (isCurrent ? '#0284c7' : '#64748b')), fontWeight: isPassed || isCurrent || isFailed ? 600 : 400 }}>
                           {chk.name}
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: isCurrent ? '#0284c7' : '#94a3b8' }}>
-                          {isCurrent ? 'Running live inspection...' : chk.desc}
+                        <div style={{ fontSize: '0.68rem', color: isFailed ? '#b91c1c' : (isCurrent ? '#0284c7' : '#94a3b8') }}>
+                          {actualResult?.summary || (isCurrent ? 'Running live inspection...' : chk.desc)}
                         </div>
                       </div>
                     </div>
-                    {isPassed ? (
+                    {isFailed ? (
+                      <span style={{ fontSize: '0.7rem', color: '#dc2626', fontWeight: 700 }}>FAILED</span>
+                    ) : isPassed ? (
                       <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 600 }}>PASSED</span>
                     ) : isCurrent ? (
                       <span style={{ fontSize: '0.7rem', color: '#0284c7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
