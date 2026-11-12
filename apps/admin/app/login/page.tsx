@@ -7,6 +7,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('admin@flutterflirt.com');
   const [password, setPassword] = useState('password123');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,153 +44,257 @@ export default function AdminLoginPage() {
     }
   };
 
+  const handleAutoFill = () => {
+    setEmail('admin@flutterflirt.com');
+    setPassword('password123');
+    setError(null);
+  };
+
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#090d16',
+      backgroundColor: '#f8fafc',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '1.5rem',
+      flexDirection: 'column',
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif'
     }}>
-      <div style={{
-        maxWidth: '440px',
-        width: '100%',
-        backgroundColor: '#1e293b',
-        border: '1px solid #334155',
-        borderRadius: '20px',
-        padding: '2.5rem',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-        color: '#ffffff'
+      {/* Top Navigation Strip */}
+      <header style={{
+        height: '60px',
+        borderBottom: '1px solid #e2e8f0',
+        backgroundColor: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 2rem'
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '1.6rem', fontWeight: 900, color: '#ffffff' }}>BizBox</span>
-            <span style={{
-              fontSize: '0.72rem',
-              fontWeight: 800,
-              color: '#ec4899',
-              backgroundColor: '#831843',
-              padding: '2px 8px',
-              borderRadius: '6px'
-            }}>Admin</span>
-          </div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#f8fafc', margin: '0 0 0.4rem 0' }}>
-            FlutterFlirt Internal Portal
-          </h1>
-          <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
-            Protected Review Queue, Cosign Publishing &amp; Store Metrics.
-          </p>
-        </div>
+        <a href={STORE_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+          <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>BizBox</span>
+          <span style={{
+            fontSize: '0.68rem',
+            fontWeight: 800,
+            color: '#be185d',
+            backgroundColor: '#fdf2f8',
+            border: '1px solid #fbcfe8',
+            padding: '2px 8px',
+            borderRadius: '6px'
+          }}>Admin Internal</span>
+        </a>
+        <a href={STORE_URL} style={{ fontSize: '0.82rem', color: '#64748b', textDecoration: 'none', fontWeight: 600 }}>
+          ← Back to Storefront
+        </a>
+      </header>
 
+      {/* Main Login Canvas */}
+      <main style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2.5rem 1.5rem',
+        background: 'radial-gradient(ellipse at top, #fdf2f8 0%, #f8fafc 70%)'
+      }}>
         <div style={{
-          backgroundColor: '#0f172a',
-          border: '1px dashed #475569',
-          borderRadius: '12px',
-          padding: '0.85rem 1rem',
-          marginBottom: '1.5rem',
-          fontSize: '0.78rem',
-          color: '#cbd5e1'
+          maxWidth: '460px',
+          width: '100%',
+          backgroundColor: '#ffffff',
+          borderRadius: '24px',
+          padding: '2.75rem',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 20px 40px -15px rgba(190, 24, 93, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05)'
         }}>
-          <div style={{ fontWeight: 700, color: '#f43f5e', marginBottom: '0.35rem' }}>🔒 Staff Credentials:</div>
-          <div>Email: <strong style={{ color: '#38bdf8' }}>admin@flutterflirt.com</strong></div>
-          <div>Password: <strong style={{ color: '#38bdf8' }}>password123</strong></div>
-          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.25rem' }}>
-            Role: Store Reviewer &amp; Admin Panel
+          {/* Brand & Persona Header */}
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              backgroundColor: '#fdf2f8',
+              border: '1px solid #fbcfe8',
+              color: '#be185d',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem',
+              marginBottom: '1rem',
+              boxShadow: '0 4px 12px rgba(190, 24, 93, 0.12)'
+            }}>
+              🛡️
+            </div>
+            <h1 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.4rem 0', letterSpacing: '-0.02em' }}>
+              FlutterFlirt Internal Portal
+            </h1>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5 }}>
+              Security review queue, Ed25519 Cosign signing &amp; platform metrics.
+            </p>
           </div>
-        </div>
 
-        {error && (
+          {/* Quick Demo Credentials Autofill Banner */}
           <div style={{
-            backgroundColor: '#450a0a',
-            border: '1px solid #991b1b',
-            color: '#fca5a5',
-            padding: '0.75rem 1rem',
-            borderRadius: '10px',
-            fontSize: '0.82rem',
-            marginBottom: '1.25rem'
+            backgroundColor: '#f8fafc',
+            border: '1px dashed #cbd5e1',
+            borderRadius: '14px',
+            padding: '1rem',
+            marginBottom: '1.75rem',
+            fontSize: '0.8rem',
+            color: '#334155'
           }}>
-            ⚠️ {error}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span>🔒</span> Store Reviewer (Admin)
+              </span>
+              <button
+                type="button"
+                onClick={handleAutoFill}
+                style={{
+                  backgroundColor: '#be185d',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '3px 10px',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(190, 24, 93, 0.25)'
+                }}
+              >
+                Autofill
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <div>Email: <strong style={{ color: '#be185d' }}>admin@flutterflirt.com</strong></div>
+              <div>Password: <strong style={{ color: '#be185d' }}>password123</strong></div>
+              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.25rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.35rem' }}>
+                Role: <strong>Security Reviewer &amp; Platform Admin</strong>
+              </div>
+            </div>
           </div>
-        )}
 
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '0.4rem' }}>
-              Admin Email
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+          {error && (
+            <div style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              color: '#991b1b',
+              padding: '0.85rem 1rem',
+              borderRadius: '12px',
+              fontSize: '0.82rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem'
+            }}>
+              <span>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.45rem' }}>
+                Admin Email
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@flutterflirt.com"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b' }}>
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ background: 'none', border: 'none', color: '#be185d', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  fontSize: '0.9rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
               style={{
-                width: '100%',
-                padding: '0.7rem 0.9rem',
-                borderRadius: '8px',
-                border: '1px solid #475569',
-                backgroundColor: '#0f172a',
+                marginTop: '0.5rem',
+                padding: '0.85rem 1.25rem',
+                borderRadius: '12px',
+                border: 'none',
+                backgroundColor: '#be185d',
                 color: '#ffffff',
-                fontSize: '0.88rem',
-                outline: 'none',
-                boxSizing: 'border-box'
+                fontSize: '0.92rem',
+                fontWeight: 700,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 4px 14px rgba(190, 24, 93, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.15s ease'
               }}
-            />
+            >
+              {loading ? (
+                <>Verifying Security Keys...</>
+              ) : (
+                <>Sign In to Review Queue →</>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Assistance */}
+          <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem' }}>
+            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+              Internal FlutterFlirt security personnel only.
+            </span>
           </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '0.4rem' }}>
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.7rem 0.9rem',
-                borderRadius: '8px',
-                border: '1px solid #475569',
-                backgroundColor: '#0f172a',
-                color: '#ffffff',
-                fontSize: '0.88rem',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              marginTop: '0.5rem',
-              padding: '0.8rem',
-              borderRadius: '10px',
-              border: 'none',
-              backgroundColor: '#ec4899',
-              color: '#ffffff',
-              fontSize: '0.92rem',
-              fontWeight: 700,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {loading ? 'Verifying permissions...' : 'Sign In as Admin →'}
-          </button>
-        </form>
-
-        <div style={{ marginTop: '2rem', paddingTop: '1.25rem', borderTop: '1px solid #334155', textAlign: 'center' }}>
-          <a
-            href={STORE_URL}
-            style={{ fontSize: '0.8rem', color: '#94a3b8', textDecoration: 'none' }}
-          >
-            ← Public Store
-          </a>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer style={{
+        padding: '1.25rem 2rem',
+        textAlign: 'center',
+        fontSize: '0.78rem',
+        color: '#94a3b8',
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid #e2e8f0'
+      }}>
+        BizBox App Store Platform • FlutterFlirt Security Governance &amp; Cosign Infrastructure
+      </footer>
     </div>
   );
 }
-
