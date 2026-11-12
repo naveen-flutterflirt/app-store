@@ -63,7 +63,6 @@ export default function StoreHomePage() {
     { key: 'kitchen', label: 'Kitchen & Ops' },
     { key: 'inventory', label: 'Inventory & Stock' },
     { key: 'finance', label: 'GST & Finance' },
-    { key: 'marketing', label: 'WhatsApp & Marketing' },
     { key: 'customers', label: 'CRM & Loyalty' },
     { key: 'devices', label: 'Hardware & Devices' },
     { key: 'analytics', label: 'Analytics' },
@@ -260,7 +259,7 @@ export default function StoreHomePage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search apps — e.g. Kitchen, GST, WhatsApp, Inventory"
+              placeholder="Search apps — e.g. Kitchen, GST, POS, Inventory"
               style={{
                 width: '100%',
                 padding: '0.85rem 1.25rem',
