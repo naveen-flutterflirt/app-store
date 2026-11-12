@@ -214,7 +214,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
 
       if (category) {
         params.push(category.toLowerCase());
-        sql += ` AND category = $${params.length}::store.app_category`;
+        sql += ` AND category::text = $${params.length}`;
       }
 
       if (q) {

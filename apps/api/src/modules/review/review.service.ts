@@ -24,7 +24,7 @@ export class ReviewService {
   async getVersionReviewDetail(versionId: string) {
     const versions = await query(`
       SELECT v.*, a.name as app_name, a.package_id, a.slug, a.category, a.icon_url,
-             d.name as developer_name, d.email as developer_email, d.gstin, d.pan
+             d.name as developer_name, d.email as developer_email, d.gstin, d.is_verified as developer_verified
       FROM store.app_versions v
       JOIN store.apps a ON v.app_id = a.id
       JOIN store.developers d ON a.developer_id = d.id

@@ -144,7 +144,7 @@ const server = http.createServer(async (req, res) => {
 
       if (category) {
         params.push(category.toLowerCase());
-        sql += ` AND category = $${params.length}::store.app_category`;
+        sql += ` AND category::text = $${params.length}`;
       }
 
       if (q) {
