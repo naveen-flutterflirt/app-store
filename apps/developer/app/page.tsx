@@ -60,10 +60,15 @@ export default function DeveloperConsolePage() {
   const [targetAppId, setTargetAppId] = useState('');
   const [newVersionStr, setNewVersionStr] = useState('');
   const [releaseNotesStr, setReleaseNotesStr] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [customManifestJson, setCustomManifestJson] = useState<string>('');
+  const [showManifestEditor, setShowManifestEditor] = useState<boolean>(false);
   const [uploadUrlGenerated, setUploadUrlGenerated] = useState<string | null>(null);
   const [ciStep, setCiStep] = useState(0);
   const [ciRunning, setCiRunning] = useState(false);
   const [ciError, setCiError] = useState<string | null>(null);
+  const [ciResults, setCiResults] = useState<any[]>([]);
 
   // Manage App Rollout State
   const [manageRollout, setManageRollout] = useState(10);
@@ -181,25 +186,43 @@ export default function DeveloperConsolePage() {
 
   // 2. Open Publish Modal for a specific app or default
   const handleOpenPublishModal = (app?: DevApp) => {
-    if (app) {
-      setTargetAppId(app.id);
-      const parts = (app.last_version || '1.0.0').split('.');
+    const targetApp = app || (apps.length > 0 ? apps[0] : null);
+    let nextVer = '1.0.0';
+    if (targetApp) {
+      setTargetAppId(targetApp.id);
+      const parts = (targetApp.last_version || '1.0.0').split('.');
       const patch = (parseInt(parts[2] || '0', 10) + 1).toString();
-      setNewVersionStr(`${parts[0] || '1'}.${parts[1] || '0'}.${patch}`);
-    } else if (apps.length > 0) {
-      const defaultApp = apps[0];
-      setTargetAppId(defaultApp.id);
-      const parts = (defaultApp.last_version || '1.0.0').split('.');
-      const patch = (parseInt(parts[2] || '0', 10) + 1).toString();
-      setNewVersionStr(`${parts[0] || '1'}.${parts[1] || '0'}.${patch}`);
+      nextVer = `${parts[0] || '1'}.${parts[1] || '0'}.${patch}`;
+      setNewVersionStr(nextVer);
     } else {
       setNewVersionStr('1.0.0');
     }
+
+    // Generate real starter manifest JSON for this app
+    const defaultManifest = {
+      id: targetApp?.package_id || 'in.developer.app',
+      name: targetApp?.name || 'Application',
+      version: nextVer,
+      runtime: targetApp?.category === 'kitchen' ? 'hybrid' : 'cloud',
+      minPlatform: '1.4.0',
+      ui: {
+        entry: '/index.html',
+        slots: ['console.dashboard.widget', 'pos.order.action']
+      },
+      scopes: [
+        { scope: 'orders:read', reason: 'Display active table orders on KDS ticket screen' },
+        { scope: 'stock:read', reason: 'Alert chef when kitchen stock runs low' }
+      ]
+    };
+    setCustomManifestJson(JSON.stringify(defaultManifest, null, 2));
+    setSelectedFile(null);
+    setUploadedFileName('');
     setReleaseNotesStr('Performance updates, security patches, and platform compatibility');
     setUploadUrlGenerated(null);
     setCiStep(0);
     setCiRunning(false);
     setCiError(null);
+    setCiResults([]);
     setShowPublishModal(true);
   };
 
@@ -219,9 +242,21 @@ export default function DeveloperConsolePage() {
       return;
     }
 
+    let parsedManifest: any = null;
+    try {
+      parsedManifest = JSON.parse(customManifestJson);
+    } catch (e: any) {
+      setCiError(`Manifest JSON Syntax Error: ${e.message}`);
+      return;
+    }
+
+    // Ensure manifest version matches release version
+    parsedManifest.version = versionClean;
+
     const selected = apps.find(a => a.id === targetAppId);
     setCiRunning(true);
     setCiError(null);
+    setCiResults([]);
     setCiStep(1);
 
     try {
@@ -231,13 +266,7 @@ export default function DeveloperConsolePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           version: versionClean,
-          manifest: {
-            id: selected?.package_id || `in.developer.${selected?.slug || 'app'}`,
-            name: selected?.name || 'Application',
-            version: versionClean,
-            runtime: 'cloud',
-            permissions: ['orders:read', 'stock:read']
-          },
+          manifest: parsedManifest,
           releaseNotes: releaseNotesStr.trim()
         })
       });
@@ -261,18 +290,23 @@ export default function DeveloperConsolePage() {
       });
 
       const submitData = await submitRes.json().catch(() => ({}));
+      if (submitData.results) {
+        setCiResults(submitData.results);
+      }
 
-      if (!submitRes.ok) {
-        throw new Error(submitData.message || 'CI pipeline execution failed');
+      if (!submitRes.ok || submitData.passed === false) {
+        // Detailed failure summary
+        const failedCheck = submitData.results?.find((r: any) => r.status === 'failed');
+        throw new Error(failedCheck ? `${failedCheck.kind.toUpperCase()}: ${failedCheck.summary}` : (submitData.message || 'CI pipeline checks failed'));
       }
 
       setCiStep(4);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 400));
       setCiStep(5);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 400));
       setCiStep(6);
 
-      showToast(`Version ${versionClean} passed all CI checks and entered Admin Review Queue!`, 'success');
+      showToast(`Version ${versionClean} verified by CI and submitted to Admin Review Queue!`, 'success');
       loadDeveloperData();
     } catch (err: any) {
       const errMsg = err.message || 'Pipeline failed';
@@ -1081,6 +1115,97 @@ export default function DeveloperConsolePage() {
                     />
                   </div>
                 </div>
+
+                {/* Upload Application Bundle (.tgz, .zip, or bizbox-app.json) */}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>
+                      Upload Application Package (.zip, .tgz or bizbox-app.json)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowManifestEditor(!showManifestEditor)}
+                      style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                      {showManifestEditor ? 'Hide Manifest JSON' : 'Inspect / Edit Manifest JSON'}
+                    </button>
+                  </div>
+
+                  <div style={{
+                    border: '2px dashed #cbd5e1',
+                    borderRadius: '10px',
+                    padding: '1.25rem',
+                    textAlign: 'center',
+                    backgroundColor: selectedFile ? '#f0fdf4' : '#f8fafc',
+                    cursor: 'pointer',
+                    position: 'relative'
+                  }}>
+                    <input
+                      type="file"
+                      accept=".zip,.tgz,.tar.gz,.json"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedFile(file);
+                          setUploadedFileName(file.name);
+                          if (file.name.endsWith('.json')) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                              try {
+                                const content = event.target?.result as string;
+                                JSON.parse(content); // validate json
+                                setCustomManifestJson(content);
+                              } catch (err) {}
+                            };
+                            reader.readAsText(file);
+                          }
+                        }
+                      }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        opacity: 0,
+                        cursor: 'pointer',
+                        width: '100%',
+                        height: '100%'
+                      }}
+                    />
+                    <div style={{ fontSize: '1.2rem', marginBottom: '0.35rem' }}>
+                      {selectedFile ? '📦' : '📁'}
+                    </div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 700, color: selectedFile ? '#166534' : '#0f172a' }}>
+                      {selectedFile ? `Selected: ${uploadedFileName} (${(selectedFile.size / 1024).toFixed(1)} KB)` : 'Click or Drag & Drop App Bundle'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.2rem' }}>
+                      Package must include entrypoint (/index.html) and bizbox-app.schema.json
+                    </div>
+                  </div>
+                </div>
+
+                {/* Manifest JSON Editor for Real Inspection */}
+                {showManifestEditor && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                      bizbox-app.json (Live Manifest Checked by CI):
+                    </label>
+                    <textarea
+                      value={customManifestJson}
+                      onChange={e => setCustomManifestJson(e.target.value)}
+                      rows={6}
+                      style={{
+                        width: '100%',
+                        padding: '0.65rem',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontFamily: 'monospace',
+                        fontSize: '0.75rem',
+                        backgroundColor: '#0f172a',
+                        color: '#38bdf8',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
