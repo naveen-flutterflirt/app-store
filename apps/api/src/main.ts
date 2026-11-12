@@ -42,7 +42,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  const parsedUrl = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  const parsedUrl = new URL(req.url || '/', `https://${req.headers.host || 'app-store-api-ochre.vercel.app'}`);
   const pathname = parsedUrl.pathname;
   const searchParams = parsedUrl.searchParams;
 
