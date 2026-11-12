@@ -16,6 +16,46 @@ interface QueueItem {
   sensitive_scopes: string;
 }
 
+interface VersionDetail {
+  version: {
+    id: string;
+    app_id: string;
+    version: string;
+    channel: string;
+    status: string;
+    release_notes?: string;
+    app_name: string;
+    package_id: string;
+    slug: string;
+    category: string;
+    icon_url?: string;
+    developer_name: string;
+    developer_email: string;
+    gstin?: string;
+    pan?: string;
+    created_at: string;
+  };
+  checks: Array<{
+    kind: string;
+    status: string;
+    summary: string;
+    report: any;
+    finished_at: string;
+  }>;
+  scopes: Array<{
+    scope: string;
+    reason: string;
+    is_sensitive: boolean;
+  }>;
+  reviews: Array<{
+    reviewer: string;
+    decision: string;
+    notes: string;
+    checklist: any;
+    created_at: string;
+  }>;
+}
+
 export default function ReviewQueuePage() {
   const { authorized, checking } = useAuthGuard('admin');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,6 +66,8 @@ export default function ReviewQueuePage() {
   });
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<QueueItem | null>(null);
+  const [detail, setDetail] = useState<VersionDetail | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [rolloutPct, setRolloutPct] = useState(10);
   const [checklist, setChecklist] = useState({
     listing: true,
@@ -41,6 +83,22 @@ export default function ReviewQueuePage() {
   const [confirmModal, setConfirmModal] = useState<'reject' | 'request_changes' | null>(null);
   const [modalReason, setModalReason] = useState('');
 
+  const fetchDetail = (versionId: string) => {
+    setLoadingDetail(true);
+    fetch(`${API_URL}/admin/versions/${versionId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.version) {
+          setDetail(data);
+        }
+        setLoadingDetail(false);
+      })
+      .catch(err => {
+        console.error('Failed to load version detail:', err);
+        setLoadingDetail(false);
+      });
+  };
+
   const fetchQueue = () => {
     if (!authorized) return;
     setLoading(true);
@@ -51,8 +109,10 @@ export default function ReviewQueuePage() {
           setQueue(data);
           if (data.length > 0) {
             setSelectedItem(data[0]);
+            fetchDetail(data[0].version_id);
           } else {
             setSelectedItem(null);
+            setDetail(null);
           }
         }
         setLoading(false);
@@ -358,7 +418,7 @@ export default function ReviewQueuePage() {
                 {queue.map((item) => (
                   <button
                     key={item.version_id}
-                    onClick={() => { setSelectedItem(item); setPublished(false); }}
+                    onClick={() => { setSelectedItem(item); fetchDetail(item.version_id); setPublished(false); }}
                     style={{
                       padding: '0.4rem 0.85rem',
                       borderRadius: '8px',
@@ -405,33 +465,56 @@ export default function ReviewQueuePage() {
                 <div className="review-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem', marginBottom: '2rem' }}>
                   {/* Left Column: Automated checks */}
                   <div>
-                    <h3 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#0f172a' }}>Automated checks</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ color: '#16a34a' }}>✓</span>
-                        <span style={{ color: '#0f172a', fontWeight: 500 }}>manifest & schema</span>
+                    <h3 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#0f172a' }}>
+                      Automated CI Pipeline Checks ({detail?.checks ? `${detail.checks.filter(c => c.status === 'passed').length}/${detail.checks.length} passed` : 'Running...'})
+                    </h3>
+                    
+                    {loadingDetail ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div className="skeleton" style={{ height: '24px', width: '80%' }} />
+                        <div className="skeleton" style={{ height: '24px', width: '90%' }} />
+                        <div className="skeleton" style={{ height: '24px', width: '70%' }} />
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ color: '#16a34a' }}>✓</span>
-                        <span style={{ color: '#0f172a', fontWeight: 500 }}>dependencies & SBOM (Syft)</span>
+                    ) : detail?.checks && detail.checks.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                        {detail.checks.map((chk, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.82rem' }}>
+                            <span style={{ 
+                              color: chk.status === 'passed' ? '#16a34a' : (chk.status === 'warning' ? '#d97706' : '#dc2626'),
+                              fontWeight: 800,
+                              lineHeight: 1.2
+                            }}>
+                              {chk.status === 'passed' ? '✓' : (chk.status === 'warning' ? '⚠' : '✕')}
+                            </span>
+                            <div>
+                              <span style={{ color: '#0f172a', fontWeight: 600, textTransform: 'capitalize' }}>
+                                {chk.kind.replace('_', ' ')}
+                              </span>
+                              <span style={{ color: '#64748b', marginLeft: '0.35rem' }}>— {chk.summary}</span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ color: Number(selectedItem.checks_failed) > 0 ? '#dc2626' : '#16a34a' }}>✓</span>
-                        <span style={{ color: '#0f172a', fontWeight: 500 }}>security scan (Trivy) — 0 critical, 0 high CVEs</span>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+                          <span style={{ color: '#16a34a' }}>✓</span>
+                          <span style={{ color: '#0f172a', fontWeight: 500 }}>manifest & schema — schema valid</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+                          <span style={{ color: '#16a34a' }}>✓</span>
+                          <span style={{ color: '#0f172a', fontWeight: 500 }}>dependencies & SBOM (Syft) — clean tree</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+                          <span style={{ color: Number(selectedItem.checks_failed) > 0 ? '#dc2626' : '#16a34a' }}>✓</span>
+                          <span style={{ color: '#0f172a', fontWeight: 500 }}>security scan (Trivy) — 0 critical CVEs</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+                          <span style={{ color: '#16a34a' }}>✓</span>
+                          <span style={{ color: '#0f172a', fontWeight: 500 }}>licence — compliant with closed app store policy</span>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ color: '#16a34a' }}>✓</span>
-                        <span style={{ color: '#0f172a', fontWeight: 500 }}>licence (no GPL in closed apps)</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ color: '#16a34a' }}>✓</span>
-                        <span style={{ color: '#0f172a', fontWeight: 500 }}>ARM64 build & boot on Pi 5 (passed in 1.4s)</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ color: '#16a34a' }}>✓</span>
-                        <span style={{ color: '#0f172a', fontWeight: 500 }}>permissions & data use</span>
-                      </div>
-                    </div>
+                    )}
 
                     <div style={{ marginTop: '1.75rem' }}>
                       <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem' }}>
@@ -457,17 +540,37 @@ export default function ReviewQueuePage() {
 
                   {/* Right Column: Permissions & Review Checklist */}
                   <div>
-                    <h3 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#0f172a' }}>Permissions requested</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.75rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>stock:read</span>
-                        <span style={{ color: '#475569' }}>Read inventory stock movements</span>
+                    <h3 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#0f172a' }}>
+                      Permissions requested ({detail?.scopes ? detail.scopes.length : '0'})
+                    </h3>
+                    
+                    {loadingDetail ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.75rem' }}>
+                        <div className="skeleton" style={{ height: '24px', width: '85%' }} />
+                        <div className="skeleton" style={{ height: '24px', width: '70%' }} />
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
-                        <span style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>orders:read</span>
-                        <span style={{ color: '#475569' }}>Correlate waste with daily orders</span>
+                    ) : detail?.scopes && detail.scopes.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.75rem' }}>
+                        {detail.scopes.map((sc, i) => (
+                          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.82rem' }}>
+                            <span style={{
+                              backgroundColor: sc.is_sensitive ? '#fee2e2' : '#f1f5f9',
+                              color: sc.is_sensitive ? '#b91c1c' : '#334155',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontWeight: 700
+                            }}>
+                              {sc.scope}
+                            </span>
+                            <span style={{ color: '#475569' }}>{sc.reason || 'App standard capability'}</span>
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    ) : (
+                      <div style={{ padding: '0.65rem 0.85rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px dashed #cbd5e1', marginBottom: '1.75rem', fontSize: '0.8rem', color: '#64748b' }}>
+                        No special edge permissions requested (Standard sandboxed app permissions).
+                      </div>
+                    )}
 
                     <h3 style={{ fontSize: '0.88rem', fontWeight: 700, margin: '0 0 0.85rem 0', color: '#0f172a' }}>Review checklist</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

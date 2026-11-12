@@ -19,6 +19,52 @@ export class ReviewService {
   }
 
   /**
+   * Fetches full audit details, checks, scopes, and app metadata for a version in review
+   */
+  async getVersionReviewDetail(versionId: string) {
+    const versions = await query(`
+      SELECT v.*, a.name as app_name, a.package_id, a.slug, a.category, a.icon_url,
+             d.name as developer_name, d.email as developer_email, d.gstin, d.pan
+      FROM store.app_versions v
+      JOIN store.apps a ON v.app_id = a.id
+      JOIN store.developers d ON a.developer_id = d.id
+      WHERE v.id = $1
+    `, [versionId]);
+
+    if (versions.length === 0) {
+      throw new Error(`Version ${versionId} not found`);
+    }
+
+    const checks = await query(`
+      SELECT kind, status, summary, report, finished_at
+      FROM store.version_checks
+      WHERE version_id = $1
+      ORDER BY finished_at ASC
+    `, [versionId]);
+
+    const scopes = await query(`
+      SELECT scope, reason, is_sensitive
+      FROM store.version_scopes
+      WHERE version_id = $1
+      ORDER BY is_sensitive DESC, scope ASC
+    `, [versionId]);
+
+    const reviews = await query(`
+      SELECT reviewer, decision, notes, checklist, created_at
+      FROM store.version_reviews
+      WHERE version_id = $1
+      ORDER BY created_at DESC
+    `, [versionId]);
+
+    return {
+      version: versions[0],
+      checks,
+      scopes,
+      reviews
+    };
+  }
+
+  /**
    * Submits a human review decision (POST /admin/versions/{versionId}/decision)
    */
   async submitDecision(versionId: string, dto: ReviewDecisionDto) {

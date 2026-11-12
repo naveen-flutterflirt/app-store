@@ -547,6 +547,17 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, queue);
     }
 
+    // GET /v1/admin/versions/:versionId (Detailed version audit, checks & scopes)
+    if (pathname.startsWith('/v1/admin/versions/') && !pathname.includes('/decision') && !pathname.includes('/publish') && req.method === 'GET') {
+      try {
+        const versionId = pathname.split('/')[4];
+        const detail = await reviewService.getVersionReviewDetail(versionId);
+        return sendJson(res, 200, detail);
+      } catch (err: any) {
+        return sendJson(res, 404, { code: 'NOT_FOUND', message: err.message });
+      }
+    }
+
     // POST /v1/admin/versions/:versionId/decision (Approve / Request Changes / Reject)
     if (pathname.startsWith('/v1/admin/versions/') && pathname.endsWith('/decision') && req.method === 'POST') {
       const versionId = pathname.split('/')[4];
