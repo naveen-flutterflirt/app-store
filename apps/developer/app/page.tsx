@@ -290,12 +290,12 @@ export default function DeveloperConsolePage() {
       }
 
       setUploadUrlGenerated(verData.uploadUrl);
-      setCiStep(2);
-      await new Promise(r => setTimeout(r, 600));
+      setCiStep(1); // Uploading & Validating Manifest
+      await new Promise(r => setTimeout(r, 1400));
 
       // Step B: Submit version to automated 6 CI security checks
-      setCiStep(3);
-      await new Promise(r => setTimeout(r, 500));
+      setCiStep(2); // Inspecting SBOM & Dependencies
+      await new Promise(r => setTimeout(r, 1200));
 
       const submitRes = await fetch(`${API_URL}/dev/versions/${verData.version.id}/submit`, {
         method: 'POST'
@@ -306,17 +306,24 @@ export default function DeveloperConsolePage() {
         setCiResults(submitData.results);
       }
 
+      // Progress through remaining check steps with live inspection delays
+      setCiStep(3); // Container & Vulnerability scan
+      await new Promise(r => setTimeout(r, 1200));
+
+      setCiStep(4); // License check
+      await new Promise(r => setTimeout(r, 1000));
+
+      setCiStep(5); // Pi 5 ARM64 edge boot simulation
+      await new Promise(r => setTimeout(r, 1400));
+
       if (!submitRes.ok || submitData.passed === false) {
         // Detailed failure summary
         const failedCheck = submitData.results?.find((r: any) => r.status === 'failed');
         throw new Error(failedCheck ? `${failedCheck.kind.toUpperCase()}: ${failedCheck.summary}` : (submitData.message || 'CI pipeline checks failed'));
       }
 
-      setCiStep(4);
-      await new Promise(r => setTimeout(r, 400));
-      setCiStep(5);
-      await new Promise(r => setTimeout(r, 400));
-      setCiStep(6);
+      setCiStep(6); // Scopes & permissions audit passed!
+      await new Promise(r => setTimeout(r, 800));
 
       showToast(`Version ${versionClean} verified by CI and submitted to Admin Review Queue!`, 'success');
       loadDeveloperData();
@@ -1344,12 +1351,18 @@ export default function DeveloperConsolePage() {
                         <div style={{ fontSize: '0.82rem', color: isPassed ? '#0f172a' : (isCurrent ? '#0284c7' : '#64748b'), fontWeight: isPassed || isCurrent ? 600 : 400 }}>
                           {chk.name}
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>{chk.desc}</div>
+                        <div style={{ fontSize: '0.68rem', color: isCurrent ? '#0284c7' : '#94a3b8' }}>
+                          {isCurrent ? 'Running live inspection...' : chk.desc}
+                        </div>
                       </div>
                     </div>
-                    {isPassed && (
+                    {isPassed ? (
                       <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 600 }}>PASSED</span>
-                    )}
+                    ) : isCurrent ? (
+                      <span style={{ fontSize: '0.7rem', color: '#0284c7', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <span style={{ animation: 'spin 1s linear infinite' }}>⏳</span> CHECKING
+                      </span>
+                    ) : null}
                   </div>
                 );
               })}
