@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../../config';
+import { useAuthGuard } from '../../useAuthGuard';
 
 interface InstalledApp {
   id: string;
@@ -32,6 +33,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; label: string 
 };
 
 export default function MyAppsPage() {
+  const { authorized, checking } = useAuthGuard('owner');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [apps, setApps] = useState<InstalledApp[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,6 +153,14 @@ export default function MyAppsPage() {
     const matchesRuntime = runtimeFilter === 'all' || app.runtime.toLowerCase() === runtimeFilter;
     return matchesSearch && matchesRuntime;
   });
+
+  if (checking || !authorized) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontFamily: 'sans-serif' }}>
+        Verifying business owner credentials...
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '100vh' }}>

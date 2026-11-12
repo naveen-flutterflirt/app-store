@@ -30,6 +30,9 @@ export function useAuthGuard(requiredRole: 'admin' | 'developer' | 'owner') {
       }
       setAuthorized(true);
     } catch (e) {
+      localStorage.removeItem('bizbox_token');
+      localStorage.removeItem('bizbox_user');
+      localStorage.removeItem('bizbox_tenant');
       router.replace('/login');
     } finally {
       setChecking(false);
@@ -38,4 +41,3 @@ export function useAuthGuard(requiredRole: 'admin' | 'developer' | 'owner') {
 
   return { authorized, checking };
 }
-

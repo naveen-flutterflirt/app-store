@@ -147,8 +147,26 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
         WHERE tenant_id = $1 AND status = 'active'
       `, [user.tenant_id]);
 
+      // Issue RFC 7519 HMAC-SHA256 JWT Token with tenant and role claims
+      const tokenHeader = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+      const tokenPayload = Buffer.from(JSON.stringify({
+        sub: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        tenant_id: user.tenant_id,
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 86400 * 7 // 7 days validity
+      })).toString('base64url');
+      const tokenSignature = crypto.createHmac('sha256', 'bizbox_jwt_secret_2026')
+        .update(`${tokenHeader}.${tokenPayload}`)
+        .digest('base64url');
+      const jwtToken = `${tokenHeader}.${tokenPayload}.${tokenSignature}`;
+
       return sendJson(res, 200, {
-        token: `bizbox_session_${user.id.replace(/-/g, '').slice(0, 16)}`,
+        token: jwtToken,
+        token_type: 'Bearer',
+        expires_in: 86400 * 7,
         user: {
           id: user.id,
           email: user.email,
