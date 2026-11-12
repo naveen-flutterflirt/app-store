@@ -572,6 +572,27 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, submissions);
     }
 
+    if (pathname.startsWith('/v1/dev/apps/') && req.method === 'DELETE') {
+      const appId = pathname.split('/')[4];
+      const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf';
+      
+      // Cascade delete app dependencies and child versions
+      await query(`DELETE FROM store.installations WHERE app_id = $1`, [appId]);
+      await query(`DELETE FROM store.version_checks WHERE version_id IN (SELECT id FROM store.app_versions WHERE app_id = $1)`, [appId]);
+      await query(`DELETE FROM store.version_reviews WHERE version_id IN (SELECT id FROM store.app_versions WHERE app_id = $1)`, [appId]);
+      await query(`DELETE FROM store.version_scopes WHERE version_id IN (SELECT id FROM store.app_versions WHERE app_id = $1)`, [appId]);
+      await query(`DELETE FROM store.app_versions WHERE app_id = $1`, [appId]);
+      await query(`DELETE FROM store.app_plans WHERE app_id = $1`, [appId]);
+      await query(`DELETE FROM store.app_ratings WHERE app_id = $1`, [appId]);
+      const delResult = await query(`DELETE FROM store.apps WHERE id = $1 AND developer_id = $2 RETURNING id, name`, [appId, devId]);
+
+      if (delResult.length === 0) {
+        return sendJson(res, 404, { code: 'NOT_FOUND', message: 'App not found or not owned by developer' });
+      }
+
+      return sendJson(res, 200, { success: true, message: `App ${delResult[0].name} successfully deleted from database.` });
+    }
+
     // ------------------------------------------------------------------------
     // 5. REVIEW & ADMIN APIS
     // ------------------------------------------------------------------------

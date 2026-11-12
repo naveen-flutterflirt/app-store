@@ -64,6 +64,8 @@ export default function DeveloperConsolePage() {
   const [manageRollout, setManageRollout] = useState(10);
   const [updatingRollout, setUpdatingRollout] = useState(false);
   const [manageError, setManageError] = useState<string | null>(null);
+  const [appToDelete, setAppToDelete] = useState<DevApp | null>(null);
+  const [deletingApp, setDeletingApp] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const checks = [
@@ -305,6 +307,30 @@ export default function DeveloperConsolePage() {
       showToast(`Error: ${e.message}`, 'error');
     } finally {
       setUpdatingRollout(false);
+    }
+  };
+
+  // 5. Delete App from Database
+  const handleDeleteApp = async () => {
+    if (!appToDelete) return;
+    setDeletingApp(true);
+    try {
+      const res = await fetch(`${API_URL}/dev/apps/${appToDelete.id}`, {
+        method: 'DELETE',
+        headers: { 'x-developer-id': '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf' }
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to delete app');
+      }
+
+      showToast(`App "${appToDelete.name}" permanently deleted from database.`, 'success');
+      setApps(prev => prev.filter(a => a.id !== appToDelete.id));
+      setAppToDelete(null);
+    } catch (e: any) {
+      showToast(`Delete failed: ${e.message}`, 'error');
+    } finally {
+      setDeletingApp(false);
     }
   };
 
@@ -669,6 +695,22 @@ export default function DeveloperConsolePage() {
                             }}
                           >
                             Manage
+                          </button>
+                          <button
+                            onClick={() => setAppToDelete(app)}
+                            style={{
+                              padding: '0.35rem 0.65rem',
+                              borderRadius: '6px',
+                              border: '1px solid #fee2e2',
+                              backgroundColor: '#fff5f5',
+                              color: '#dc2626',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                            title="Delete app from database"
+                          >
+                            Delete
                           </button>
                         </div>
                       </td>
@@ -1221,6 +1263,95 @@ export default function DeveloperConsolePage() {
                 style={{ padding: '0.55rem 1.3rem', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#ffffff', fontSize: '0.82rem', fontWeight: 700, cursor: updatingRollout ? 'not-allowed' : 'pointer' }}
               >
                 {updatingRollout ? 'Updating...' : 'Save Settings'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 4: Delete App Confirmation Modal */}
+      {appToDelete && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 250
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '20px',
+            padding: '2rem',
+            width: '440px',
+            maxWidth: '92vw',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid #fee2e2'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.25rem' }}>
+              <div style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '12px',
+                backgroundColor: '#fee2e2',
+                color: '#dc2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.25rem'
+              }}>
+                🗑️
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                  Delete App Listing?
+                </h3>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  {appToDelete.package_id}
+                </span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.5, margin: '0 0 1.5rem 0' }}>
+              Are you sure you want to permanently delete <strong>{appToDelete.name}</strong>? This will cascade remove all associated versions, security checks, and review records from the PostgreSQL database.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => setAppToDelete(null)}
+                style={{
+                  padding: '0.55rem 1.15rem',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#475569',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteApp}
+                disabled={deletingApp}
+                style={{
+                  padding: '0.55rem 1.3rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#dc2626',
+                  color: '#ffffff',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: deletingApp ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 2px 8px rgba(220, 38, 38, 0.25)'
+                }}
+              >
+                {deletingApp ? 'Deleting...' : 'Delete Permanently'}
               </button>
             </div>
           </div>

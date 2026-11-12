@@ -45,3 +45,4 @@ export function useAuthGuard(requiredRole: 'admin' | 'developer' | 'owner') {
 
   return { authorized, checking };
 }
+
