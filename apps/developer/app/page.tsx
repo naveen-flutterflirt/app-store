@@ -53,6 +53,11 @@ export default function DeveloperConsolePage() {
   const [newAppTagline, setNewAppTagline] = useState('');
   const [newAppCategory, setNewAppCategory] = useState('kitchen');
   const [newAppRuntime, setNewAppRuntime] = useState<'cloud' | 'edge' | 'hybrid'>('cloud');
+  const [newAppPrice, setNewAppPrice] = useState<string>('0');
+  const [newAppDescription, setNewAppDescription] = useState<string>('');
+  const [newAppRequiredScopes, setNewAppRequiredScopes] = useState<string[]>(['orders:read']);
+  const [newAppBundleFile, setNewAppBundleFile] = useState<File | null>(null);
+  const [newAppBundleFileName, setNewAppBundleFileName] = useState<string>('');
   const [creatingApp, setCreatingApp] = useState(false);
   const [newAppFormError, setNewAppFormError] = useState<string | null>(null);
 
@@ -157,17 +162,24 @@ export default function DeveloperConsolePage() {
           tagline: newAppTagline.trim() || 'Custom business application for BizBox',
           category: newAppCategory,
           runtime: newAppRuntime,
-          businessTypes: ['restaurant', 'cafe', 'retail']
+          businessTypes: ['restaurant', 'cafe', 'retail'],
+          descriptionMd: newAppDescription.trim() || `# ${trimmedName}\n\n${newAppTagline}`,
+          priceMonth: Number(newAppPrice) || 0,
+          requestedScopes: newAppRequiredScopes
         })
       });
 
       const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
-        showToast(`App "${trimmedName}" created successfully in draft mode.`, 'success');
+        showToast(`App "${trimmedName}" registered with initial v1.0.0 package!`, 'success');
         setShowNewAppModal(false);
         setNewAppName('');
         setNewAppTagline('');
+        setNewAppDescription('');
+        setNewAppPrice('0');
+        setNewAppBundleFile(null);
+        setNewAppBundleFileName('');
         setNewAppFormError(null);
         loadDeveloperData();
       } else {
@@ -1013,6 +1025,102 @@ export default function DeveloperConsolePage() {
                     <option value="hybrid">Hybrid (Box + Cloud)</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="modal-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                    Pricing (₹/Month) *
+                  </label>
+                  <select
+                    value={newAppPrice}
+                    onChange={e => setNewAppPrice(e.target.value)}
+                    style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', backgroundColor: '#ffffff' }}
+                  >
+                    <option value="0">Free</option>
+                    <option value="299">₹299 / month (Starter)</option>
+                    <option value="499">₹499 / month (Standard)</option>
+                    <option value="999">₹999 / month (Pro / Multi-outlet)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                    Initial Bundle Package (.zip / .json)
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="file"
+                      accept=".zip,.tgz,.json"
+                      onChange={e => {
+                        const f = e.target.files?.[0];
+                        if (f) {
+                          setNewAppBundleFile(f);
+                          setNewAppBundleFileName(f.name);
+                        }
+                      }}
+                      style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', width: '100%', height: '100%' }}
+                    />
+                    <div style={{
+                      padding: '0.55rem 0.75rem',
+                      borderRadius: '8px',
+                      border: '1px dashed #cbd5e1',
+                      fontSize: '0.78rem',
+                      color: newAppBundleFile ? '#166534' : '#64748b',
+                      backgroundColor: newAppBundleFile ? '#f0fdf4' : '#f8fafc',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {newAppBundleFileName ? `✓ ${newAppBundleFileName}` : 'Select bundle (.zip)'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                  Requested POS Bridge Permissions
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', backgroundColor: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  {[
+                    { scope: 'orders:read', label: 'Read Orders & Bills' },
+                    { scope: 'stock:read', label: 'Read Inventory Stocks' },
+                    { scope: 'menu:read', label: 'Read Menu & Recipes' },
+                    { scope: 'customers:pii', label: 'Customer Phone (Loyalty)' }
+                  ].map(p => {
+                    const isChecked = newAppRequiredScopes.includes(p.scope);
+                    return (
+                      <label key={p.scope} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem', color: '#334155', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={e => {
+                            if (e.target.checked) {
+                              setNewAppRequiredScopes(prev => [...prev, p.scope]);
+                            } else {
+                              setNewAppRequiredScopes(prev => prev.filter(x => x !== p.scope));
+                            }
+                          }}
+                        />
+                        {p.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                  Detailed App Description (Markdown)
+                </label>
+                <textarea
+                  value={newAppDescription}
+                  onChange={e => setNewAppDescription(e.target.value)}
+                  placeholder="Describe your app features, kitchen workflows, POS integration instructions..."
+                  rows={3}
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
