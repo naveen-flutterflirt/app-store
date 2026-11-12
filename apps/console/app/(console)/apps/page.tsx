@@ -52,7 +52,7 @@ export default function MyAppsPage() {
     email: 'owner@brewstreet.com',
     role: 'owner'
   });
-  const [tenant, setTenant] = useState<{ name: string; businessType: string; activeApps?: number }>({
+  const [tenant, setTenant] = useState<{ name: string; businessType: string; activeApps?: number; device?: any }>({
     name: 'Brew Street Cafe',
     businessType: 'cafe'
   });
@@ -327,18 +327,20 @@ export default function MyAppsPage() {
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.25rem' }}>
-              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff' }}>BizBox Edge – BLR01</span>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff' }}>
+                {tenant.device?.name || 'BizBox Edge – BLR01'}
+              </span>
               <span style={{
                 fontSize: '0.65rem',
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '999px',
-                backgroundColor: '#065f46',
-                color: '#34d399'
-              }}>● online</span>
+                backgroundColor: tenant.device?.is_online !== false ? '#065f46' : '#7f1d1d',
+                color: tenant.device?.is_online !== false ? '#34d399' : '#f87171'
+              }}>● {tenant.device?.is_online !== false ? 'online' : 'offline'}</span>
             </div>
             <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              Raspberry Pi 5 · 16 GB · 512 GB · platform 1.4.2 · online
+              {tenant.device?.hw_model || 'Raspberry Pi 5'} · 16 GB · 512 GB · platform 1.4.2 · serial {tenant.device?.serial_number || 'PI5-BLR-001'}
             </div>
           </div>
 

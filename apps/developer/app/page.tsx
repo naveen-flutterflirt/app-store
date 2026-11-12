@@ -33,6 +33,11 @@ interface SubmissionItem {
 export default function DeveloperConsolePage() {
   const { authorized, checking } = useAuthGuard('developer');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; role: string }>({
+    name: 'KitchenMetrics',
+    email: 'dev@kitchenmetrics.com',
+    role: 'developer'
+  });
   const [apps, setApps] = useState<DevApp[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,6 +109,12 @@ export default function DeveloperConsolePage() {
 
   useEffect(() => {
     if (authorized) {
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('bizbox_user');
+        if (storedUser) {
+          try { setUser(JSON.parse(storedUser)); } catch (e) {}
+        }
+      }
       loadDeveloperData();
     }
   }, [authorized]);
@@ -423,10 +434,12 @@ export default function DeveloperConsolePage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0.75rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>K</div>
+            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
+              {user.name.slice(0, 1).toUpperCase()}
+            </div>
             <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>KitchenMetrics</div>
-              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Partner developer • 80% RevShare</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{user.name}</div>
+              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{user.role} • 80% RevShare</div>
             </div>
           </div>
           <button

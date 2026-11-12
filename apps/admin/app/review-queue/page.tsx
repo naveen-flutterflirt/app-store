@@ -19,6 +19,11 @@ interface QueueItem {
 export default function ReviewQueuePage() {
   const { authorized, checking } = useAuthGuard('admin');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string; role: string }>({
+    name: 'Naveen (Founder)',
+    email: 'admin@flutterflirt.com',
+    role: 'admin'
+  });
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<QueueItem | null>(null);
   const [rolloutPct, setRolloutPct] = useState(10);
@@ -60,6 +65,12 @@ export default function ReviewQueuePage() {
 
   useEffect(() => {
     if (authorized) {
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('bizbox_user');
+        if (storedUser) {
+          try { setUser(JSON.parse(storedUser)); } catch (e) {}
+        }
+      }
       fetchQueue();
     }
   }, [authorized]);
@@ -236,10 +247,12 @@ export default function ReviewQueuePage() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0.75rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#ec4899', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>F</div>
+            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#ec4899', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
+              {user.name.slice(0, 1).toUpperCase()}
+            </div>
             <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>FlutterFlirt Review Team</div>
-              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Store reviewer (admin)</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{user.name}</div>
+              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Store reviewer ({user.role})</div>
             </div>
           </div>
           <button
