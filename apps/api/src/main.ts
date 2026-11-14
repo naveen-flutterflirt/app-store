@@ -503,6 +503,18 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // POST /v1/dev/versions/:versionId/promote (Promote from internal/beta track to production review)
+    if (pathname.startsWith('/v1/dev/versions/') && pathname.endsWith('/promote') && req.method === 'POST') {
+      try {
+        const versionId = pathname.split('/')[4];
+        const body = await parseJsonBody(req);
+        const result = await developerService.promoteVersion(versionId, body.targetChannel || 'stable');
+        return sendJson(res, 200, result);
+      } catch (err: any) {
+        return sendJson(res, 400, { code: 'PROMOTE_ERROR', message: err.message });
+      }
+    }
+
     // POST /v1/dev/versions/:versionId/rollout (Adjust rollout %)
     if (pathname.startsWith('/v1/dev/versions/') && pathname.endsWith('/rollout') && req.method === 'POST') {
       try {

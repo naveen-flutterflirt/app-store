@@ -13,6 +13,7 @@ export interface CreateAppDto {
 export interface CreateVersionDto {
   version: string;
   manifest: Record<string, any>;
+  channel?: 'internal' | 'beta' | 'stable';
   bundleUrl?: string;
   bundleSha256?: string;
   imageRef?: string;
@@ -122,16 +123,18 @@ export class DeveloperService {
 
     const bundleUrl = dto.bundleUrl || `s3://bizbox-apps/${appId}/${versionStr}/bundle.tgz`;
     const bundleSha256 = dto.bundleSha256 || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+    const channel = ['internal', 'beta', 'stable'].includes(dto.channel || '') ? dto.channel : 'internal';
 
     const res = await query(`
       INSERT INTO store.app_versions (
-        app_id, version, manifest, bundle_url, bundle_sha256, image_ref, release_notes, status
+        app_id, version, channel, manifest, bundle_url, bundle_sha256, image_ref, release_notes, status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'draft')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft')
       RETURNING *
     `, [
       appId,
       versionStr,
+      channel,
       JSON.stringify(dto.manifest || {}),
       bundleUrl,
       bundleSha256,
@@ -175,6 +178,30 @@ export class DeveloperService {
       pipelinePassed: pipelineRes.passed,
       checkResults: pipelineRes.results
     };
+  }
+
+  /**
+   * Promotes a version from internal/beta testing to production review queue
+   * (POST /dev/versions/{versionId}/promote)
+   */
+  async promoteVersion(versionId: string, targetChannel: 'beta' | 'stable') {
+    const versions = await query(`SELECT * FROM store.app_versions WHERE id = $1`, [versionId]);
+    if (versions.length === 0) {
+      throw new Error(`Version ${versionId} not found`);
+    }
+
+    const ver = versions[0];
+    const newChannel = targetChannel === 'beta' ? 'beta' : 'stable';
+
+    const res = await query(`
+      UPDATE store.app_versions
+      SET channel = $1, status = CASE WHEN $1 = 'stable' THEN 'in_review' ELSE status END,
+          submitted_at = CASE WHEN $1 = 'stable' THEN NOW() ELSE submitted_at END
+      WHERE id = $2
+      RETURNING *
+    `, [newChannel, versionId]);
+
+    return res[0];
   }
 
   /**

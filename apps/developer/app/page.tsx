@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from './config';
 import { useAuthGuard } from './useAuthGuard';
+import { TestingTracksView } from './tracks';
+import { DeveloperBuilderGuide } from './builderGuide';
 
 interface DevApp {
   id: string;
@@ -41,6 +43,7 @@ export default function DeveloperConsolePage() {
   const [apps, setApps] = useState<DevApp[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'apps' | 'tracks' | 'guide'>('apps');
 
   // Modal States
   const [showNewAppModal, setShowNewAppModal] = useState(false);
@@ -64,6 +67,7 @@ export default function DeveloperConsolePage() {
   // Publish Version Form State
   const [targetAppId, setTargetAppId] = useState('');
   const [newVersionStr, setNewVersionStr] = useState('');
+  const [targetChannel, setTargetChannel] = useState<'internal' | 'beta' | 'stable'>('internal');
   const [releaseNotesStr, setReleaseNotesStr] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
@@ -197,7 +201,7 @@ export default function DeveloperConsolePage() {
   };
 
   // 2. Open Publish Modal for a specific app or default
-  const handleOpenPublishModal = (app?: DevApp) => {
+  const handleOpenPublishModal = (app?: DevApp, defaultTrack: 'internal' | 'beta' | 'stable' = 'internal') => {
     const targetApp = app || (apps.length > 0 ? apps[0] : null);
     let nextVer = '1.0.0';
     if (targetApp) {
@@ -209,6 +213,8 @@ export default function DeveloperConsolePage() {
     } else {
       setNewVersionStr('1.0.0');
     }
+
+    setTargetChannel(defaultTrack);
 
     // Generate real starter manifest JSON for this app
     const defaultManifest = {
@@ -278,6 +284,7 @@ export default function DeveloperConsolePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           version: versionClean,
+          channel: targetChannel,
           manifest: parsedManifest,
           releaseNotes: releaseNotesStr.trim()
         })
@@ -466,8 +473,59 @@ export default function DeveloperConsolePage() {
               borderRadius: '4px'
             }}>Developer</span>
           </a>
-          <nav className="nav-desktop" style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href={DEV_URL} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Developer Console</a>
+          <nav className="nav-desktop" style={{ display: 'flex', gap: '0.4rem' }}>
+            <button
+              onClick={() => setActiveTab('apps')}
+              style={{
+                padding: '0.35rem 0.75rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeTab === 'apps' ? '#f1f5f9' : 'transparent',
+                color: activeTab === 'apps' ? '#0f172a' : '#64748b',
+                fontWeight: activeTab === 'apps' ? 700 : 500,
+                fontSize: '0.8rem',
+                cursor: 'pointer'
+              }}
+            >
+              Apps & Revenue
+            </button>
+            <button
+              onClick={() => setActiveTab('tracks')}
+              style={{
+                padding: '0.35rem 0.75rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeTab === 'tracks' ? '#f1f5f9' : 'transparent',
+                color: activeTab === 'tracks' ? '#0f172a' : '#64748b',
+                fontWeight: activeTab === 'tracks' ? 700 : 500,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem'
+              }}
+            >
+              <span>Testing Tracks</span>
+              <span style={{ fontSize: '0.65rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>Google Play</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('guide')}
+              style={{
+                padding: '0.35rem 0.75rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeTab === 'guide' ? '#f1f5f9' : 'transparent',
+                color: activeTab === 'guide' ? '#0f172a' : '#64748b',
+                fontWeight: activeTab === 'guide' ? 700 : 500,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem'
+              }}
+            >
+              <span>Builder Guide & SDK</span>
+            </button>
             <button
               onClick={() => handleOpenPublishModal()}
               style={{
@@ -475,12 +533,13 @@ export default function DeveloperConsolePage() {
                 border: 'none',
                 padding: '0.35rem 0.65rem',
                 borderRadius: '6px',
-                color: '#64748b',
+                color: '#ec4899',
+                fontWeight: 700,
                 fontSize: '0.8rem',
                 cursor: 'pointer'
               }}
             >
-              Publish New Version
+              + Publish Version
             </button>
             <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Public Store ↗</a>
           </nav>
@@ -567,48 +626,60 @@ export default function DeveloperConsolePage() {
 
       {/* Main Container */}
       <main className="dev-main" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem' }}>
-        {/* Header Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: '#0f172a' }}>Developer Console</h1>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-              Publish, release, and manage your BizBox apps. Every version passes automated 6-step CI security scans and Ed25519 cryptographic signing before rollout.
-            </p>
-          </div>
-          <div className="dev-header-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setShowNewAppModal(true)}
-              style={{
-                padding: '0.55rem 1rem',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                backgroundColor: '#ffffff',
-                color: '#0f172a',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-            >
-              + New app
-            </button>
-            <button
-              onClick={() => handleOpenPublishModal()}
-              style={{
-                padding: '0.55rem 1.15rem',
-                borderRadius: '8px',
-                border: 'none',
-                backgroundColor: '#ec4899',
-                color: '#ffffff',
-                fontSize: '0.82rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(236, 72, 153, 0.25)'
-              }}
-            >
-              Publish new version
-            </button>
-          </div>
-        </div>
+        {activeTab === 'tracks' ? (
+          <TestingTracksView
+            apps={apps}
+            submissions={submissions}
+            onRefresh={loadDeveloperData}
+            onOpenPublish={(app, defaultTrack) => handleOpenPublishModal(app, defaultTrack || 'internal')}
+            showToast={showToast}
+          />
+        ) : activeTab === 'guide' ? (
+          <DeveloperBuilderGuide />
+        ) : (
+          <>
+            {/* Header Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: '#0f172a' }}>Developer Console</h1>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+                  Publish, release, and manage your BizBox apps. Every version passes automated 6-step CI security scans and Ed25519 cryptographic signing before rollout.
+                </p>
+              </div>
+              <div className="dev-header-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setShowNewAppModal(true)}
+                  style={{
+                    padding: '0.55rem 1rem',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#ffffff',
+                    color: '#0f172a',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  + New app
+                </button>
+                <button
+                  onClick={() => handleOpenPublishModal()}
+                  style={{
+                    padding: '0.55rem 1.15rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: '#ec4899',
+                    color: '#ffffff',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(236, 72, 153, 0.25)'
+                  }}
+                >
+                  Publish new version
+                </button>
+              </div>
+            </div>
 
         {/* 4 Stats Cards */}
         <div className="dev-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
@@ -886,6 +957,8 @@ export default function DeveloperConsolePage() {
             </div>
           )}
         </div>
+          </>
+        )}
       </main>
 
       {/* Toast Notification */}
@@ -1203,7 +1276,21 @@ export default function DeveloperConsolePage() {
                   </select>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '130px 140px 1fr', gap: '1rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
+                      Release Track *
+                    </label>
+                    <select
+                      value={targetChannel}
+                      onChange={e => setTargetChannel(e.target.value as any)}
+                      style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', backgroundColor: '#ffffff', fontWeight: 600 }}
+                    >
+                      <option value="internal">🧪 Internal</option>
+                      <option value="beta">👥 Closed Beta</option>
+                      <option value="stable">🌐 Production</option>
+                    </select>
+                  </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.35rem' }}>
                       Version (SemVer) *
