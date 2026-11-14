@@ -229,6 +229,7 @@ export default function AdminDevelopersPage() {
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Developer / Company</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Contact Email</th>
+                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Bank Account & Payout</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Apps Building</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Live / Testing Split</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Installs</th>
@@ -239,13 +240,13 @@ export default function AdminDevelopersPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
                     Loading partner developers directory...
                   </td>
                 </tr>
               ) : filteredDevs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
                     No registered developers found matching your search.
                   </td>
                 </tr>
@@ -278,6 +279,25 @@ export default function AdminDevelopersPage() {
                     </td>
                     <td style={{ padding: '1rem 1.25rem', fontSize: '0.82rem', color: '#334155' }}>
                       {dev.email}
+                    </td>
+                    <td style={{ padding: '1rem 1.25rem' }}>
+                      {dev.bank_account_number ? (
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', backgroundColor: '#dcfce7', padding: '1px 6px', borderRadius: '4px' }}>
+                              ✓ LINKED
+                            </span>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>{dev.bank_name || 'Bank'}</span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>
+                            <code>****{dev.bank_account_number.slice(-4)}</code> • {dev.bank_ifsc || 'IFSC'}
+                          </div>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                          Not configured
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '1rem 1.25rem' }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
