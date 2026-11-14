@@ -48,21 +48,25 @@ export function TestingTracksView({
   const [viewingFeedback, setViewingFeedback] = useState<any | null>(null);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
 
-  // If a submission is missing last_review details, dynamically fetch from /dev/versions/:id/feedback
+  // Directly open feedback modal and fallback to direct endpoint if last_review is missing
   const handleOpenFeedback = async (sub: any) => {
     setViewingFeedback(sub);
     if (!sub.last_review) {
       setLoadingFeedback(true);
       try {
-        const res = await fetch(`${API_URL}/dev/versions/${sub.id}/feedback`, {
-          headers: { 'Content-Type': 'application/json' }
-        });
-        const data = await res.json();
-        if (data?.review) {
-          setViewingFeedback((prev: any) => ({
-            ...prev,
-            last_review: data.review
-          }));
+        const token = typeof window !== 'undefined' ? localStorage.getItem('bizbox_token') : null;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const res = await fetch(`${API_URL}/dev/versions/${sub.id}/feedback`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.review) {
+            setViewingFeedback((prev: any) => ({
+              ...prev,
+              last_review: data.review
+            }));
+          }
         }
       } catch (err) {
         console.error('Error fetching review feedback:', err);
@@ -89,9 +93,13 @@ export function TestingTracksView({
   const handlePromote = async (versionId: string, targetChannel: 'beta' | 'stable') => {
     setPromotingId(versionId);
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('bizbox_token') : null;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch(`${API_URL}/dev/versions/${versionId}/promote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ targetChannel })
       });
       const data = await res.json().catch(() => ({}));
@@ -558,7 +566,7 @@ export function TestingTracksView({
                     Primary Policy / Violation Reason
                   </div>
                   <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#9f1239' }}>
-                    {viewingFeedback.last_review?.checklist?.rejection_reason || viewingFeedback.last_review?.notes?.split('\n\n')[0] || 'Violation noted by platform reviewer.'}
+                    {viewingFeedback.last_review?.checklist?.rejection_reason || viewingFeedback.last_review?.notes?.split('\n\nDetailed Description:\n')[0] || viewingFeedback.last_review?.notes?.split('\n\n')[0] || 'Violation noted by platform reviewer.'}
                   </div>
                 </div>
 
@@ -578,7 +586,11 @@ export function TestingTracksView({
                       whiteSpace: 'pre-wrap',
                       lineHeight: 1.6
                     }}>
-                      {viewingFeedback.last_review?.checklist?.detailed_description || viewingFeedback.last_review?.notes}
+                      {viewingFeedback.last_review?.checklist?.detailed_description || (
+                        viewingFeedback.last_review?.notes?.includes('\n\nDetailed Description:\n')
+                          ? viewingFeedback.last_review.notes.split('\n\nDetailed Description:\n')[1]
+                          : viewingFeedback.last_review?.notes
+                      )}
                     </div>
                   </div>
                 )}
