@@ -248,7 +248,13 @@ export default function DeveloperConsolePage() {
   // 3. Execute Publish Pipeline (Draft Version -> S3 Presigned URL -> Automated CI -> Admin Queue)
   const handleRunPublishPipeline = async () => {
     if (!targetAppId) {
-      setCiError('Please select an application to publish.');
+      setCiError('Please select a valid application from the dropdown before publishing.');
+      return;
+    }
+
+    const currentApp = apps.find(a => a.id === targetAppId);
+    if (!currentApp) {
+      setCiError('Selected app is no longer valid. Please select an app from the list.');
       return;
     }
     const versionClean = newVersionStr.trim();

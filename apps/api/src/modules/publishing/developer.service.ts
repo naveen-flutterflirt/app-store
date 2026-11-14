@@ -106,6 +106,22 @@ export class DeveloperService {
    * (POST /dev/apps/{appId}/versions)
    */
   async createVersion(appId: string, dto: CreateVersionDto) {
+    if (!appId || !appId.trim()) {
+      throw new Error('Valid App ID is required to create a version.');
+    }
+
+    // Verify app actually exists in database before attempting insert
+    const appRecord = await query(`SELECT id, name, package_id, developer_id FROM store.apps WHERE id = $1`, [appId.trim()]);
+    if (!appRecord || appRecord.length === 0) {
+      // Fallback: If appId was passed as package_id or slug instead of UUID
+      const fallback = await query(`SELECT id, name, package_id, developer_id FROM store.apps WHERE package_id = $1 OR slug = $1`, [appId.trim()]);
+      if (fallback && fallback.length > 0) {
+        appId = fallback[0].id;
+      } else {
+        throw new Error(`Application with ID "${appId}" not found in database. Please re-select the app from your portfolio.`);
+      }
+    }
+
     if (!dto.version || !dto.version.trim()) {
       throw new Error('Version string is required (e.g. 1.0.0).');
     }
