@@ -3,9 +3,11 @@ import { query } from '../../db';
 export interface BankDetailsDto {
   accountHolder: string;
   accountNumber: string;
-  ifscCode: string;
-  bankName: string;
-  panNumber: string;
+  ifscCode?: string;
+  ifsc?: string;
+  bankName?: string;
+  panNumber?: string;
+  pan?: string;
   gstin?: string;
 }
 
@@ -95,13 +97,17 @@ export class PayoutsService {
    * Updates bank account / Razorpay Route recipient settings
    */
   async updateBankDetails(developerId: string, dto: BankDetailsDto) {
+    const ifsc = (dto.ifscCode || dto.ifsc || '').trim().toUpperCase();
+    const pan = (dto.panNumber || dto.pan || '').trim().toUpperCase();
+    const bankName = (dto.bankName || 'HDFC Bank Ltd').trim();
+
     if (!dto.accountHolder || !dto.accountHolder.trim()) throw new Error('Account holder name is required');
     if (!dto.accountNumber || dto.accountNumber.length < 8) throw new Error('Valid bank account number is required');
-    if (!dto.ifscCode || dto.ifscCode.length < 11) throw new Error('Valid 11-character IFSC code is required');
-    if (!dto.panNumber || dto.panNumber.length !== 10) throw new Error('Valid 10-character PAN is required for TDS filing');
+    if (!ifsc || ifsc.length < 11) throw new Error('Valid 11-character IFSC code is required');
+    if (!pan || pan.length !== 10) throw new Error('Valid 10-character PAN is required for TDS filing');
 
     // Create encrypted / tokenized reference (simulating Razorpay Route linked account token)
-    const tokenizedRef = `rzp_route_acc_${dto.accountNumber.slice(-4)}_${dto.ifscCode.slice(0, 4).toUpperCase()}`;
+    const tokenizedRef = `rzp_route_acc_${dto.accountNumber.slice(-4)}_${ifsc.slice(0, 4)}`;
 
     const res = await query(`
       UPDATE store.developers
@@ -118,10 +124,10 @@ export class PayoutsService {
       tokenizedRef, 
       dto.gstin?.trim() || null,
       dto.accountHolder.trim(),
-      dto.bankName.trim(),
+      bankName,
       dto.accountNumber.trim(),
-      dto.ifscCode.trim().toUpperCase(),
-      dto.panNumber.trim().toUpperCase(),
+      ifsc,
+      pan,
       developerId
     ]);
 

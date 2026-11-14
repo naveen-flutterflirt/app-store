@@ -270,6 +270,21 @@ export class DeveloperService {
 
     return apps[0] || null;
   }
+
+  /**
+   * Deletes an app and all its versions, checks, and installations
+   * (DELETE /dev/apps/{appId})
+   */
+  async deleteApp(appId: string, developerId?: string) {
+    if (developerId) {
+      const app = await query(`SELECT developer_id FROM store.apps WHERE id = $1`, [appId]);
+      if (app.length > 0 && app[0].developer_id !== developerId) {
+        throw new Error('Unauthorized to delete this application');
+      }
+    }
+    await query(`DELETE FROM store.apps WHERE id = $1`, [appId]);
+    return { success: true, message: `Application ${appId} deleted successfully` };
+  }
 }
 
 export const developerService = new DeveloperService();

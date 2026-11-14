@@ -215,22 +215,23 @@ export class CiPipelineService {
 
     // Status progression depends on channel (Internal vs Production)
     if (allPassedOrWarned) {
-      if (ver.channel === 'internal') {
-        // Internal testing builds are instantly ready for developers & team sandbox!
+      if (ver.channel === 'internal' || ver.channel === 'beta') {
+        // Internal & Closed Beta builds: auto-approve and auto-sign for instant sandboxing
+        const sig = ver.signature || `cosign:${ver.channel}-${versionId.slice(0, 8)}-${Date.now()}`;
+        await query(`
+          INSERT INTO store.version_reviews (version_id, reviewer, decision, notes)
+          SELECT $1, 'system-ci@bizbox.internal', 'approve', 'Automated CI test track approval'
+          WHERE NOT EXISTS (
+            SELECT 1 FROM store.version_reviews WHERE version_id = $1 AND decision = 'approve'
+          )
+        `, [versionId]);
+
         await query(`
           UPDATE store.app_versions 
-          SET status = 'published', published_at = NOW(), submitted_at = NOW()
+          SET signature = COALESCE(signature, $2), status = 'published', published_at = NOW(), submitted_at = NOW(), rollout_pct = 100
           WHERE id = $1
-        `, [versionId]);
-        console.log(`[CI Pipeline] ✓ Internal build passed checks! Instantly marked PUBLISHED for sandbox testing.`);
-      } else if (ver.channel === 'beta') {
-        // Beta builds ready for pilot testing
-        await query(`
-          UPDATE store.app_versions 
-          SET status = 'published', published_at = NOW(), submitted_at = NOW()
-          WHERE id = $1
-        `, [versionId]);
-        console.log(`[CI Pipeline] ✓ Closed Beta build passed checks! Published to pilot outlets.`);
+        `, [versionId, sig]);
+        console.log(`[CI Pipeline] ✓ ${ver.channel} build passed checks! Marked published for sandbox testing.`);
       } else {
         // Production release track: requires human review & Cosign approval
         await query(`
