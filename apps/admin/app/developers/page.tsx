@@ -45,20 +45,50 @@ export default function AdminDevelopersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDev, setSelectedDev] = useState<DeveloperItem | null>(null);
 
-  const fetchDevelopers = () => {
+  const fetchDevelopers = async () => {
     setLoading(true);
-    fetch(`${API_URL}/admin/developers`)
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          setDevelopers(data);
+    try {
+      // Fetch both developers and payouts overview in parallel for instant, fail-safe bank account syncing
+      const [devsRes, payoutsRes] = await Promise.all([
+        fetch(`${API_URL}/admin/developers`),
+        fetch(`${API_URL}/admin/payouts/overview`).catch(() => null)
+      ]);
+
+      const devsData = await devsRes.json();
+      let payoutsData: any = null;
+      if (payoutsRes && payoutsRes.ok) {
+        payoutsData = await payoutsRes.json();
+      }
+
+      const payoutBankMap = new Map<string, any>();
+      if (payoutsData?.developers && Array.isArray(payoutsData.developers)) {
+        for (const p of payoutsData.developers) {
+          if (p.developerId && p.bank) {
+            payoutBankMap.set(p.developerId, p.bank);
+          }
         }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Failed to load developers:', err);
-        setLoading(false);
-      });
+      }
+
+      if (Array.isArray(devsData)) {
+        const enriched = devsData.map((d: DeveloperItem) => {
+          const bank = payoutBankMap.get(d.id);
+          return {
+            ...d,
+            bank_account_holder: d.bank_account_holder || bank?.accountHolder || null,
+            bank_name: d.bank_name || bank?.bankName || null,
+            bank_account_number: d.bank_account_number || bank?.fullAccountNumber || bank?.accountNumber || null,
+            bank_ifsc: d.bank_ifsc || bank?.ifsc || null,
+            pan_number: d.pan_number || bank?.pan || null,
+            gstin: d.gstin || bank?.gstin || null,
+          };
+        });
+        setDevelopers(enriched);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to load developers:', err);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
