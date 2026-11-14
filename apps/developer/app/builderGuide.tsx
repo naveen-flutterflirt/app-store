@@ -14,29 +14,61 @@ export function DeveloperBuilderGuide() {
   const steps = [
     {
       num: 1,
-      title: 'Choose Runtime Model Architecture',
-      desc: 'BizBox apps run either inside the POS Browser (Cloud), on the local restaurant hardware (Edge ARM64 on Raspberry Pi 5), or seamlessly bridge both (Hybrid).',
+      title: 'Choose Runtime Architecture',
+      desc: 'BizBox apps run inside the POS Browser (Cloud), on the local restaurant hardware (Edge ARM64 on Raspberry Pi 5), or bridge both (Hybrid).',
       badge: 'Step 1: Architecture',
       content: (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '1rem' }}>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1rem' }}>
-            <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>☁️</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>Cloud (Browser Only)</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginTop: '1.25rem' }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #fbcfe8',
+            borderRadius: '16px',
+            padding: '1.4rem',
+            boxShadow: '0 4px 16px -4px rgba(236, 72, 153, 0.08)',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#fdf2f8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', marginBottom: '0.85rem' }}>
+              ☁️
+            </div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>Cloud (Browser Only)</div>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
               Runs inside sandboxed iframe on the Cashier POS screen. Ideal for loyalty programs, discounts, customer feedback, and table reservations.
             </div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1rem' }}>
-            <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>⚡</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>Edge (Raspberry Pi 5)</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '16px',
+            padding: '1.4rem',
+            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.04)',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', marginBottom: '0.85rem' }}>
+              ⚡
+            </div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>Edge (Raspberry Pi 5)</div>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
               Runs inside lightweight k3s container locally. Direct USB/LAN access to thermal receipt printers, weighing scales, and kitchen screens. 256MB RAM limit.
             </div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1rem' }}>
-            <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🔄</div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>Hybrid (Recommended)</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '2px solid #ec4899',
+            borderRadius: '16px',
+            padding: '1.4rem',
+            boxShadow: '0 8px 24px -6px rgba(236, 72, 153, 0.16)',
+            position: 'relative'
+          }}>
+            <div style={{ position: 'absolute', top: '-10px', right: '14px', backgroundColor: '#ec4899', color: '#ffffff', fontSize: '0.65rem', fontWeight: 800, padding: '2px 8px', borderRadius: '999px', textTransform: 'uppercase' }}>
+              Recommended
+            </div>
+            <div style={{ width: '42px', height: '42px', borderRadius: '12px', backgroundColor: '#fdf2f8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', marginBottom: '0.85rem' }}>
+              🔄
+            </div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>Hybrid Architecture</div>
+            <div style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.5 }}>
               Cloud dashboard for reporting paired with local edge daemon for offline order dispatch and hardware control.
             </div>
           </div>
@@ -70,9 +102,9 @@ export function DeveloperBuilderGuide() {
     {
       num: 3,
       title: 'Install & Call BizBox Bridge SDK',
-      desc: 'Use our official client SDK to interact with the POS hardware, fetch real-time orders, and emit custom events.',
+      desc: 'Use our official client SDK to interact with POS hardware, listen for real-time kitchen tickets, and apply cashier actions.',
       badge: 'Step 3: SDK Integration',
-      code: `// 1. Install SDK
+      code: `// 1. Install official SDK
 npm install @bizbox/sdk
 
 // 2. Initialize in your React / Next.js app
@@ -113,60 +145,68 @@ npx @bizbox/cli build --target=production
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Header Banner */}
+      {/* Header Hero Banner */}
       <div style={{
-        backgroundColor: '#0f172a',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #311042 100%)',
         color: '#ffffff',
-        borderRadius: '16px',
-        padding: '2rem',
-        backgroundImage: 'radial-gradient(circle at top right, rgba(236, 72, 153, 0.25), transparent)'
+        borderRadius: '24px',
+        padding: '2.5rem',
+        boxShadow: '0 20px 40px -15px rgba(236, 72, 153, 0.25)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
-          <span style={{ fontSize: '1.4rem' }}>🛠️</span>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-            Developer Builder Guide & SDK Quickstart
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '750px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'rgba(236, 72, 153, 0.2)', border: '1px solid rgba(236, 72, 153, 0.4)', borderRadius: '999px', padding: '4px 12px', fontSize: '0.75rem', fontWeight: 700, color: '#f472b6', marginBottom: '1rem' }}>
+            <span>🛠️ Official Developer Kit</span>
+          </div>
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: '0 0 0.75rem 0', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
+            Developer Builder Guide & POS SDK Quickstart
           </h2>
-        </div>
-        <p style={{ margin: 0, fontSize: '0.88rem', color: '#94a3b8', maxWidth: '720px', lineHeight: 1.6 }}>
-          Learn how to build, test, and publish professional business applications for 10,000+ Indian restaurants and retail outlets running on the BizBox platform.
-        </p>
+          <p style={{ margin: 0, fontSize: '0.92rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+            Build, test, and distribute commercial enterprise applications for 10,000+ Indian restaurants, cafes, and retail chains running BizBox POS & Edge Hardware.
+          </p>
 
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-          <a
-            href="https://github.com/naveen-flutterflirt/app-store"
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              padding: '0.55rem 1rem',
-              borderRadius: '8px',
-              backgroundColor: '#ec4899',
-              color: '#ffffff',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              textDecoration: 'none',
-              display: 'inline-flex',
+          <div style={{ display: 'flex', gap: '0.85rem', marginTop: '1.75rem', flexWrap: 'wrap' }}>
+            <a
+              href="https://github.com/naveen-flutterflirt/app-store"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                padding: '0.65rem 1.25rem',
+                borderRadius: '12px',
+                backgroundColor: '#ec4899',
+                color: '#ffffff',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 4px 14px rgba(236, 72, 153, 0.35)'
+              }}
+            >
+              <span>📦 Clone Starter Repo on GitHub ↗</span>
+            </a>
+            <div style={{
+              padding: '0.65rem 1.15rem',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              color: '#f8fafc',
+              fontFamily: 'monospace',
+              display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem'
-            }}
-          >
-            📦 Clone Starter Repo on GitHub ↗
-          </a>
-          <div style={{
-            padding: '0.55rem 1rem',
-            borderRadius: '8px',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            color: '#f8fafc',
-            fontFamily: 'monospace'
-          }}>
-            npm install @bizbox/sdk
+              gap: '0.5rem'
+            }}>
+              <span style={{ color: '#ec4899' }}>$</span> npm install @bizbox/sdk
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Step by Step Walkthrough */}
+      {/* Step by Step Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {steps.map((st, idx) => (
           <div
@@ -174,17 +214,17 @@ npx @bizbox/cli build --target=production
             style={{
               backgroundColor: '#ffffff',
               border: '1px solid #e2e8f0',
-              borderRadius: '14px',
-              padding: '1.75rem',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)'
+              borderRadius: '20px',
+              padding: '2rem',
+              boxShadow: '0 4px 20px -6px rgba(0, 0, 0, 0.04)'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
                 <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '12px',
                   backgroundColor: '#fdf2f8',
                   border: '1px solid #fbcfe8',
                   color: '#ec4899',
@@ -192,44 +232,46 @@ npx @bizbox/cli build --target=production
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 800,
-                  fontSize: '0.9rem'
+                  fontSize: '0.95rem'
                 }}>
                   {st.num}
                 </div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
                   {st.title}
                 </h3>
               </div>
               <span style={{
-                fontSize: '0.7rem',
+                fontSize: '0.72rem',
                 fontWeight: 700,
-                backgroundColor: '#f1f5f9',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
                 color: '#475569',
-                padding: '3px 10px',
+                padding: '4px 12px',
                 borderRadius: '999px'
               }}>
                 {st.badge}
               </span>
             </div>
 
-            <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5 }}>
+            <p style={{ margin: '0 0 1rem 0', fontSize: '0.88rem', color: '#64748b', lineHeight: 1.5 }}>
               {st.desc}
             </p>
 
             {st.content}
 
             {st.code && (
-              <div style={{ position: 'relative', marginTop: '0.75rem' }}>
+              <div style={{ position: 'relative', marginTop: '1rem' }}>
                 <pre style={{
                   backgroundColor: '#0f172a',
                   color: '#38bdf8',
-                  padding: '1.25rem',
-                  borderRadius: '10px',
-                  fontSize: '0.78rem',
+                  padding: '1.4rem',
+                  borderRadius: '14px',
+                  fontSize: '0.8rem',
                   fontFamily: 'monospace',
                   overflowX: 'auto',
                   margin: 0,
-                  lineHeight: 1.6
+                  lineHeight: 1.6,
+                  border: '1px solid #1e293b'
                 }}>
                   {st.code}
                 </pre>
@@ -237,19 +279,20 @@ npx @bizbox/cli build --target=production
                   onClick={() => copyCode(st.code!, idx)}
                   style={{
                     position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    padding: '0.35rem 0.65rem',
-                    borderRadius: '6px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    border: '1px solid rgba(255, 255, 255, 0.25)',
+                    top: '12px',
+                    right: '12px',
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                     color: '#ffffff',
-                    fontSize: '0.7rem',
+                    fontSize: '0.72rem',
                     fontWeight: 600,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  {copiedIndex === idx ? '✓ Copied' : 'Copy'}
+                  {copiedIndex === idx ? '✓ Copied' : 'Copy Code'}
                 </button>
               </div>
             )}

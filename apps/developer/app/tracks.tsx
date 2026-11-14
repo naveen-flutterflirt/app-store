@@ -77,54 +77,58 @@ export function TestingTracksView({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       {/* Top Banner explaining Play Store Release Lifecycle */}
       <div style={{
-        backgroundColor: '#f8fafc',
-        border: '1px solid #e2e8f0',
-        borderRadius: '14px',
-        padding: '1.5rem',
+        background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)',
+        border: '1px solid #fbcfe8',
+        borderRadius: '20px',
+        padding: '2rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '1rem'
+        gap: '1.25rem',
+        boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.08)'
       }}>
-        <div style={{ maxWidth: '650px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-            <span style={{ fontSize: '1.2rem' }}>🚀</span>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
+        <div style={{ maxWidth: '680px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '1.4rem' }}>🚀</span>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
               Release Tracks & Testing Lifecycle
             </h2>
             <span style={{
-              fontSize: '0.68rem',
-              fontWeight: 700,
+              fontSize: '0.7rem',
+              fontWeight: 800,
               backgroundColor: '#e0f2fe',
               color: '#0369a1',
-              padding: '2px 8px',
-              borderRadius: '999px'
+              padding: '3px 10px',
+              borderRadius: '999px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em'
             }}>Google Play Standard</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>
-            Test your app builds safely before public release. Start with <strong>Internal Testing</strong> for your dev team, promote to <strong>Closed Beta</strong> for friendly partner merchants, and finally submit to <strong>Production Review</strong>.
+          <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', lineHeight: 1.6 }}>
+            Safely iterate and verify your restaurant apps. Start with <strong>Internal Testing</strong> for your team sandbox (no review required), invite partner outlets on <strong>Closed Beta</strong>, and promote to <strong>Production Review</strong> for storewide release.
           </p>
         </div>
 
         <button
           onClick={() => onOpenPublish(undefined, selectedTrack === 'beta' ? 'beta' : 'internal')}
           style={{
-            padding: '0.65rem 1.25rem',
-            borderRadius: '10px',
+            padding: '0.75rem 1.4rem',
+            borderRadius: '12px',
             border: 'none',
             backgroundColor: '#ec4899',
             color: '#ffffff',
-            fontSize: '0.85rem',
+            fontSize: '0.88rem',
             fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(236, 72, 153, 0.25)',
+            boxShadow: '0 4px 14px rgba(236, 72, 153, 0.35)',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.4rem'
+            gap: '0.5rem',
+            transition: 'transform 0.15s ease'
           }}
         >
           <span>+ Create Release in {selectedTrack === 'internal' ? 'Internal' : selectedTrack === 'beta' ? 'Beta' : 'Production'}</span>
@@ -132,30 +136,33 @@ export function TestingTracksView({
       </div>
 
       {/* Track Selector Tabs */}
-      <div style={{ display: 'flex', gap: '0.75rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.6rem', borderBottom: '2px solid #e2e8f0', paddingBottom: '0.75rem' }}>
         <button
           onClick={() => setSelectedTrack('internal')}
           style={{
-            padding: '0.6rem 1.25rem',
-            borderRadius: '8px',
+            padding: '0.65rem 1.35rem',
+            borderRadius: '12px',
             border: 'none',
-            backgroundColor: selectedTrack === 'internal' ? '#0f172a' : '#f1f5f9',
-            color: selectedTrack === 'internal' ? '#ffffff' : '#475569',
+            backgroundColor: selectedTrack === 'internal' ? '#0f172a' : '#f8fafc',
+            color: selectedTrack === 'internal' ? '#ffffff' : '#64748b',
             fontSize: '0.85rem',
-            fontWeight: 700,
+            fontWeight: 800,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem'
+            gap: '0.6rem',
+            boxShadow: selectedTrack === 'internal' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
+            transition: 'all 0.15s'
           }}
         >
           <span>🧪 Internal Testing</span>
           <span style={{
             fontSize: '0.7rem',
-            padding: '1px 6px',
+            padding: '2px 7px',
             borderRadius: '999px',
-            backgroundColor: selectedTrack === 'internal' ? '#334155' : '#e2e8f0',
-            color: selectedTrack === 'internal' ? '#ffffff' : '#64748b'
+            backgroundColor: selectedTrack === 'internal' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
+            color: selectedTrack === 'internal' ? '#ffffff' : '#475569',
+            fontWeight: 700
           }}>
             {internalVersions.length}
           </span>
@@ -164,26 +171,29 @@ export function TestingTracksView({
         <button
           onClick={() => setSelectedTrack('beta')}
           style={{
-            padding: '0.6rem 1.25rem',
-            borderRadius: '8px',
+            padding: '0.65rem 1.35rem',
+            borderRadius: '12px',
             border: 'none',
-            backgroundColor: selectedTrack === 'beta' ? '#0f172a' : '#f1f5f9',
-            color: selectedTrack === 'beta' ? '#ffffff' : '#475569',
+            backgroundColor: selectedTrack === 'beta' ? '#0f172a' : '#f8fafc',
+            color: selectedTrack === 'beta' ? '#ffffff' : '#64748b',
             fontSize: '0.85rem',
-            fontWeight: 700,
+            fontWeight: 800,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem'
+            gap: '0.6rem',
+            boxShadow: selectedTrack === 'beta' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
+            transition: 'all 0.15s'
           }}
         >
           <span>👥 Closed Beta Track</span>
           <span style={{
             fontSize: '0.7rem',
-            padding: '1px 6px',
+            padding: '2px 7px',
             borderRadius: '999px',
-            backgroundColor: selectedTrack === 'beta' ? '#334155' : '#e2e8f0',
-            color: selectedTrack === 'beta' ? '#ffffff' : '#64748b'
+            backgroundColor: selectedTrack === 'beta' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
+            color: selectedTrack === 'beta' ? '#ffffff' : '#475569',
+            fontWeight: 700
           }}>
             {betaVersions.length}
           </span>
@@ -192,26 +202,29 @@ export function TestingTracksView({
         <button
           onClick={() => setSelectedTrack('production')}
           style={{
-            padding: '0.6rem 1.25rem',
-            borderRadius: '8px',
+            padding: '0.65rem 1.35rem',
+            borderRadius: '12px',
             border: 'none',
-            backgroundColor: selectedTrack === 'production' ? '#0f172a' : '#f1f5f9',
-            color: selectedTrack === 'production' ? '#ffffff' : '#475569',
+            backgroundColor: selectedTrack === 'production' ? '#0f172a' : '#f8fafc',
+            color: selectedTrack === 'production' ? '#ffffff' : '#64748b',
             fontSize: '0.85rem',
-            fontWeight: 700,
+            fontWeight: 800,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.5rem'
+            gap: '0.6rem',
+            boxShadow: selectedTrack === 'production' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
+            transition: 'all 0.15s'
           }}
         >
           <span>🌐 Production Releases</span>
           <span style={{
             fontSize: '0.7rem',
-            padding: '1px 6px',
+            padding: '2px 7px',
             borderRadius: '999px',
-            backgroundColor: selectedTrack === 'production' ? '#334155' : '#e2e8f0',
-            color: selectedTrack === 'production' ? '#ffffff' : '#64748b'
+            backgroundColor: selectedTrack === 'production' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
+            color: selectedTrack === 'production' ? '#ffffff' : '#475569',
+            fontWeight: 700
           }}>
             {productionVersions.length}
           </span>
@@ -220,58 +233,66 @@ export function TestingTracksView({
 
       {/* Track Explanation Card */}
       <div style={{
-        padding: '1rem 1.25rem',
-        borderRadius: '10px',
+        padding: '1.25rem 1.5rem',
+        borderRadius: '16px',
         backgroundColor: selectedTrack === 'internal' ? '#f0fdf4' : selectedTrack === 'beta' ? '#f0f9ff' : '#fdf2f8',
         border: `1px solid ${selectedTrack === 'internal' ? '#bbf7d0' : selectedTrack === 'beta' ? '#bae6fd' : '#fbcfe8'}`,
-        fontSize: '0.82rem',
-        color: selectedTrack === 'internal' ? '#166534' : selectedTrack === 'beta' ? '#0369a1' : '#9d174d'
+        fontSize: '0.85rem',
+        color: selectedTrack === 'internal' ? '#166534' : selectedTrack === 'beta' ? '#0369a1' : '#9d174d',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.85rem'
       }}>
-        {selectedTrack === 'internal' && (
-          <div>
-            <strong>Internal Track Rules:</strong> Upload builds for immediate internal sandbox verification. Does not require admin review. Ready instantly for your team testers.
-          </div>
-        )}
-        {selectedTrack === 'beta' && (
-          <div>
-            <strong>Closed Beta Rules:</strong> Invite selected pilot restaurant merchants via test link. Gather real telemetry and user feedback before applying for public store publication.
-          </div>
-        )}
-        {selectedTrack === 'production' && (
-          <div>
-            <strong>Production Track Rules:</strong> Releases are signed cryptographically with Ed25519 Cosign and submitted to the Admin Security Queue before publishing with staged rollout (10% → 100%).
-          </div>
-        )}
+        <div style={{ fontSize: '1.5rem' }}>
+          {selectedTrack === 'internal' ? '🧪' : selectedTrack === 'beta' ? '👥' : '🌐'}
+        </div>
+        <div>
+          {selectedTrack === 'internal' && (
+            <div>
+              <strong>Internal Track Active:</strong> Upload builds for immediate internal sandbox verification. Does not require admin review. Ready instantly for your team testers.
+            </div>
+          )}
+          {selectedTrack === 'beta' && (
+            <div>
+              <strong>Closed Beta Track:</strong> Invite selected pilot restaurant merchants via test link. Gather real telemetry and user feedback before applying for public store publication.
+            </div>
+          )}
+          {selectedTrack === 'production' && (
+            <div>
+              <strong>Production Release Track:</strong> Releases are signed cryptographically with Ed25519 Cosign and submitted to the Admin Security Queue before publishing with staged rollout (10% → 100%).
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Version Table */}
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', overflowX: 'auto' }}>
+      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '20px', overflowX: 'auto', boxShadow: '0 4px 20px -6px rgba(0, 0, 0, 0.04)' }}>
         <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Version & App</th>
-              <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Track Status</th>
-              <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Release Notes</th>
-              <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Testers / Rollout</th>
-              <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Version & App</th>
+              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Track Status</th>
+              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Release Notes</th>
+              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Testers / Rollout</th>
+              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredList.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+                <td colSpan={5} style={{ padding: '3.5rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
                   No releases currently in <strong>{selectedTrack.toUpperCase()}</strong> track.
-                  <div style={{ marginTop: '0.5rem' }}>
+                  <div style={{ marginTop: '0.75rem' }}>
                     <button
                       onClick={() => onOpenPublish(undefined, selectedTrack === 'beta' ? 'beta' : 'internal')}
                       style={{
-                        padding: '0.45rem 0.95rem',
-                        borderRadius: '6px',
+                        padding: '0.55rem 1.15rem',
+                        borderRadius: '10px',
                         border: '1px solid #cbd5e1',
                         backgroundColor: '#ffffff',
                         color: '#0f172a',
-                        fontWeight: 600,
-                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
                         cursor: 'pointer'
                       }}
                     >
@@ -283,17 +304,17 @@ export function TestingTracksView({
             ) : (
               filteredList.map((ver) => (
                 <tr key={ver.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '1rem 1.25rem' }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>
-                      {ver.app_name} <span style={{ color: '#ec4899' }}>v{ver.version}</span>
+                  <td style={{ padding: '1.15rem 1.4rem' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>
+                      {ver.app_name} <span style={{ color: '#ec4899', marginLeft: '0.25rem' }}>v{ver.version}</span>
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{ver.package_id}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>{ver.package_id}</div>
                   </td>
-                  <td style={{ padding: '1rem 1.25rem' }}>
+                  <td style={{ padding: '1.15rem 1.4rem' }}>
                     <span style={{
                       fontSize: '0.72rem',
                       fontWeight: 700,
-                      padding: '3px 8px',
+                      padding: '4px 10px',
                       borderRadius: '999px',
                       backgroundColor:
                         ver.status === 'published' ? '#dcfce7' :
@@ -307,31 +328,31 @@ export function TestingTracksView({
                       ● {ver.status === 'in_review' ? 'In Admin Review' : ver.status}
                     </span>
                   </td>
-                  <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#475569', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '1.15rem 1.4rem', fontSize: '0.82rem', color: '#475569', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {ver.release_notes || 'Internal test build'}
                   </td>
-                  <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#0f172a', fontWeight: 600 }}>
+                  <td style={{ padding: '1.15rem 1.4rem', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>
                     {selectedTrack === 'internal' ? (
-                      <span style={{ color: '#16a34a' }}>✓ Sandbox Active (Unlimited)</span>
+                      <span style={{ color: '#16a34a', fontWeight: 700 }}>✓ Sandbox Active (Unlimited)</span>
                     ) : selectedTrack === 'beta' ? (
-                      <span style={{ color: '#0284c7' }}>5 Pilot Outlets</span>
+                      <span style={{ color: '#0284c7', fontWeight: 700 }}>5 Pilot Outlets</span>
                     ) : (
                       <span>{ver.rollout_pct || 100}% Rollout</span>
                     )}
                   </td>
-                  <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
+                  <td style={{ padding: '1.15rem 1.4rem', textAlign: 'right' }}>
                     <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
                       {selectedTrack === 'internal' && (
                         <button
                           onClick={() => handlePromote(ver.id, 'beta')}
                           disabled={promotingId === ver.id}
                           style={{
-                            padding: '0.35rem 0.75rem',
-                            borderRadius: '6px',
+                            padding: '0.45rem 0.95rem',
+                            borderRadius: '8px',
                             border: '1px solid #bae6fd',
                             backgroundColor: '#f0f9ff',
                             color: '#0284c7',
-                            fontSize: '0.75rem',
+                            fontSize: '0.78rem',
                             fontWeight: 700,
                             cursor: 'pointer'
                           }}
@@ -345,12 +366,12 @@ export function TestingTracksView({
                           onClick={() => handlePromote(ver.id, 'stable')}
                           disabled={promotingId === ver.id}
                           style={{
-                            padding: '0.35rem 0.75rem',
-                            borderRadius: '6px',
+                            padding: '0.45rem 0.95rem',
+                            borderRadius: '8px',
                             border: 'none',
                             backgroundColor: '#0f172a',
                             color: '#ffffff',
-                            fontSize: '0.75rem',
+                            fontSize: '0.78rem',
                             fontWeight: 700,
                             cursor: 'pointer'
                           }}
@@ -363,11 +384,11 @@ export function TestingTracksView({
                         <a
                           href={`${ADMIN_URL}/review-queue`}
                           style={{
-                            padding: '0.35rem 0.65rem',
-                            borderRadius: '6px',
+                            padding: '0.45rem 0.85rem',
+                            borderRadius: '8px',
                             backgroundColor: '#0f172a',
                             color: '#ffffff',
-                            fontSize: '0.75rem',
+                            fontSize: '0.78rem',
                             fontWeight: 600,
                             textDecoration: 'none'
                           }}
@@ -382,12 +403,12 @@ export function TestingTracksView({
                           target="_blank"
                           rel="noreferrer"
                           style={{
-                            padding: '0.35rem 0.65rem',
-                            borderRadius: '6px',
+                            padding: '0.45rem 0.85rem',
+                            borderRadius: '8px',
                             border: '1px solid #cbd5e1',
                             backgroundColor: '#ffffff',
                             color: '#0f172a',
-                            fontSize: '0.75rem',
+                            fontSize: '0.78rem',
                             fontWeight: 600,
                             textDecoration: 'none'
                           }}

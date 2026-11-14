@@ -688,29 +688,70 @@ export default function DeveloperConsolePage() {
               </div>
             </div>
 
-        {/* 4 Stats Cards */}
+        {/* 4 Modernized Stats Cards */}
         <div className="dev-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Active installs</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>{totalInstalls}</div>
-            <div style={{ fontSize: '0.72rem', color: '#16a34a' }}>+ 18 this week</div>
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '18px',
+            padding: '1.4rem',
+            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.04)',
+            transition: 'transform 0.15s, box-shadow 0.15s'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Active Installs</span>
+              <span style={{ fontSize: '1.1rem' }}>📱</span>
+            </div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>{totalInstalls}</div>
+            <div style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 600 }}>↑ +18 this week • Verified POS</div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Monthly revenue</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>
+
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #fbcfe8',
+            borderRadius: '18px',
+            padding: '1.4rem',
+            boxShadow: '0 4px 16px -4px rgba(236, 72, 153, 0.08)',
+            background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.72rem', color: '#be185d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Monthly Revenue</span>
+              <span style={{ fontSize: '1.1rem' }}>💰</span>
+            </div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
               {totalMrr > 0 ? `₹${Number(totalMrr).toLocaleString()}` : '₹3.6L'}
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Your share: 80% • TDS: 10%</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>Your share: <strong>80%</strong> • TDS: 10%</div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Avg rating</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>4.8 ★</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>142 verified merchant reviews</div>
+
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '18px',
+            padding: '1.4rem',
+            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Store Rating</span>
+              <span style={{ fontSize: '1.1rem' }}>⭐</span>
+            </div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>4.8 ★</div>
+            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>142 verified merchant reviews</div>
           </div>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
-            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Estimated Next payout</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>₹2.9L</div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>1 Nov • HDFC Bank • Automated</div>
+
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '18px',
+            padding: '1.4rem',
+            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Next Payout</span>
+              <span style={{ fontSize: '1.1rem' }}>🏦</span>
+            </div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>₹2.9L</div>
+            <div style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 600 }}>1 Nov • HDFC Bank • Automated</div>
           </div>
         </div>
 
