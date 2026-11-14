@@ -10,6 +10,7 @@ import { resolveDeveloperId } from './auth-resolver';
 import { signJwt } from './jwt.helper';
 import { payoutsService } from './payouts.service';
 import { adminPayoutsService } from './admin-payouts.service';
+import { API_DEPLOY_VERSION } from './version';
 
 
 
