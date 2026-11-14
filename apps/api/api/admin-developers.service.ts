@@ -1,4 +1,4 @@
-import { query } from '../../db';
+import { query } from '../src/db';
 
 export class AdminDevelopersService {
   async listAllDevelopers() {

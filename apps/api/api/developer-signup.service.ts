@@ -1,4 +1,4 @@
-import { query } from '../../db';
+import { query } from '../src/db';
 import { signJwt } from './jwt.helper';
 import * as crypto from 'crypto';
 

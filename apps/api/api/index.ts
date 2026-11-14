@@ -4,9 +4,9 @@ import { edgeService } from '../src/modules/edge/edge.service';
 import { billingService } from '../src/modules/billing/billing.service';
 import { developerService } from '../src/modules/publishing/developer.service';
 import { reviewService } from '../src/modules/review/review.service';
-import { developerSignupService } from '../src/modules/auth/developer-signup.service';
-import { adminDevelopersService } from '../src/modules/publishing/admin-developers.service';
-import { resolveDeveloperId } from '../src/modules/auth/auth-resolver';
+import { developerSignupService } from './developer-signup.service';
+import { adminDevelopersService } from './admin-developers.service';
+import { resolveDeveloperId } from './auth-resolver';
 
 
 
@@ -665,12 +665,4 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
     console.error(`[API Error]:`, err);
     sendJson(res, 500, { code: 'INTERNAL_ERROR', message: err.message });
   }
-});
-
-server.listen(PORT, () => {
-  console.log(`================================================================`);
-  console.log(`✓ BizBox App Store API Gateway running on port ${PORT}`);
-  console.log(`✓ OpenAPI: 51 endpoints loaded from official appstore_openapi.yaml`);
-  console.log(`✓ Database: Neon PostgreSQL 18.6 with official schema & seed`);
-  console.log(`================================================================`);
-});
+}
