@@ -145,7 +145,7 @@ export default function DeveloperLoginPage() {
             color: '#94a3b8',
             margin: '0 0 2rem 0'
           }}>
-            Multi-track releases with Google Play standards, automated manifest security checks, Cosign signing, and direct 80/20 monthly revenue payouts.
+            Multi-track releases (Internal, Closed Beta, Production), automated manifest security checks, Cosign signing, and direct 80/20 monthly revenue payouts.
           </p>
 
           {/* Value Badges */}

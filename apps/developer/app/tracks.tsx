@@ -105,16 +105,6 @@ export function TestingTracksView({
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
               Release Tracks & Testing Lifecycle
             </h2>
-            <span style={{
-              fontSize: '0.7rem',
-              fontWeight: 800,
-              backgroundColor: '#e0f2fe',
-              color: '#0369a1',
-              padding: '3px 10px',
-              borderRadius: '999px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em'
-            }}>Google Play Standard</span>
           </div>
           <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', lineHeight: 1.6 }}>
             Safely iterate and verify your restaurant apps. Start with <strong>Internal Testing</strong> for your team sandbox (no review required), invite partner outlets on <strong>Closed Beta</strong>, and promote to <strong>Production Review</strong> for storewide release.
