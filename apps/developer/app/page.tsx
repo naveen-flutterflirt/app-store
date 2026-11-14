@@ -4,6 +4,7 @@ import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from './config';
 import { useAuthGuard } from './useAuthGuard';
 import { TestingTracksView } from './tracks';
 import { DeveloperBuilderGuide } from './builderGuide';
+import { AppDetailModal } from './appDetailModal';
 
 interface DevApp {
   id: string;
@@ -767,7 +768,13 @@ export default function DeveloperConsolePage() {
                   </tr>
                 ) : (
                   apps.map((app) => (
-                    <tr key={app.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <tr
+                      key={app.id}
+                      onClick={() => setSelectedApp(app)}
+                      style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background-color 0.15s' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fdf2f8'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                    >
                       <td style={{ padding: '1rem 1.25rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.7rem' }}>
@@ -804,7 +811,7 @@ export default function DeveloperConsolePage() {
                       <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
                           <button
-                            onClick={() => handleOpenPublishModal(app)}
+                            onClick={(e) => { e.stopPropagation(); handleOpenPublishModal(app); }}
                             style={{
                               padding: '0.35rem 0.65rem',
                               borderRadius: '6px',
@@ -819,7 +826,7 @@ export default function DeveloperConsolePage() {
                             + Release
                           </button>
                           <button
-                            onClick={() => handleOpenManage(app)}
+                            onClick={(e) => { e.stopPropagation(); setSelectedApp(app); }}
                             style={{
                               padding: '0.35rem 0.65rem',
                               borderRadius: '6px',
@@ -834,7 +841,7 @@ export default function DeveloperConsolePage() {
                             Manage
                           </button>
                           <button
-                            onClick={() => setAppToDelete(app)}
+                            onClick={(e) => { e.stopPropagation(); setAppToDelete(app); }}
                             style={{
                               padding: '0.35rem 0.65rem',
                               borderRadius: '6px',
@@ -1626,6 +1633,17 @@ export default function DeveloperConsolePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal 3: App Detail & Management Modal */}
+      {selectedApp && (
+        <AppDetailModal
+          app={selectedApp}
+          onClose={() => setSelectedApp(null)}
+          onOpenRelease={(app) => handleOpenPublishModal(app, 'internal')}
+          onRefresh={loadDeveloperData}
+          showToast={showToast}
+        />
       )}
 
       {/* Modal 4: Delete App Confirmation Modal */}
