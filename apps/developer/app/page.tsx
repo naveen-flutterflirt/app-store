@@ -1520,21 +1520,63 @@ export default function DeveloperConsolePage() {
                   Upload & Run Automated CI Checks
                 </button>
               ) : ciStep >= 6 ? (
-                <a
-                  href={`${ADMIN_URL}/review-queue`}
-                  style={{
-                    padding: '0.55rem 1.15rem',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: '#0f172a',
-                    color: '#ffffff',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    textDecoration: 'none'
-                  }}
-                >
-                  Review in Admin Queue →
-                </a>
+                targetChannel === 'internal' ? (
+                  <button
+                    onClick={() => {
+                      setShowPublishModal(false);
+                      setActiveTab('tracks');
+                      showToast('Build published to Internal Testing track! Ready for sandbox verification.', 'success');
+                    }}
+                    style={{
+                      padding: '0.55rem 1.15rem',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: '#16a34a',
+                      color: '#ffffff',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View in Internal Track →
+                  </button>
+                ) : targetChannel === 'beta' ? (
+                  <button
+                    onClick={() => {
+                      setShowPublishModal(false);
+                      setActiveTab('tracks');
+                      showToast('Build published to Closed Beta track! Invite links ready.', 'success');
+                    }}
+                    style={{
+                      padding: '0.55rem 1.15rem',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: '#0284c7',
+                      color: '#ffffff',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View in Beta Track →
+                  </button>
+                ) : (
+                  <a
+                    href={`${ADMIN_URL}/review-queue`}
+                    style={{
+                      padding: '0.55rem 1.15rem',
+                      borderRadius: '8px',
+                      border: 'none',
+                      backgroundColor: '#0f172a',
+                      color: '#ffffff',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      textDecoration: 'none'
+                    }}
+                  >
+                    Review in Admin Queue →
+                  </a>
+                )
               ) : null}
             </div>
           </div>

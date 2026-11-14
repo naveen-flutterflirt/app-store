@@ -17,7 +17,7 @@ export class CiPipelineService {
    * 5. ARM64 build & boot on Raspberry Pi 5
    * 6. Permissions & data use audit
    */
-  async runPipeline(versionId: string): Promise<{ passed: boolean; results: CheckResult[] }> {
+  async runPipeline(versionId: string): Promise<{ passed: boolean; results: CheckResult[]; channel?: string }> {
     console.log(`\n==============================================================`);
     console.log(`[CI Pipeline] Triggering Automated Pre-Publish Checks for Version ${versionId}`);
     console.log(`==============================================================`);
@@ -213,14 +213,33 @@ export class CiPipelineService {
 
     const allPassedOrWarned = results.every(r => r.status === 'passed' || r.status === 'warning');
 
-    // If passed, move version to in_review queue
+    // Status progression depends on channel (Internal vs Production)
     if (allPassedOrWarned) {
-      await query(`
-        UPDATE store.app_versions 
-        SET status = 'in_review', submitted_at = NOW()
-        WHERE id = $1
-      `, [versionId]);
-      console.log(`[CI Pipeline] ✓ All automated checks passed! Version moved to IN_REVIEW queue.`);
+      if (ver.channel === 'internal') {
+        // Internal testing builds are instantly ready for developers & team sandbox!
+        await query(`
+          UPDATE store.app_versions 
+          SET status = 'published', published_at = NOW(), submitted_at = NOW()
+          WHERE id = $1
+        `, [versionId]);
+        console.log(`[CI Pipeline] ✓ Internal build passed checks! Instantly marked PUBLISHED for sandbox testing.`);
+      } else if (ver.channel === 'beta') {
+        // Beta builds ready for pilot testing
+        await query(`
+          UPDATE store.app_versions 
+          SET status = 'published', published_at = NOW(), submitted_at = NOW()
+          WHERE id = $1
+        `, [versionId]);
+        console.log(`[CI Pipeline] ✓ Closed Beta build passed checks! Published to pilot outlets.`);
+      } else {
+        // Production release track: requires human review & Cosign approval
+        await query(`
+          UPDATE store.app_versions 
+          SET status = 'in_review', submitted_at = NOW()
+          WHERE id = $1
+        `, [versionId]);
+        console.log(`[CI Pipeline] ✓ Production release passed checks! Moved to IN_REVIEW queue for Admin audit.`);
+      }
     } else {
       await query(`
         UPDATE store.app_versions 
@@ -230,7 +249,7 @@ export class CiPipelineService {
       console.error(`[CI Pipeline] ❌ CI checks failed. Version returned to DRAFT.`);
     }
 
-    return { passed: allPassedOrWarned, results };
+    return { passed: allPassedOrWarned, results, channel: ver.channel };
   }
 }
 
