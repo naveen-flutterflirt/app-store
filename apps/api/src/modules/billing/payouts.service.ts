@@ -16,7 +16,8 @@ export class PayoutsService {
   async getDeveloperEarnings(developerId: string) {
     // 1. Fetch developer profile & payout settings
     const devs = await query(`
-      SELECT id, name, slug, email, revenue_share_pct, payout_ref, gstin
+      SELECT id, name, slug, email, revenue_share_pct, payout_ref, gstin,
+             bank_account_holder, bank_name, bank_account_number, bank_ifsc, pan_number
       FROM store.developers
       WHERE id = $1
     `, [developerId]);
@@ -66,8 +67,15 @@ export class PayoutsService {
         name: dev.name,
         email: dev.email,
         revenueSharePct: revSharePct,
-        payoutConfigured: !!dev.payout_ref,
-        payoutRef: dev.payout_ref ? `acc_****${dev.payout_ref.slice(-4)}` : null,
+        payoutConfigured: !!(dev.payout_ref || dev.bank_account_number),
+        payoutRef: dev.payout_ref || null,
+        bankDetails: dev.bank_account_number ? {
+          accountHolder: dev.bank_account_holder,
+          bankName: dev.bank_name,
+          accountNumberMasked: `****${dev.bank_account_number.slice(-4)}`,
+          ifsc: dev.bank_ifsc,
+          pan: dev.pan_number ? `${dev.pan_number.slice(0, 2)}****${dev.pan_number.slice(-2)}` : null
+        } : null,
         gstin: dev.gstin
       },
       metrics: {
@@ -97,15 +105,30 @@ export class PayoutsService {
 
     const res = await query(`
       UPDATE store.developers
-      SET payout_ref = $1, gstin = COALESCE($2, gstin)
-      WHERE id = $3
-      RETURNING id, name, payout_ref, gstin
-    `, [tokenizedRef, dto.gstin?.trim() || null, developerId]);
+      SET payout_ref = $1, 
+          gstin = COALESCE($2, gstin),
+          bank_account_holder = $3,
+          bank_name = $4,
+          bank_account_number = $5,
+          bank_ifsc = $6,
+          pan_number = $7
+      WHERE id = $8
+      RETURNING id, name, payout_ref, gstin, bank_account_holder, bank_name, bank_ifsc
+    `, [
+      tokenizedRef, 
+      dto.gstin?.trim() || null,
+      dto.accountHolder.trim(),
+      dto.bankName.trim(),
+      dto.accountNumber.trim(),
+      dto.ifscCode.trim().toUpperCase(),
+      dto.panNumber.trim().toUpperCase(),
+      developerId
+    ]);
 
     return {
       success: true,
       message: 'Bank account and tax details registered securely for automated direct deposit.',
-      payoutRef: `acc_****${tokenizedRef.slice(-4)}`,
+      payoutRef: tokenizedRef,
       developer: res[0]
     };
   }

@@ -13,6 +13,13 @@ export class AdminDevelopersService {
         d.is_verified,
         d.revenue_share_pct,
         d.created_at,
+        d.payout_ref,
+        d.bank_account_holder,
+        d.bank_name,
+        d.bank_account_number,
+        d.bank_ifsc,
+        d.pan_number,
+        d.gstin,
         COUNT(DISTINCT a.id)::int as total_apps,
         COUNT(DISTINCT CASE WHEN a.status = 'draft' THEN a.id END)::int as draft_apps,
         COUNT(DISTINCT CASE WHEN v.channel IN ('internal', 'beta') THEN a.id END)::int as testing_apps,
@@ -21,7 +28,8 @@ export class AdminDevelopersService {
       FROM store.developers d
       LEFT JOIN store.apps a ON a.developer_id = d.id
       LEFT JOIN store.app_versions v ON v.app_id = a.id
-      GROUP BY d.id, d.slug, d.name, d.type, d.email, d.website, d.is_verified, d.revenue_share_pct, d.created_at
+      GROUP BY d.id, d.slug, d.name, d.type, d.email, d.website, d.is_verified, d.revenue_share_pct, d.created_at,
+               d.payout_ref, d.bank_account_holder, d.bank_name, d.bank_account_number, d.bank_ifsc, d.pan_number, d.gstin
       ORDER BY d.created_at DESC
     `);
 

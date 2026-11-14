@@ -8,6 +8,7 @@ import { developerSignupService } from './modules/auth/developer-signup.service'
 import { adminDevelopersService } from './modules/publishing/admin-developers.service';
 import { resolveDeveloperId } from './modules/auth/auth-resolver';
 import { payoutsService } from './modules/billing/payouts.service';
+import { adminPayoutsService } from './modules/billing/admin-payouts.service';
 
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -672,6 +673,28 @@ const server = http.createServer(async (req, res) => {
       const body = await parseJsonBody(req);
       const result = await reviewService.delistApp(appId, body.reason || 'Policy violation');
       return sendJson(res, 200, result);
+    }
+
+    // GET /v1/admin/payouts/overview (Live admin balance ledger & developer bank info)
+    if (pathname === '/v1/admin/payouts/overview' && req.method === 'GET') {
+      try {
+        const overview = await adminPayoutsService.getPayoutOverview();
+        return sendJson(res, 200, overview);
+      } catch (err: any) {
+        return sendJson(res, 500, { code: 'PAYOUT_OVERVIEW_ERROR', message: err.message });
+      }
+    }
+
+    // POST /v1/admin/payouts/pay/:developerId (Direct bank payout execution)
+    if (pathname.startsWith('/v1/admin/payouts/pay/') && req.method === 'POST') {
+      try {
+        const developerId = pathname.split('/')[5];
+        const body = await parseJsonBody(req);
+        const result = await adminPayoutsService.payDeveloper(developerId, body.amount);
+        return sendJson(res, 200, result);
+      } catch (err: any) {
+        return sendJson(res, 400, { code: 'PAYOUT_DISPATCH_ERROR', message: err.message });
+      }
     }
 
     // POST /v1/admin/payouts/run (Calculate & execute monthly payouts with 80/20 split & TDS)
