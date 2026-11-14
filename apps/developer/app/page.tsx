@@ -1665,7 +1665,7 @@ export default function DeveloperConsolePage() {
                 ) : (
                   <button
                     onClick={() => {
-                      setPublishModalOpen(false);
+                      setShowPublishModal(false);
                       setActiveTab('tracks');
                     }}
                     style={{
