@@ -7,6 +7,7 @@ import { reviewService } from '../src/modules/review/review.service';
 import { developerSignupService } from './developer-signup.service';
 import { adminDevelopersService } from './admin-developers.service';
 import { resolveDeveloperId } from './auth-resolver';
+import { payoutsService } from './payouts.service';
 
 
 
@@ -561,6 +562,29 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
         LIMIT 20
       `, [devId]);
       return sendJson(res, 200, submissions);
+    }
+
+    // GET /v1/dev/earnings (Developer sales ledger & payout metrics)
+    if (pathname === '/v1/dev/earnings' && req.method === 'GET') {
+      try {
+        const devId = resolveDeveloperId(req);
+        const data = await payoutsService.getDeveloperEarnings(devId);
+        return sendJson(res, 200, data);
+      } catch (err: any) {
+        return sendJson(res, 500, { code: 'EARNINGS_ERROR', message: err.message });
+      }
+    }
+
+    // POST /v1/dev/payout-settings (Update bank account & tax details)
+    if (pathname === '/v1/dev/payout-settings' && req.method === 'POST') {
+      try {
+        const devId = resolveDeveloperId(req);
+        const body = await parseJsonBody(req);
+        const result = await payoutsService.updateBankDetails(devId, body);
+        return sendJson(res, 200, result);
+      } catch (err: any) {
+        return sendJson(res, 400, { code: 'BANK_SETTINGS_ERROR', message: err.message });
+      }
     }
 
     // ------------------------------------------------------------------------

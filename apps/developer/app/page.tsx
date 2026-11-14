@@ -5,6 +5,7 @@ import { useAuthGuard } from './useAuthGuard';
 import { TestingTracksView } from './tracks';
 import { DeveloperBuilderGuide } from './builderGuide';
 import { AppDetailModal } from './appDetailModal';
+import { DeveloperPayoutsView } from './payoutsView';
 
 interface DevApp {
   id: string;
@@ -44,7 +45,7 @@ export default function DeveloperConsolePage() {
   const [apps, setApps] = useState<DevApp[]>([]);
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'apps' | 'tracks' | 'guide'>('apps');
+  const [activeTab, setActiveTab] = useState<'apps' | 'tracks' | 'payouts' | 'guide'>('apps');
 
   // Modal States
   const [showNewAppModal, setShowNewAppModal] = useState(false);
@@ -534,6 +535,25 @@ export default function DeveloperConsolePage() {
               <span style={{ fontSize: '0.65rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>Google Play</span>
             </button>
             <button
+              onClick={() => setActiveTab('payouts')}
+              style={{
+                padding: '0.35rem 0.75rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeTab === 'payouts' ? '#f1f5f9' : 'transparent',
+                color: activeTab === 'payouts' ? '#0f172a' : '#64748b',
+                fontWeight: activeTab === 'payouts' ? 700 : 500,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem'
+              }}
+            >
+              <span>Earnings & Payouts</span>
+              <span style={{ fontSize: '0.65rem', backgroundColor: '#dcfce7', color: '#15803d', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>80% Bank</span>
+            </button>
+            <button
               onClick={() => setActiveTab('guide')}
               style={{
                 padding: '0.35rem 0.75rem',
@@ -659,6 +679,8 @@ export default function DeveloperConsolePage() {
             onOpenPublish={(app, defaultTrack) => handleOpenPublishModal(app, defaultTrack || 'internal')}
             showToast={showToast}
           />
+        ) : activeTab === 'payouts' ? (
+          <DeveloperPayoutsView showToast={showToast} />
         ) : activeTab === 'guide' ? (
           <DeveloperBuilderGuide />
         ) : (
@@ -1630,12 +1652,8 @@ export default function DeveloperConsolePage() {
                     View in Beta Track →
                   </button>
                 ) : (
-                  <button
-                    onClick={() => {
-                      setShowPublishModal(false);
-                      setActiveTab('tracks');
-                      showToast('Build submitted to Production track! It is now queued for Admin Audit.', 'success');
-                    }}
+                  <a
+                    href={`${ADMIN_URL}/review-queue`}
                     style={{
                       padding: '0.55rem 1.15rem',
                       borderRadius: '8px',
@@ -1643,12 +1661,12 @@ export default function DeveloperConsolePage() {
                       backgroundColor: '#0f172a',
                       color: '#ffffff',
                       fontSize: '0.82rem',
-                      fontWeight: 700,
-                      cursor: 'pointer'
+                      fontWeight: 600,
+                      textDecoration: 'none'
                     }}
                   >
-                    View in Production Track →
-                  </button>
+                    Review in Admin Queue →
+                  </a>
                 )
               ) : null}
             </div>
