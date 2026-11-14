@@ -47,20 +47,36 @@ export default function DeveloperLoginPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#090d16',
+      backgroundColor: '#faf5f8',
       display: 'flex',
       fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-      color: '#f8fafc'
+      color: '#0f172a'
     }}>
-      {/* Left Visual Branding Panel */}
+      <style>{`
+        @keyframes floatSlow {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-8px); }
+        }
+        .login-btn-pink {
+          background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+          box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .login-btn-pink:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 24px rgba(236, 72, 153, 0.45);
+        }
+      `}</style>
+
+      {/* Left Visual Branding Panel - Pink & White Luxury */}
       <div style={{
         flex: '1 1 50%',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         padding: '3.5rem',
-        background: 'radial-gradient(ellipse at top left, #1e1b4b 0%, #0f172a 50%, #090d16 100%)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+        background: 'linear-gradient(145deg, #ffffff 0%, #fdf2f8 60%, #fce7f3 100%)',
+        borderRight: '1px solid #fbcfe8',
         position: 'relative',
         overflow: 'hidden'
       }}>
@@ -69,40 +85,50 @@ export default function DeveloperLoginPage() {
           position: 'absolute',
           top: '-15%',
           left: '-10%',
-          width: '500px',
-          height: '500px',
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)',
+          width: '550px',
+          height: '550px',
+          background: 'radial-gradient(circle, rgba(244, 114, 182, 0.22) 0%, transparent 70%)',
+          pointerEvents: 'none'
+        }} />
+
+        <div style={{
+          position: 'absolute',
+          bottom: '-10%',
+          right: '-10%',
+          width: '450px',
+          height: '450px',
+          background: 'radial-gradient(circle, rgba(251, 207, 232, 0.5) 0%, transparent 70%)',
           pointerEvents: 'none'
         }} />
 
         {/* Brand Header */}
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <a href={STORE_URL} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
+          <a href={STORE_URL} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
             <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 900,
-              fontSize: '1.2rem',
+              fontSize: '1.3rem',
               color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)'
+              boxShadow: '0 6px 16px rgba(236, 72, 153, 0.35)'
             }}>
               B
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-              <span style={{ fontSize: '1.35rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>BizBox</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.45rem' }}>
+              <span style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>BizBox</span>
               <span style={{
                 fontSize: '0.72rem',
-                fontWeight: 700,
-                color: '#a855f7',
-                backgroundColor: 'rgba(168, 85, 247, 0.12)',
-                padding: '2px 8px',
+                fontWeight: 800,
+                color: '#db2777',
+                backgroundColor: '#fce7f3',
+                padding: '3px 9px',
                 borderRadius: '6px',
-                border: '1px solid rgba(168, 85, 247, 0.25)',
+                border: '1px solid #fbcfe8',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em'
               }}>
@@ -118,31 +144,32 @@ export default function DeveloperLoginPage() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            padding: '0.35rem 0.85rem',
+            padding: '0.4rem 0.95rem',
             borderRadius: '999px',
-            backgroundColor: 'rgba(99, 102, 241, 0.12)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
-            color: '#818cf8',
-            fontSize: '0.78rem',
-            fontWeight: 700,
-            marginBottom: '1.5rem'
+            backgroundColor: '#ffffff',
+            border: '1px solid #fbcfe8',
+            color: '#db2777',
+            fontSize: '0.8rem',
+            fontWeight: 800,
+            marginBottom: '1.75rem',
+            boxShadow: '0 2px 8px rgba(236, 72, 153, 0.08)'
           }}>
             <span>✨</span> Built for Enterprise Restaurant Platforms
           </div>
           <h1 style={{
-            fontSize: '2.5rem',
-            fontWeight: 800,
+            fontSize: '2.6rem',
+            fontWeight: 900,
             lineHeight: 1.2,
             letterSpacing: '-0.03em',
-            color: '#ffffff',
+            color: '#0f172a',
             margin: '0 0 1.25rem 0'
           }}>
             Publish POS & Kitchen Extensions to 5,000+ Outlets
           </h1>
           <p style={{
-            fontSize: '1rem',
-            lineHeight: 1.6,
-            color: '#94a3b8',
+            fontSize: '1.02rem',
+            lineHeight: 1.65,
+            color: '#475569',
             margin: '0 0 2rem 0'
           }}>
             Multi-track releases (Internal, Closed Beta, Production), automated manifest security checks, Cosign signing, and direct 80/20 monthly revenue payouts.
@@ -151,36 +178,66 @@ export default function DeveloperLoginPage() {
           {/* Value Badges */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
             <div style={{
-              padding: '1rem',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.06)'
+              padding: '1.15rem',
+              borderRadius: '14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fbcfe8',
+              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.06)'
             }}>
-              <div style={{ fontSize: '1.1rem', marginBottom: '0.3rem' }}>🔒</div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>Cosign Signed</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Ed25519 tamper-proof bundle provenance</div>
+              <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🔒</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>Cosign Signed</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>Cryptographic bundle validation</div>
             </div>
+
             <div style={{
-              padding: '1rem',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.06)'
+              padding: '1.15rem',
+              borderRadius: '14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fbcfe8',
+              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.06)'
             }}>
-              <div style={{ fontSize: '1.1rem', marginBottom: '0.3rem' }}>💰</div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>80% Revenue Share</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Direct automated bank payouts & TDS ledger</div>
+              <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>💳</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>80% Net Share</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>Automated Razorpay Route NEFT</div>
+            </div>
+
+            <div style={{
+              padding: '1.15rem',
+              borderRadius: '14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fbcfe8',
+              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.06)'
+            }}>
+              <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>⚡</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>Edge ARM64</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>Raspberry Pi 5 local offline runtime</div>
+            </div>
+
+            <div style={{
+              padding: '1.15rem',
+              borderRadius: '14px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #fbcfe8',
+              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.06)'
+            }}>
+              <div style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>🚀</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>Release Tracks</div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>Staged rollouts & canary testing</div>
             </div>
           </div>
         </div>
 
         {/* Footer info */}
-        <div style={{ position: 'relative', zIndex: 1, fontSize: '0.8rem', color: '#64748b', display: 'flex', gap: '1.5rem' }}>
-          <span>© 2026 BizBox App Store Inc.</span>
-          <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ color: '#818cf8', textDecoration: 'none' }}>Public Store ↗</a>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', color: '#94a3b8' }}>
+          <div>© {new Date().getFullYear()} BizBox POS Technologies</div>
+          <div style={{ display: 'flex', gap: '1.25rem' }}>
+            <a href={`${STORE_URL}/api-docs`} target="_blank" rel="noreferrer" style={{ color: '#db2777', textDecoration: 'none', fontWeight: 700 }}>API Docs ↗</a>
+            <a href="https://flutterflirt.com" target="_blank" rel="noreferrer" style={{ color: '#64748b', textDecoration: 'none' }}>FlutterFlirt Ecosystem</a>
+          </div>
         </div>
       </div>
 
-      {/* Right Form Panel */}
+      {/* Right Login Form Container */}
       <div style={{
         flex: '1 1 50%',
         display: 'flex',
@@ -188,26 +245,27 @@ export default function DeveloperLoginPage() {
         justifyContent: 'center',
         alignItems: 'center',
         padding: '3rem 2rem',
-        backgroundColor: '#0c1222'
+        backgroundColor: '#ffffff'
       }}>
         <div style={{ width: '100%', maxWidth: '420px' }}>
-          <div style={{ marginBottom: '2rem' }}>
-            <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: '0 0 0.5rem 0', color: '#ffffff', letterSpacing: '-0.02em' }}>
+          <div style={{ marginBottom: '2.25rem' }}>
+            <h2 style={{ fontSize: '1.85rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.02em' }}>
               Welcome back
             </h2>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8' }}>
-              Sign in to manage your extensions, release tracks, and bank payouts.
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>
+              Enter your partner developer credentials to access your console.
             </p>
           </div>
 
           {error && (
             <div style={{
+              backgroundColor: '#fff1f2',
+              border: '1px solid #fecdd3',
+              color: '#be123c',
               padding: '0.85rem 1rem',
-              borderRadius: '10px',
-              backgroundColor: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
-              color: '#f87171',
+              borderRadius: '12px',
               fontSize: '0.84rem',
+              fontWeight: 600,
               marginBottom: '1.5rem',
               display: 'flex',
               alignItems: 'center',
@@ -218,40 +276,43 @@ export default function DeveloperLoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.35rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '0.45rem' }}>
-                Developer Email
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 800, color: '#334155', marginBottom: '0.45rem' }}>
+                Work Email
               </label>
               <input
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="developer@company.com"
+                onChange={e => setEmail(e.target.value)}
+                placeholder="dev@kitchenmetrics.com"
                 style={{
                   width: '100%',
                   padding: '0.8rem 1rem',
-                  borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  color: '#ffffff',
-                  fontSize: '0.9rem',
+                  borderRadius: '12px',
+                  border: '1px solid #fbcfe8',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  fontSize: '0.92rem',
                   outline: 'none',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.15s, box-shadow 0.15s'
                 }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#ec4899'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236, 72, 153, 0.15)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = '#fbcfe8'; e.currentTarget.style.boxShadow = 'none'; }}
               />
             </div>
 
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.45rem' }}>
-                <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#cbd5e1' }}>
+                <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#334155' }}>
                   Password
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  style={{ background: 'none', border: 'none', color: '#818cf8', fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: '#db2777', fontSize: '0.78rem', fontWeight: 800, cursor: 'pointer' }}
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -260,67 +321,38 @@ export default function DeveloperLoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••••••"
                 style={{
                   width: '100%',
                   padding: '0.8rem 1rem',
-                  borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  color: '#ffffff',
-                  fontSize: '0.9rem',
+                  borderRadius: '12px',
+                  border: '1px solid #fbcfe8',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  fontSize: '0.92rem',
                   outline: 'none',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.15s, box-shadow 0.15s'
                 }}
+                onFocus={e => { e.currentTarget.style.borderColor = '#ec4899'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236, 72, 153, 0.15)'; }}
+                onBlur={e => { e.currentTarget.style.borderColor = '#fbcfe8'; e.currentTarget.style.boxShadow = 'none'; }}
               />
-            </div>
-
-            {/* Quick Autofill Helper for convenience */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0.65rem 0.85rem',
-              borderRadius: '8px',
-              backgroundColor: 'rgba(255, 255, 255, 0.03)',
-              border: '1px solid rgba(255, 255, 255, 0.06)'
-            }}>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Demo: dev@kitchenmetrics.com</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('dev@kitchenmetrics.com');
-                  setPassword('password123');
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#a855f7',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              >
-                Autofill Credentials
-              </button>
             </div>
 
             <button
               type="submit"
               disabled={loading}
+              className="login-btn-pink"
               style={{
                 marginTop: '0.5rem',
-                padding: '0.85rem 1.5rem',
-                borderRadius: '10px',
+                padding: '0.9rem 1.25rem',
+                borderRadius: '12px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
                 color: '#ffffff',
-                fontSize: '0.92rem',
-                fontWeight: 700,
+                fontSize: '0.95rem',
+                fontWeight: 800,
                 cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -331,18 +363,51 @@ export default function DeveloperLoginPage() {
             </button>
           </form>
 
+          {/* Quick Demo Credentials Pill */}
           <div style={{
-            marginTop: '2.5rem',
-            paddingTop: '1.75rem',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            textAlign: 'center',
-            fontSize: '0.88rem',
-            color: '#94a3b8'
+            marginTop: '1.75rem',
+            padding: '1rem',
+            borderRadius: '12px',
+            backgroundColor: '#fdf2f8',
+            border: '1px solid #fbcfe8',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
           }}>
-            New developer building for restaurants?{' '}
-            <a href="/signup" style={{ color: '#818cf8', fontWeight: 700, textDecoration: 'none' }}>
-              Create an account →
-            </a>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#db2777' }}>DEMO PARTNER ACCOUNT</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('dev@kitchenmetrics.com');
+                  setPassword('password123');
+                }}
+                style={{
+                  fontSize: '0.72rem',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #fbcfe8',
+                  color: '#db2777',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                Auto-fill
+              </button>
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+              <code>dev@kitchenmetrics.com</code> • <code>password123</code>
+            </div>
+          </div>
+
+          <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+            <span style={{ fontSize: '0.84rem', color: '#64748b' }}>
+              New developer organization?{' '}
+              <a href="/signup" style={{ color: '#db2777', fontWeight: 800, textDecoration: 'none' }}>
+                Create Developer Account →
+              </a>
+            </span>
           </div>
         </div>
       </div>

@@ -48,31 +48,30 @@ export function TestingTracksView({
   const [viewingFeedback, setViewingFeedback] = useState<any | null>(null);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
 
-  const openFeedbackModal = async (ver: any) => {
-    setViewingFeedback(ver);
-    if (!ver.last_review) {
+  // If a submission is missing last_review details, dynamically fetch from /dev/versions/:id/feedback
+  const handleOpenFeedback = async (sub: any) => {
+    setViewingFeedback(sub);
+    if (!sub.last_review) {
       setLoadingFeedback(true);
       try {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('bizbox_token') : null;
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res = await fetch(`${API_URL}/dev/versions/${ver.id}/feedback`, { headers });
-        const resJson = await res.json();
-        if (resJson?.review) {
+        const res = await fetch(`${API_URL}/dev/versions/${sub.id}/feedback`, {
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data?.review) {
           setViewingFeedback((prev: any) => ({
             ...prev,
-            last_review: resJson.review
+            last_review: data.review
           }));
         }
-      } catch (e) {
-        console.error('Error fetching review feedback:', e);
+      } catch (err) {
+        console.error('Error fetching review feedback:', err);
       } finally {
         setLoadingFeedback(false);
       }
     }
   };
 
-  // Filter submissions by track
   const internalVersions = submissions.filter(s => s.channel === 'internal');
   const betaVersions = submissions.filter(s => s.channel === 'beta');
   const productionVersions = submissions.filter(s => s.channel === 'stable' || !s.channel);
@@ -90,23 +89,16 @@ export function TestingTracksView({
   const handlePromote = async (versionId: string, targetChannel: 'beta' | 'stable') => {
     setPromotingId(versionId);
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('bizbox_token') : null;
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
       const res = await fetch(`${API_URL}/dev/versions/${versionId}/promote`, {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ targetChannel })
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         showToast(
-          targetChannel === 'stable'
-            ? 'Version successfully promoted to Production & submitted to Admin Review Queue!'
+          targetChannel === 'stable' 
+            ? 'Version successfully promoted to Production & submitted to Admin Review Queue!' 
             : 'Version promoted to Closed Beta Testing Track!',
           'success'
         );
@@ -115,573 +107,521 @@ export function TestingTracksView({
       } else {
         showToast(data.message || 'Failed to promote track', 'error');
       }
-    } catch (e: any) {
-      showToast(e.message || 'Promotion network error', 'error');
+    } catch (err: any) {
+      showToast(err.message || 'Promotion network error', 'error');
     } finally {
       setPromotingId(null);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-      {/* Top Banner explaining Play Store Release Lifecycle */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      {/* Pink & White Hero Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)',
+        background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 50%, #fce7f3 100%)',
         border: '1px solid #fbcfe8',
         borderRadius: '20px',
-        padding: '2rem',
+        padding: '2.25rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '1.25rem',
-        boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.08)'
+        gap: '1.5rem',
+        boxShadow: '0 4px 20px -2px rgba(236, 72, 153, 0.08)'
       }}>
-        <div style={{ maxWidth: '680px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '1.4rem' }}>🚀</span>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
-              Release Tracks & Testing Lifecycle
-            </h2>
+        <div style={{ maxWidth: '650px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            padding: '0.35rem 0.85rem',
+            borderRadius: '999px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #fbcfe8',
+            color: '#db2777',
+            fontSize: '0.75rem',
+            fontWeight: 800,
+            marginBottom: '0.85rem',
+            boxShadow: '0 2px 6px rgba(236, 72, 153, 0.08)'
+          }}>
+            <span>🚀</span> Progressive Delivery & Staged Rollouts
           </div>
-          <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', lineHeight: 1.6 }}>
-            Safely iterate and verify your restaurant apps. Start with <strong>Internal Testing</strong> for your team sandbox (no review required), invite partner outlets on <strong>Closed Beta</strong>, and promote to <strong>Production Review</strong> for storewide release.
+          <h2 style={{ fontSize: '1.65rem', fontWeight: 900, margin: '0 0 0.5rem 0', color: '#0f172a', letterSpacing: '-0.02em' }}>
+            Release Tracks & Progressive Rollouts
+          </h2>
+          <p style={{ margin: 0, fontSize: '0.92rem', color: '#475569', lineHeight: 1.6 }}>
+            Safely test new versions internally within your restaurant sandbox, roll out to closed beta partner merchants, and promote directly to production with Cosign signing and zero downtime.
           </p>
         </div>
 
         <button
           onClick={() => onOpenPublish(undefined, selectedTrack === 'beta' ? 'beta' : 'internal')}
           style={{
-            padding: '0.75rem 1.4rem',
+            padding: '0.85rem 1.45rem',
             borderRadius: '12px',
             border: 'none',
-            backgroundColor: '#ec4899',
+            background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
             color: '#ffffff',
-            fontSize: '0.88rem',
-            fontWeight: 700,
+            fontWeight: 800,
+            fontSize: '0.92rem',
             cursor: 'pointer',
             boxShadow: '0 4px 14px rgba(236, 72, 153, 0.35)',
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            transition: 'transform 0.15s ease'
+            transition: 'transform 0.15s, box-shadow 0.15s'
           }}
         >
-          <span>+ Create Release in {selectedTrack === 'internal' ? 'Internal' : selectedTrack === 'beta' ? 'Beta' : 'Production'}</span>
+          <span>+</span>
+          <span>Upload Release Package</span>
         </button>
       </div>
 
-      {/* Track Selector Tabs & App Filter */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottom: '2px solid #e2e8f0',
-        paddingBottom: '0.75rem',
-        flexWrap: 'wrap',
-        gap: '0.75rem'
-      }}>
-        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+      {/* Filter and Track Selector Tabs */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{
+          display: 'inline-flex',
+          padding: '4px',
+          borderRadius: '14px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #fbcfe8',
+          boxShadow: '0 2px 8px rgba(236, 72, 153, 0.06)'
+        }}>
           <button
             onClick={() => setSelectedTrack('internal')}
             style={{
-              padding: '0.65rem 1.35rem',
-              borderRadius: '12px',
+              padding: '0.65rem 1.25rem',
+              borderRadius: '10px',
               border: 'none',
-              backgroundColor: selectedTrack === 'internal' ? '#0f172a' : '#f8fafc',
+              backgroundColor: selectedTrack === 'internal' ? '#ec4899' : 'transparent',
               color: selectedTrack === 'internal' ? '#ffffff' : '#64748b',
-              fontSize: '0.85rem',
               fontWeight: 800,
+              fontSize: '0.85rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.6rem',
-              boxShadow: selectedTrack === 'internal' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
-              transition: 'all 0.15s'
+              gap: '0.5rem',
+              transition: 'all 0.15s ease',
+              boxShadow: selectedTrack === 'internal' ? '0 2px 8px rgba(236, 72, 153, 0.3)' : 'none'
             }}
           >
-            <span>🧪 Internal Testing</span>
-            <span style={{
-              fontSize: '0.7rem',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              backgroundColor: selectedTrack === 'internal' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
-              color: selectedTrack === 'internal' ? '#ffffff' : '#475569',
-              fontWeight: 700
-            }}>
-              {internalVersions.length}
-            </span>
+            <span>🧪</span>
+            <span>Internal Testing ({internalVersions.length})</span>
           </button>
 
           <button
             onClick={() => setSelectedTrack('beta')}
             style={{
-              padding: '0.65rem 1.35rem',
-              borderRadius: '12px',
+              padding: '0.65rem 1.25rem',
+              borderRadius: '10px',
               border: 'none',
-              backgroundColor: selectedTrack === 'beta' ? '#0f172a' : '#f8fafc',
+              backgroundColor: selectedTrack === 'beta' ? '#ec4899' : 'transparent',
               color: selectedTrack === 'beta' ? '#ffffff' : '#64748b',
-              fontSize: '0.85rem',
               fontWeight: 800,
+              fontSize: '0.85rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.6rem',
-              boxShadow: selectedTrack === 'beta' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
-              transition: 'all 0.15s'
+              gap: '0.5rem',
+              transition: 'all 0.15s ease',
+              boxShadow: selectedTrack === 'beta' ? '0 2px 8px rgba(236, 72, 153, 0.3)' : 'none'
             }}
           >
-            <span>👥 Closed Beta Track</span>
-            <span style={{
-              fontSize: '0.7rem',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              backgroundColor: selectedTrack === 'beta' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
-              color: selectedTrack === 'beta' ? '#ffffff' : '#475569',
-              fontWeight: 700
-            }}>
-              {betaVersions.length}
-            </span>
+            <span>👥</span>
+            <span>Closed Beta ({betaVersions.length})</span>
           </button>
 
           <button
             onClick={() => setSelectedTrack('production')}
             style={{
-              padding: '0.65rem 1.35rem',
-              borderRadius: '12px',
+              padding: '0.65rem 1.25rem',
+              borderRadius: '10px',
               border: 'none',
-              backgroundColor: selectedTrack === 'production' ? '#0f172a' : '#f8fafc',
+              backgroundColor: selectedTrack === 'production' ? '#ec4899' : 'transparent',
               color: selectedTrack === 'production' ? '#ffffff' : '#64748b',
-              fontSize: '0.85rem',
               fontWeight: 800,
+              fontSize: '0.85rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.6rem',
-              boxShadow: selectedTrack === 'production' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
-              transition: 'all 0.15s'
+              gap: '0.5rem',
+              transition: 'all 0.15s ease',
+              boxShadow: selectedTrack === 'production' ? '0 2px 8px rgba(236, 72, 153, 0.3)' : 'none'
             }}
           >
-            <span>🌐 Production Releases</span>
-            <span style={{
-              fontSize: '0.7rem',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              backgroundColor: selectedTrack === 'production' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
-              color: selectedTrack === 'production' ? '#ffffff' : '#475569',
-              fontWeight: 700
-            }}>
-              {productionVersions.length}
-            </span>
+            <span>🌍</span>
+            <span>Production Releases ({productionVersions.length})</span>
           </button>
         </div>
 
-        {/* Filter by App dropdown */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>Filter App:</label>
-          <select
-            value={selectedAppId}
-            onChange={(e) => setSelectedAppId(e.target.value)}
-            style={{
-              padding: '0.5rem 0.85rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            <option value="all">All Applications ({apps.length})</option>
-            {apps.map(a => (
-              <option key={a.id} value={a.id}>{a.name}</option>
-            ))}
-          </select>
-        </div>
+        {/* App Filter Selector */}
+        {apps.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: '#64748b' }}>Filter App:</span>
+            <select
+              value={selectedAppId}
+              onChange={e => setSelectedAppId(e.target.value)}
+              style={{
+                padding: '0.55rem 0.95rem',
+                borderRadius: '10px',
+                border: '1px solid #fbcfe8',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="all">All Applications ({apps.length})</option>
+              {apps.map(a => (
+                <option key={a.id} value={a.id}>{a.name} ({a.package_id})</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
-      {/* Track Explanation Card */}
+      {/* Main Track Table Container */}
       <div style={{
-        padding: '1.25rem 1.5rem',
-        borderRadius: '16px',
-        backgroundColor: selectedTrack === 'internal' ? '#f0fdf4' : selectedTrack === 'beta' ? '#f0f9ff' : '#fdf2f8',
-        border: `1px solid ${selectedTrack === 'internal' ? '#bbf7d0' : selectedTrack === 'beta' ? '#bae6fd' : '#fbcfe8'}`,
-        fontSize: '0.85rem',
-        color: selectedTrack === 'internal' ? '#166534' : selectedTrack === 'beta' ? '#0369a1' : '#9d174d',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.85rem'
+        backgroundColor: '#ffffff',
+        border: '1px solid #fbcfe8',
+        borderRadius: '18px',
+        overflow: 'hidden',
+        boxShadow: '0 4px 20px -2px rgba(236, 72, 153, 0.08)'
       }}>
-        <div style={{ fontSize: '1.5rem' }}>
-          {selectedTrack === 'internal' ? '🧪' : selectedTrack === 'beta' ? '👥' : '🌐'}
-        </div>
-        <div>
-          {selectedTrack === 'internal' && (
-            <div>
-              <strong>Internal Track Active:</strong> Upload builds for immediate internal sandbox verification. Does not require admin review. Ready instantly for your team testers.
+        {filteredList.length === 0 ? (
+          <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#64748b' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>
+              {selectedTrack === 'internal' ? '🧪' : selectedTrack === 'beta' ? '👥' : '🌍'}
             </div>
-          )}
-          {selectedTrack === 'beta' && (
-            <div>
-              <strong>Closed Beta Track:</strong> Invite selected pilot restaurant merchants via test link. Gather real telemetry and user feedback before applying for public store publication.
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
+              No releases currently in {selectedTrack === 'internal' ? 'Internal Testing' : selectedTrack === 'beta' ? 'Closed Beta' : 'Production'} track
             </div>
-          )}
-          {selectedTrack === 'production' && (
-            <div>
-              <strong>Production Release Track:</strong> Releases are signed cryptographically with Ed25519 Cosign and submitted to the Admin Security Queue before publishing with staged rollout (10% → 100%).
+            <div style={{ fontSize: '0.88rem', color: '#64748b', maxWidth: '420px', margin: '0 auto 1.5rem auto' }}>
+              {selectedTrack === 'internal'
+                ? 'Upload an internal test bundle to run automated CI checks and verify on sandbox POS.'
+                : selectedTrack === 'beta'
+                ? 'Promote an internal release or upload directly to closed beta for trusted merchants.'
+                : 'Promote an approved beta release to production to begin phased rollouts.'}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Version Table */}
-      <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '20px', overflowX: 'auto', boxShadow: '0 4px 20px -6px rgba(0, 0, 0, 0.04)' }}>
-        <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Version & App</th>
-              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Track Status</th>
-              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Release Notes</th>
-              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Testers / Rollout</th>
-              <th style={{ padding: '1rem 1.4rem', fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredList.length === 0 ? (
-              <tr>
-                <td colSpan={5} style={{ padding: '3.5rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
-                  No releases currently in <strong>{selectedTrack.toUpperCase()}</strong> track.
-                  <div style={{ marginTop: '0.75rem' }}>
-                    <button
-                      onClick={() => onOpenPublish(undefined, selectedTrack === 'beta' ? 'beta' : 'internal')}
-                      style={{
-                        padding: '0.55rem 1.15rem',
-                        borderRadius: '10px',
-                        border: '1px solid #cbd5e1',
-                        backgroundColor: '#ffffff',
-                        color: '#0f172a',
-                        fontWeight: 700,
-                        fontSize: '0.82rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      + Create Release
-                    </button>
-                  </div>
-                </td>
+            <button
+              onClick={() => onOpenPublish(undefined, selectedTrack === 'beta' ? 'beta' : 'internal')}
+              style={{
+                padding: '0.65rem 1.25rem',
+                borderRadius: '10px',
+                border: '1px solid #fbcfe8',
+                backgroundColor: '#fdf2f8',
+                color: '#db2777',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              + Create {selectedTrack === 'beta' ? 'Beta' : 'Internal'} Release
+            </button>
+          </div>
+        ) : (
+          <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#fdf2f8', borderBottom: '1px solid #fbcfe8' }}>
+                <th style={{ padding: '0.9rem 1.25rem', fontSize: '0.72rem', fontWeight: 800, color: '#db2777', textTransform: 'uppercase' }}>Version / App</th>
+                <th style={{ padding: '0.9rem 1.25rem', fontSize: '0.72rem', fontWeight: 800, color: '#db2777', textTransform: 'uppercase' }}>Release Track</th>
+                <th style={{ padding: '0.9rem 1.25rem', fontSize: '0.72rem', fontWeight: 800, color: '#db2777', textTransform: 'uppercase' }}>Review & CI Status</th>
+                <th style={{ padding: '0.9rem 1.25rem', fontSize: '0.72rem', fontWeight: 800, color: '#db2777', textTransform: 'uppercase' }}>Rollout %</th>
+                <th style={{ padding: '0.9rem 1.25rem', fontSize: '0.72rem', fontWeight: 800, color: '#db2777', textTransform: 'uppercase' }}>Submitted At</th>
+                <th style={{ padding: '0.9rem 1.25rem', fontSize: '0.72rem', fontWeight: 800, color: '#db2777', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
               </tr>
-            ) : (
-              filteredList.map((ver) => (
-                <tr key={ver.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '1.15rem 1.4rem' }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>
-                      {ver.app_name} <span style={{ color: '#ec4899', marginLeft: '0.25rem' }}>v{ver.version}</span>
+            </thead>
+            <tbody>
+              {filteredList.map(item => (
+                <tr key={item.id} style={{ borderBottom: '1px solid #fce7f3' }}>
+                  <td style={{ padding: '1.1rem 1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '10px',
+                        backgroundColor: '#fdf2f8',
+                        border: '1px solid #fbcfe8',
+                        color: '#db2777',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 900,
+                        fontSize: '0.85rem'
+                      }}>
+                        {item.version}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a' }}>
+                          {item.app_name}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                          <code>{item.package_id}</code>
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>{ver.package_id}</div>
                   </td>
-                  <td style={{ padding: '1.15rem 1.4rem' }}>
+
+                  <td style={{ padding: '1.1rem 1.25rem' }}>
                     <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      padding: '4px 10px',
-                      borderRadius: '999px',
-                      backgroundColor:
-                        ver.status === 'published' ? '#dcfce7' :
-                        ver.status === 'in_review' ? '#fef3c7' :
-                        ver.status === 'draft' ? '#f1f5f9' : '#e0f2fe',
-                      color:
-                        ver.status === 'published' ? '#15803d' :
-                        ver.status === 'in_review' ? '#b45309' :
-                        ver.status === 'draft' ? '#475569' : '#0369a1'
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      padding: '3px 9px',
+                      borderRadius: '6px',
+                      backgroundColor: item.channel === 'internal' ? '#fdf2f8' : item.channel === 'beta' ? '#fef3c7' : '#dcfce7',
+                      color: item.channel === 'internal' ? '#db2777' : item.channel === 'beta' ? '#b45309' : '#15803d',
+                      border: `1px solid ${item.channel === 'internal' ? '#fbcfe8' : item.channel === 'beta' ? '#fde68a' : '#bbf7d0'}`,
+                      textTransform: 'uppercase'
                     }}>
-                      ● {
-                        selectedTrack === 'internal' && ver.status === 'published' ? 'Sandbox Active' :
-                        selectedTrack === 'beta' && ver.status === 'published' ? 'Pilot Active' :
-                        ver.status === 'in_review' ? 'In Admin Review' :
-                        ver.status === 'published' ? 'Published Storewide' :
-                        ver.status === 'rejected' ? 'Changes Requested' :
-                        ver.status === 'draft' ? 'Draft' : ver.status
-                      }
+                      {item.channel}
                     </span>
                   </td>
-                  <td style={{ padding: '1.15rem 1.4rem', fontSize: '0.82rem', color: '#475569', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {ver.release_notes || 'Internal test build'}
-                  </td>
-                  <td style={{ padding: '1.15rem 1.4rem', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>
-                    {selectedTrack === 'internal' ? (
-                      <span style={{ color: '#16a34a', fontWeight: 700 }}>✓ Sandbox Active (Unlimited)</span>
-                    ) : selectedTrack === 'beta' ? (
-                      <span style={{ color: '#0284c7', fontWeight: 700 }}>5 Pilot Outlets</span>
-                    ) : (
-                      <span>{ver.rollout_pct || 100}% Rollout</span>
-                    )}
-                  </td>
-                  <td style={{ padding: '1.15rem 1.4rem', textAlign: 'right' }}>
-                    <div style={{ display: 'inline-flex', gap: '0.5rem', alignItems: 'center' }}>
-                      {selectedTrack === 'internal' && (
+
+                  <td style={{ padding: '1.1rem 1.25rem' }}>
+                    {item.status === 'published' ? (
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#15803d', backgroundColor: '#dcfce7', padding: '3px 8px', borderRadius: '6px' }}>
+                        ✓ LIVE IN STORE
+                      </span>
+                    ) : item.status === 'approved' ? (
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0284c7', backgroundColor: '#e0f2fe', padding: '3px 8px', borderRadius: '6px' }}>
+                        ✓ APPROVED
+                      </span>
+                    ) : item.status === 'rejected' ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#dc2626', backgroundColor: '#fee2e2', padding: '3px 8px', borderRadius: '6px' }}>
+                          ✕ REJECTED
+                        </span>
                         <button
-                          onClick={() => handlePromote(ver.id, 'beta')}
-                          disabled={promotingId === ver.id}
+                          onClick={() => handleOpenFeedback(item)}
                           style={{
-                            padding: '0.45rem 0.95rem',
-                            borderRadius: '8px',
-                            border: '1px solid #bae6fd',
-                            backgroundColor: '#f0f9ff',
-                            color: '#0284c7',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: '#fff1f2',
+                            border: '1px solid #fecdd3',
+                            color: '#be123c',
                             cursor: 'pointer'
                           }}
                         >
-                          Promote to Beta →
+                          View Reason & Proof →
                         </button>
-                      )}
-
-                      {selectedTrack === 'beta' && (
+                      </div>
+                    ) : item.status === 'changes_requested' ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#d97706', backgroundColor: '#fef3c7', padding: '3px 8px', borderRadius: '6px' }}>
+                          ⚠️ CHANGES REQUESTED
+                        </span>
                         <button
-                          onClick={() => handlePromote(ver.id, 'stable')}
-                          disabled={promotingId === ver.id}
+                          onClick={() => handleOpenFeedback(item)}
                           style={{
-                            padding: '0.45rem 0.95rem',
-                            borderRadius: '8px',
-                            border: 'none',
-                            backgroundColor: '#0f172a',
-                            color: '#ffffff',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                        >
-                          Promote to Production →
-                        </button>
-                      )}
-
-                      {selectedTrack === 'production' && (ver.status === 'rejected' || ver.status === 'changes_requested') && (
-                        <button
-                          onClick={() => openFeedbackModal(ver)}
-                          style={{
-                            padding: '0.45rem 0.85rem',
-                            borderRadius: '8px',
-                            border: '1px solid #fecaca',
-                            backgroundColor: '#fef2f2',
-                            color: '#b91c1c',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.35rem'
-                          }}
-                        >
-                          <span>🔍</span> View Rejection Reason & Proof
-                        </button>
-                      )}
-
-                      {selectedTrack === 'production' && ver.status === 'in_review' && (
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <span style={{
-                            padding: '0.4rem 0.75rem',
-                            borderRadius: '8px',
-                            backgroundColor: '#fef3c7',
+                            fontSize: '0.72rem',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: '#fffbeb',
                             border: '1px solid #fde68a',
                             color: '#b45309',
-                            fontSize: '0.75rem',
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.35rem'
-                          }}>
-                            <span>⏳</span> Queued for Admin Audit
-                          </span>
-                        </div>
-                      )}
-
-                      {selectedTrack === 'production' && ver.status === 'published' && (
-                        <a
-                          href={`${STORE_URL}/apps/${ver.slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{
-                            padding: '0.45rem 0.85rem',
-                            borderRadius: '8px',
-                            border: '1px solid #cbd5e1',
-                            backgroundColor: '#ffffff',
-                            color: '#0f172a',
-                            fontSize: '0.78rem',
-                            fontWeight: 600,
-                            textDecoration: 'none'
+                            cursor: 'pointer'
                           }}
                         >
-                          View in Store ↗
-                        </a>
-                      )}
+                          Feedback →
+                        </button>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#d97706', backgroundColor: '#fef3c7', padding: '3px 8px', borderRadius: '6px' }}>
+                        ⏳ IN REVIEW
+                      </span>
+                    )}
+                  </td>
+
+                  <td style={{ padding: '1.1rem 1.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ width: '60px', height: '6px', borderRadius: '3px', backgroundColor: '#f1f5f9', overflow: 'hidden' }}>
+                        <div style={{ width: `${item.rollout_pct || (item.channel === 'internal' ? 100 : item.status === 'published' ? 100 : 0)}%`, height: '100%', backgroundColor: '#ec4899' }} />
+                      </div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>
+                        {item.rollout_pct || (item.channel === 'internal' ? 100 : item.status === 'published' ? 100 : 0)}%
+                      </span>
                     </div>
                   </td>
+
+                  <td style={{ padding: '1.1rem 1.25rem', fontSize: '0.8rem', color: '#64748b' }}>
+                    {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Just now'}
+                  </td>
+
+                  <td style={{ padding: '1.1rem 1.25rem', textAlign: 'right' }}>
+                    {item.channel === 'internal' ? (
+                      <button
+                        disabled={promotingId === item.id}
+                        onClick={() => handlePromote(item.id, 'beta')}
+                        style={{
+                          padding: '0.45rem 0.95rem',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
+                          color: '#ffffff',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          cursor: promotingId === item.id ? 'not-allowed' : 'pointer',
+                          boxShadow: '0 2px 8px rgba(236, 72, 153, 0.3)'
+                        }}
+                      >
+                        {promotingId === item.id ? 'Promoting...' : 'Promote to Beta →'}
+                      </button>
+                    ) : item.channel === 'beta' ? (
+                      <button
+                        disabled={promotingId === item.id}
+                        onClick={() => handlePromote(item.id, 'stable')}
+                        style={{
+                          padding: '0.45rem 0.95rem',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
+                          color: '#ffffff',
+                          fontSize: '0.78rem',
+                          fontWeight: 800,
+                          cursor: promotingId === item.id ? 'not-allowed' : 'pointer',
+                          boxShadow: '0 2px 8px rgba(236, 72, 153, 0.3)'
+                        }}
+                      >
+                        {promotingId === item.id ? 'Promoting...' : 'Promote to Production →'}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 800 }}>
+                        Production Ready
+                      </span>
+                    )}
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      {/* Rejection / Changes Requested Detailed Modal */}
+      {/* Rejection / Review Feedback Modal */}
       {viewingFeedback && (
         <div style={{
           position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.7)',
-          backdropFilter: 'blur(4px)',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 300,
-          padding: '1rem'
+          zIndex: 1000,
+          padding: '1.5rem'
         }}>
           <div style={{
             backgroundColor: '#ffffff',
-            borderRadius: '16px',
-            padding: '2rem',
-            width: '600px',
-            maxWidth: '95vw',
-            maxHeight: '88vh',
+            border: '1px solid #fbcfe8',
+            borderRadius: '20px',
+            maxWidth: '650px',
+            width: '100%',
+            maxHeight: '85vh',
             overflowY: 'auto',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '1px solid #fee2e2'
+            padding: '2rem',
+            boxShadow: '0 20px 40px -10px rgba(236, 72, 153, 0.25)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ fontSize: '1.4rem' }}>⚠️</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <span style={{ fontSize: '1.4rem' }}>🚨</span>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#991b1b' }}>
-                    Review Feedback & Rejection Details
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#be123c' }}>
+                    Review Decision & Remediation
                   </h3>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
                     {viewingFeedback.app_name} (v{viewingFeedback.version})
                   </div>
                 </div>
               </div>
               <button
                 onClick={() => setViewingFeedback(null)}
-                style={{ background: 'none', border: 'none', fontSize: '1.25rem', color: '#64748b', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', fontSize: '1.2rem', color: '#64748b', cursor: 'pointer' }}
               >
                 ✕
               </button>
             </div>
 
-            {/* Status & Review Date */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0.75rem 1rem',
-              backgroundColor: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: '10px',
-              marginBottom: '1.25rem'
-            }}>
-              <div>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>
-                  Status: {viewingFeedback.status.toUpperCase()}
-                </span>
-                <div style={{ fontSize: '0.78rem', color: '#7f1d1d', marginTop: '2px' }}>
-                  Action required by developer before resubmission
-                </div>
+            {loadingFeedback ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+                Loading reviewer feedback and audit screenshots...
               </div>
-              {viewingFeedback.last_review?.created_at && (
-                <div style={{ fontSize: '0.75rem', color: '#991b1b' }}>
-                  {new Date(viewingFeedback.last_review.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {/* Reason */}
+                <div style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '12px', padding: '1.25rem' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#be123c', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                    Primary Policy / Violation Reason
+                  </div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#9f1239' }}>
+                    {viewingFeedback.last_review?.checklist?.rejection_reason || viewingFeedback.last_review?.notes?.split('\n\n')[0] || 'Violation noted by platform reviewer.'}
+                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* Main Reason */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-                Rejection Reason / Finding:
-              </label>
-              <div style={{
-                padding: '0.85rem 1rem',
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                color: '#0f172a',
-                fontWeight: 600,
-                lineHeight: 1.5
-              }}>
-                {viewingFeedback.last_review?.checklist?.rejection_reason || viewingFeedback.last_review?.notes || 'Violates application sandbox security or listing guidelines.'}
-              </div>
-            </div>
+                {/* Detailed Description */}
+                {(viewingFeedback.last_review?.checklist?.detailed_description || viewingFeedback.last_review?.notes) && (
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
+                      Detailed Remediation Instructions
+                    </div>
+                    <div style={{
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '1rem',
+                      fontSize: '0.88rem',
+                      color: '#1e293b',
+                      whiteSpace: 'pre-wrap',
+                      lineHeight: 1.6
+                    }}>
+                      {viewingFeedback.last_review?.checklist?.detailed_description || viewingFeedback.last_review?.notes}
+                    </div>
+                  </div>
+                )}
 
-            {/* Detailed Description */}
-            {viewingFeedback.last_review?.checklist?.detailed_description && (
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-                  Detailed Description & Remediation Steps:
-                </label>
-                <div style={{
-                  padding: '0.85rem 1rem',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '8px',
-                  fontSize: '0.84rem',
-                  color: '#334155',
-                  whiteSpace: 'pre-wrap',
-                  lineHeight: 1.6
-                }}>
-                  {viewingFeedback.last_review.checklist.detailed_description}
-                </div>
-              </div>
-            )}
+                {/* Screenshots */}
+                {viewingFeedback.last_review?.checklist?.rejection_screenshots && viewingFeedback.last_review?.checklist?.rejection_screenshots.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#334155', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                      Reviewer Screenshot Proof ({viewingFeedback.last_review.checklist.rejection_screenshots.length})
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                      {viewingFeedback.last_review.checklist.rejection_screenshots.map((url: string, idx: number) => (
+                        <a key={idx} href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                          <img
+                            src={url}
+                            alt={`Audit proof ${idx + 1}`}
+                            style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #e2e8f0' }}
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            {/* Screenshots Attachments */}
-            {viewingFeedback.last_review?.checklist?.rejection_screenshots && viewingFeedback.last_review.checklist.rejection_screenshots.length > 0 && (
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                  Audit Screenshots & Bug Proof ({viewingFeedback.last_review.checklist.rejection_screenshots.length}):
-                </label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
-                  {viewingFeedback.last_review.checklist.rejection_screenshots.map((shot: string, i: number) => (
-                    <a
-                      key={i}
-                      href={shot}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        display: 'block',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        border: '1px solid #cbd5e1',
-                        aspectRatio: '16/10',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
-                      }}
-                    >
-                      <img src={shot} alt={`Proof ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </a>
-                  ))}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                  <button
+                    onClick={() => setViewingFeedback(null)}
+                    style={{
+                      padding: '0.7rem 1.4rem',
+                      borderRadius: '10px',
+                      border: 'none',
+                      backgroundColor: '#0f172a',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.88rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Understood & Close
+                  </button>
                 </div>
               </div>
             )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-              <button
-                onClick={() => setViewingFeedback(null)}
-                style={{
-                  padding: '0.55rem 1.4rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#ffffff',
-                  color: '#0f172a',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}

@@ -8,8 +8,7 @@ export function useAuthGuard(requiredRole: 'admin' | 'developer' | 'owner') {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
+    // Only runs on client side after mount, eliminating server/client hydration mismatches
     const token = localStorage.getItem('bizbox_token');
     const userStr = localStorage.getItem('bizbox_user');
 

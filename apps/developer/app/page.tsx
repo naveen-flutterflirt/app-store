@@ -460,7 +460,7 @@ export default function DeveloperConsolePage() {
   }
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#090d16', color: '#f8fafc', minHeight: '100vh', display: 'flex' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh', display: 'flex' }}>
       <style>{`
         @keyframes shimmer {
           0% { background-position: -400px 0; }
@@ -474,7 +474,8 @@ export default function DeveloperConsolePage() {
         }
         .dev-sidebar {
           width: 260px;
-          background-color: #0c1222;
+          background-color: #0f172a;
+          border-right: 1px solid #fbcfe8;
           border-right: 1px solid rgba(255, 255, 255, 0.08);
           display: flex;
           flex-direction: column;
@@ -491,7 +492,7 @@ export default function DeveloperConsolePage() {
           display: flex;
           flex-direction: column;
           min-width: 0;
-          background-color: #090d16;
+          background-color: #faf5f8;
         }
         .nav-item-btn {
           width: 100%;
@@ -502,7 +503,7 @@ export default function DeveloperConsolePage() {
           border-radius: 10px;
           border: none;
           background: transparent;
-          color: #94a3b8;
+          color: #64748b;
           font-size: 0.88rem;
           font-weight: 600;
           cursor: pointer;
@@ -510,13 +511,13 @@ export default function DeveloperConsolePage() {
           text-align: left;
         }
         .nav-item-btn:hover {
-          background-color: rgba(255, 255, 255, 0.04);
-          color: #ffffff;
+          background-color: #fdf2f8;
+          color: #0f172a;
         }
         .nav-item-btn.active {
-          background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
-          border: 1px solid rgba(99, 102, 241, 0.3);
-          color: #ffffff;
+          background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+          border: 1px solid #fbcfe8;
+          color: #0f172a;
           font-weight: 700;
         }
         @media (max-width: 900px) {
@@ -549,19 +550,19 @@ export default function DeveloperConsolePage() {
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 900,
               fontSize: '1.15rem',
-              color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)'
+              color: '#0f172a',
+              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.35)'
             }}>
               B
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>BizBox</span>
+              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>BizBox</span>
               <span style={{
                 fontSize: '0.65rem',
                 fontWeight: 700,
@@ -569,7 +570,7 @@ export default function DeveloperConsolePage() {
                 backgroundColor: 'rgba(168, 85, 247, 0.12)',
                 padding: '2px 6px',
                 borderRadius: '5px',
-                border: '1px solid rgba(168, 85, 247, 0.25)',
+                border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em'
               }}>
@@ -652,7 +653,7 @@ export default function DeveloperConsolePage() {
               height: '36px',
               borderRadius: '10px',
               backgroundColor: '#a855f7',
-              color: '#ffffff',
+              color: '#0f172a',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -662,7 +663,7 @@ export default function DeveloperConsolePage() {
               {user.name.slice(0, 1).toUpperCase()}
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user.name}
               </div>
               <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Verified Partner</div>
@@ -703,7 +704,7 @@ export default function DeveloperConsolePage() {
         {/* Mobile Header Bar */}
         <header className="mobile-top-bar" style={{
           height: '56px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          borderBottom: '1px solid #fbcfe8',
           backgroundColor: '#0c1222',
           padding: '0 1.25rem',
           display: 'flex',
@@ -714,7 +715,7 @@ export default function DeveloperConsolePage() {
           zIndex: 90
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>BizBox</span>
+            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
             <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.12)', padding: '2px 6px', borderRadius: '4px' }}>Dev</span>
           </div>
           <button
@@ -724,7 +725,7 @@ export default function DeveloperConsolePage() {
               borderRadius: '6px',
               border: '1px solid rgba(255, 255, 255, 0.12)',
               backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              color: '#ffffff',
+              color: '#0f172a',
               fontSize: '1.1rem',
               cursor: 'pointer'
             }}
@@ -753,7 +754,7 @@ export default function DeveloperConsolePage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1.25rem' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.4rem' }}>
-                    <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+                    <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
                       Apps & Revenue Management
                     </h1>
                     <span style={{ fontSize: '0.72rem', fontWeight: 700, backgroundColor: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '2px 8px', borderRadius: '999px' }}>
@@ -771,12 +772,12 @@ export default function DeveloperConsolePage() {
                       padding: '0.65rem 1.35rem',
                       borderRadius: '10px',
                       border: 'none',
-                      background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                      background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
                       color: '#ffffff',
                       fontSize: '0.88rem',
                       fontWeight: 700,
                       cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+                      boxShadow: '0 4px 14px rgba(236, 72, 153, 0.35)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.4rem'
@@ -791,35 +792,35 @@ export default function DeveloperConsolePage() {
               {/* 4 Modernized Stats Cards (Dark Glassmorphic Theme) */}
               <div className="dev-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
                 <div style={{
-                  backgroundColor: '#111827',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)',
                   borderRadius: '16px',
                   padding: '1.5rem',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                  
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Active Installs</span>
                     <span style={{ fontSize: '1.2rem' }}>📱</span>
                   </div>
-                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>{totalInstalls}</div>
+                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>{totalInstalls}</div>
                   <div style={{ fontSize: '0.75rem', color: totalInstalls > 0 ? '#34d399' : '#64748b', fontWeight: 600 }}>
                     {totalInstalls > 0 ? `↑ Active on verified POS` : 'No live installs yet'}
                   </div>
                 </div>
 
                 <div style={{
-                  backgroundColor: '#111827',
-                  border: '1px solid rgba(168, 85, 247, 0.25)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)',
                   borderRadius: '16px',
                   padding: '1.5rem',
-                  boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.1)',
-                  background: 'radial-gradient(ellipse at top right, rgba(168, 85, 247, 0.1) 0%, #111827 80%)'
+                  
+                  background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                     <span style={{ fontSize: '0.75rem', color: '#c084fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Monthly Revenue</span>
                     <span style={{ fontSize: '1.2rem' }}>💰</span>
                   </div>
-                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>
+                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>
                     ₹{Number(totalMrr).toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
@@ -828,11 +829,11 @@ export default function DeveloperConsolePage() {
                 </div>
 
                 <div style={{
-                  backgroundColor: '#111827',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)',
                   borderRadius: '16px',
                   padding: '1.5rem',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                  
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Est. Bank Payout</span>
@@ -847,17 +848,17 @@ export default function DeveloperConsolePage() {
                 </div>
 
                 <div style={{
-                  backgroundColor: '#111827',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)',
                   borderRadius: '16px',
                   padding: '1.5rem',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                  
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Store Rating</span>
                     <span style={{ fontSize: '1.2rem' }}>⭐</span>
                   </div>
-                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>
+                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>
                     {avgRatingVal} <span style={{ fontSize: '1.1rem', color: '#64748b' }}>/ 5.0</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
@@ -869,7 +870,7 @@ export default function DeveloperConsolePage() {
               {/* Your Apps Table */}
               <div style={{ marginBottom: '2.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
                     Your Applications ({apps.length})
                   </h2>
                   <button
@@ -888,15 +889,15 @@ export default function DeveloperConsolePage() {
                 </div>
 
                 <div style={{
-                  backgroundColor: '#111827',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)',
                   borderRadius: '16px',
                   overflow: 'hidden',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                  
                 }}>
                   <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
-                      <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                      <tr style={{ backgroundColor: '#fdf2f8', borderBottom: '1px solid #fbcfe8' }}>
                         <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>App Name</th>
                         <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Runtime</th>
                         <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Pricing</th>
@@ -908,7 +909,7 @@ export default function DeveloperConsolePage() {
                     <tbody>
                       {loading ? (
                         [1, 2, 3].map((n) => (
-                          <tr key={n} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                          <tr key={n} style={{ borderBottom: '1px solid #fce7f3' }}>
                             <td colSpan={6} style={{ padding: '1.25rem' }}>
                               <div className="skeleton" style={{ height: '24px', width: '100%' }} />
                             </td>
@@ -918,7 +919,7 @@ export default function DeveloperConsolePage() {
                         <tr>
                           <td colSpan={6} style={{ padding: '3.5rem', textAlign: 'center', color: '#64748b' }}>
                             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📦</div>
-                            <div style={{ fontWeight: 700, color: '#ffffff', marginBottom: '0.25rem' }}>No Applications Registered</div>
+                            <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '0.25rem' }}>No Applications Registered</div>
                             <div style={{ fontSize: '0.85rem' }}>Click &quot;+ Create New App&quot; above to register your first POS or Kitchen extension.</div>
                           </td>
                         </tr>
@@ -927,7 +928,7 @@ export default function DeveloperConsolePage() {
                           <tr
                             key={app.id}
                             style={{
-                              borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                              borderBottom: '1px solid #fce7f3',
                               transition: 'background-color 0.15s ease'
                             }}
                           >
@@ -949,7 +950,7 @@ export default function DeveloperConsolePage() {
                                   {app.name.slice(0, 2).toUpperCase()}
                                 </div>
                                 <div>
-                                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>{app.name}</div>
+                                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>{app.name}</div>
                                   <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace' }}>{app.package_id}</div>
                                 </div>
                               </div>
@@ -967,10 +968,10 @@ export default function DeveloperConsolePage() {
                                 {app.runtime || 'cloud'}
                               </span>
                             </td>
-                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600 }}>
+                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: '#0f172a', fontWeight: 600 }}>
                               {app.pricing_tier === 'paid' ? `₹${app.price_monthly}/mo` : 'Free'}
                             </td>
-                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600 }}>
+                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: '#0f172a', fontWeight: 600 }}>
                               {app.installs || 0}
                             </td>
                             <td style={{ padding: '1rem 1.25rem' }}>
@@ -1010,7 +1011,7 @@ export default function DeveloperConsolePage() {
                                     borderRadius: '6px',
                                     border: '1px solid rgba(255, 255, 255, 0.12)',
                                     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                    color: '#ffffff',
+                                    color: '#0f172a',
                                     fontSize: '0.75rem',
                                     fontWeight: 600,
                                     cursor: 'pointer'
@@ -1046,19 +1047,19 @@ export default function DeveloperConsolePage() {
 
               {/* Dynamic Submissions History Table */}
               <div>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 1rem 0', color: '#ffffff' }}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 1rem 0', color: '#0f172a' }}>
                   Version Submissions History ({submissions.length})
                 </h2>
                 {submissions.length === 0 ? (
-                  <div style={{ backgroundColor: '#111827', border: '1px dashed rgba(255, 255, 255, 0.15)', borderRadius: '16px', padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 600, color: '#ffffff' }}>No active submissions pending.</p>
+                  <div style={{ backgroundColor: '#ffffff', border: '1px dashed rgba(255, 255, 255, 0.15)', borderRadius: '16px', padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>No active submissions pending.</p>
                     <p style={{ margin: 0, fontSize: '0.8rem' }}>Create releases in Testing Tracks to run automated CI checks.</p>
                   </div>
                 ) : (
-                  <div style={{ backgroundColor: '#111827', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                  <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)', borderRadius: '16px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                     <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left' }}>
                       <thead>
-                        <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        <tr style={{ backgroundColor: '#fdf2f8', borderBottom: '1px solid #fbcfe8' }}>
                           <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>App & Version</th>
                           <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Submitted At</th>
                           <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Release Notes</th>
@@ -1068,9 +1069,9 @@ export default function DeveloperConsolePage() {
                       </thead>
                       <tbody>
                         {submissions.map((sub) => (
-                          <tr key={sub.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                          <tr key={sub.id} style={{ borderBottom: '1px solid #fce7f3' }}>
                             <td style={{ padding: '1rem 1.25rem' }}>
-                              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#ffffff' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>
                                 {sub.app_name} <span style={{ color: '#818cf8' }}>v{sub.version}</span>
                               </div>
                               <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{sub.package_id}</div>
@@ -1160,12 +1161,11 @@ export default function DeveloperConsolePage() {
           right: '24px',
           backgroundColor: toast.type === 'error' ? '#7f1d1d' : '#0f172a',
           border: toast.type === 'error' ? '1px solid #b91c1c' : '1px solid #334155',
-          color: '#ffffff',
+          color: '#0f172a',
           padding: '0.85rem 1.4rem',
           borderRadius: '10px',
           fontSize: '0.85rem',
           fontWeight: 500,
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
@@ -1405,7 +1405,7 @@ export default function DeveloperConsolePage() {
                 <button
                   type="submit"
                   disabled={creatingApp}
-                  style={{ padding: '0.6rem 1.3rem', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#ffffff', fontSize: '0.82rem', fontWeight: 700, cursor: creatingApp ? 'not-allowed' : 'pointer' }}
+                  style={{ padding: '0.6rem 1.3rem', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#0f172a', fontSize: '0.82rem', fontWeight: 700, cursor: creatingApp ? 'not-allowed' : 'pointer' }}
                 >
                   {creatingApp ? 'Creating...' : 'Create App'}
                 </button>
@@ -1699,7 +1699,7 @@ export default function DeveloperConsolePage() {
                     borderRadius: '8px',
                     border: 'none',
                     backgroundColor: '#ec4899',
-                    color: '#ffffff',
+                    color: '#0f172a',
                     fontSize: '0.82rem',
                     fontWeight: 700,
                     cursor: ciRunning ? 'not-allowed' : 'pointer',
@@ -1721,7 +1721,7 @@ export default function DeveloperConsolePage() {
                       borderRadius: '8px',
                       border: 'none',
                       backgroundColor: '#16a34a',
-                      color: '#ffffff',
+                      color: '#0f172a',
                       fontSize: '0.82rem',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -1741,7 +1741,7 @@ export default function DeveloperConsolePage() {
                       borderRadius: '8px',
                       border: 'none',
                       backgroundColor: '#0284c7',
-                      color: '#ffffff',
+                      color: '#0f172a',
                       fontSize: '0.82rem',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -1760,7 +1760,7 @@ export default function DeveloperConsolePage() {
                       borderRadius: '8px',
                       border: 'none',
                       backgroundColor: '#0f172a',
-                      color: '#ffffff',
+                      color: '#0f172a',
                       fontSize: '0.82rem',
                       fontWeight: 700,
                       cursor: 'pointer'
@@ -1866,7 +1866,7 @@ export default function DeveloperConsolePage() {
               <button
                 onClick={handleUpdateRollout}
                 disabled={updatingRollout}
-                style={{ padding: '0.55rem 1.3rem', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#ffffff', fontSize: '0.82rem', fontWeight: 700, cursor: updatingRollout ? 'not-allowed' : 'pointer' }}
+                style={{ padding: '0.55rem 1.3rem', borderRadius: '8px', border: 'none', backgroundColor: '#0284c7', color: '#0f172a', fontSize: '0.82rem', fontWeight: 700, cursor: updatingRollout ? 'not-allowed' : 'pointer' }}
               >
                 {updatingRollout ? 'Updating...' : 'Save Settings'}
               </button>
@@ -1961,7 +1961,7 @@ export default function DeveloperConsolePage() {
                   borderRadius: '8px',
                   border: 'none',
                   backgroundColor: '#dc2626',
-                  color: '#ffffff',
+                  color: '#0f172a',
                   fontSize: '0.82rem',
                   fontWeight: 700,
                   cursor: deletingApp ? 'not-allowed' : 'pointer',
