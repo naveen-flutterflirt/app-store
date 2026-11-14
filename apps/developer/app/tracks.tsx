@@ -52,9 +52,16 @@ export function TestingTracksView({
   const handlePromote = async (versionId: string, targetChannel: 'beta' | 'stable') => {
     setPromotingId(versionId);
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('bizbox_token') : null;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       const res = await fetch(`${API_URL}/dev/versions/${versionId}/promote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ targetChannel })
       });
       const data = await res.json().catch(() => ({}));

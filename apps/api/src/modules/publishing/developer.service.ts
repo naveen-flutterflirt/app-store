@@ -211,8 +211,9 @@ export class DeveloperService {
 
     const res = await query(`
       UPDATE store.app_versions
-      SET channel = $1, status = CASE WHEN $1 = 'stable' THEN 'in_review' ELSE status END,
-          submitted_at = CASE WHEN $1 = 'stable' THEN NOW() ELSE submitted_at END
+      SET channel = $1::store.release_channel, 
+          status = CASE WHEN $1::text = 'stable' THEN 'in_review'::store.version_status ELSE status END,
+          submitted_at = CASE WHEN $1::text = 'stable' THEN NOW() ELSE submitted_at END
       WHERE id = $2
       RETURNING *
     `, [newChannel, versionId]);
