@@ -37,7 +37,7 @@ export function TestingTracksView({
   // Filter submissions by track
   const internalVersions = submissions.filter(s => s.channel === 'internal');
   const betaVersions = submissions.filter(s => s.channel === 'beta');
-  const productionVersions = submissions.filter(s => s.channel === 'stable' || (!s.channel && s.status === 'published') || s.status === 'in_review');
+  const productionVersions = submissions.filter(s => s.channel === 'stable' || !s.channel);
 
   const activeList = selectedTrack === 'internal' 
     ? internalVersions 
@@ -368,7 +368,14 @@ export function TestingTracksView({
                         ver.status === 'in_review' ? '#b45309' :
                         ver.status === 'draft' ? '#475569' : '#0369a1'
                     }}>
-                      ● {ver.status === 'in_review' ? 'In Admin Review' : ver.status}
+                      ● {
+                        selectedTrack === 'internal' && ver.status === 'published' ? 'Sandbox Active' :
+                        selectedTrack === 'beta' && ver.status === 'published' ? 'Pilot Active' :
+                        ver.status === 'in_review' ? 'In Admin Review' :
+                        ver.status === 'published' ? 'Published Storewide' :
+                        ver.status === 'rejected' ? 'Changes Requested' :
+                        ver.status === 'draft' ? 'Draft' : ver.status
+                      }
                     </span>
                   </td>
                   <td style={{ padding: '1.15rem 1.4rem', fontSize: '0.82rem', color: '#475569', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
