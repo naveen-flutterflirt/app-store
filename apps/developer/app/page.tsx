@@ -573,21 +573,6 @@ export default function DeveloperConsolePage() {
             >
               <span>Builder Guide & SDK</span>
             </button>
-            <button
-              onClick={() => handleOpenPublishModal()}
-              style={{
-                background: 'none',
-                border: 'none',
-                padding: '0.35rem 0.65rem',
-                borderRadius: '6px',
-                color: '#ec4899',
-                fontWeight: 700,
-                fontSize: '0.8rem',
-                cursor: 'pointer'
-              }}
-            >
-              + Publish Version
-            </button>
             <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Public Store ↗</a>
           </nav>
         </div>
@@ -651,12 +636,6 @@ export default function DeveloperConsolePage() {
           gap: '0.5rem'
         }}>
           <a href={DEV_URL} style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Developer Console</a>
-          <button
-            onClick={() => { setMobileMenuOpen(false); handleOpenPublishModal(); }}
-            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, fontSize: '0.9rem', cursor: 'pointer' }}
-          >
-            Publish New Version
-          </button>
           <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Public Store ↗</a>
           <button
             onClick={() => {
@@ -699,33 +678,18 @@ export default function DeveloperConsolePage() {
                 <button
                   onClick={() => setShowNewAppModal(true)}
                   style={{
-                    padding: '0.55rem 1rem',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    backgroundColor: '#ffffff',
-                    color: '#0f172a',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  + New app
-                </button>
-                <button
-                  onClick={() => handleOpenPublishModal()}
-                  style={{
-                    padding: '0.55rem 1.15rem',
+                    padding: '0.6rem 1.25rem',
                     borderRadius: '8px',
                     border: 'none',
-                    backgroundColor: '#ec4899',
+                    backgroundColor: '#0f172a',
                     color: '#ffffff',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
                     cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(236, 72, 153, 0.25)'
+                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)'
                   }}
                 >
-                  Publish new version
+                  + Create New App
                 </button>
               </div>
             </div>
