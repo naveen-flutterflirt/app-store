@@ -538,13 +538,13 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/v1/dev/submissions' && req.method === 'GET') {
       const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf'; // KitchenMetrics partner
       const submissions = await query(`
-        SELECT v.id, v.version, v.status, v.created_at, v.release_notes, v.rollout_pct,
+        SELECT v.id, v.version, v.channel, v.status, v.created_at, v.release_notes, v.rollout_pct,
                a.id as app_id, a.name as app_name, a.package_id, a.slug
         FROM store.app_versions v
         JOIN store.apps a ON v.app_id = a.id
         WHERE a.developer_id = $1
         ORDER BY v.created_at DESC
-        LIMIT 10
+        LIMIT 20
       `, [devId]);
       return sendJson(res, 200, submissions);
     }
