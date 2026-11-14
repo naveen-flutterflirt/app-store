@@ -83,6 +83,8 @@ export default function ReviewQueuePage() {
   const [loading, setLoading] = useState(true);
   const [confirmModal, setConfirmModal] = useState<'reject' | 'request_changes' | null>(null);
   const [modalReason, setModalReason] = useState('');
+  const [modalDetail, setModalDetail] = useState('');
+  const [modalScreenshots, setModalScreenshots] = useState<string[]>([]);
 
   const fetchDetail = (versionId: string) => {
     setLoadingDetail(true);
@@ -146,29 +148,46 @@ export default function ReviewQueuePage() {
   }
 
   // 1. Dynamic Decision Handler (Reject / Request Changes)
-  const handleDecision = async (decision: 'reject' | 'request_changes', customNote?: string) => {
+  const handleDecision = async (
+    decision: 'reject' | 'request_changes',
+    customNote?: string,
+    detailedDesc?: string,
+    screenshots?: string[]
+  ) => {
     if (!selectedItem) return;
     setSubmittingAction(decision);
     setActionFeedback(null);
     try {
-      const decisionNote = (customNote || notes).trim() || (decision === 'reject' ? 'Rejected due to policy / security requirements' : 'Please address security and permission review items');
+      const summaryReason = (customNote || notes).trim() || (decision === 'reject' ? 'Rejected due to policy / security requirements' : 'Please address security and permission review items');
+      const combinedNotes = detailedDesc && detailedDesc.trim() 
+        ? `${summaryReason}\n\nDetailed Description:\n${detailedDesc.trim()}`
+        : summaryReason;
+
       const res = await fetch(`${API_URL}/admin/versions/${selectedItem.version_id}/decision`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           decision,
           reviewer: 'admin@flutterflirt.com',
-          notes: decisionNote,
-          checklist
+          notes: combinedNotes,
+          rejectionReason: summaryReason,
+          rejectionScreenshots: screenshots || [],
+          checklist: {
+            ...checklist,
+            detailed_description: detailedDesc?.trim() || null
+          }
         })
       });
 
       if (res.ok) {
         setActionFeedback({
-          message: decision === 'reject' ? `Version rejected successfully.` : `Changes requested from developer.`,
+          message: decision === 'reject' ? `Version rejected successfully with feedback and audit screenshots.` : `Changes requested from developer.`,
           type: 'success'
         });
         setNotes('');
+        setModalReason('');
+        setModalDetail('');
+        setModalScreenshots([]);
         setConfirmModal(null);
         setTimeout(() => {
           fetchQueue();
@@ -725,42 +744,145 @@ export default function ReviewQueuePage() {
             backgroundColor: '#ffffff',
             borderRadius: '16px',
             padding: '2rem',
-            width: '460px',
-            maxWidth: '92vw',
+            width: '540px',
+            maxWidth: '94vw',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             border: '1px solid #e2e8f0'
           }}>
-            <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.15rem', fontWeight: 800, color: confirmModal === 'reject' ? '#991b1b' : '#0f172a' }}>
+            <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.2rem', fontWeight: 800, color: confirmModal === 'reject' ? '#991b1b' : '#0f172a' }}>
               {confirmModal === 'reject' ? 'Reject Version' : 'Request Changes'}
             </h3>
             <p style={{ margin: '0 0 1.25rem 0', fontSize: '0.82rem', color: '#64748b' }}>
               {selectedItem.app} (v{selectedItem.version}) by {selectedItem.developer}
             </p>
 
-            <div style={{ marginBottom: '1.25rem' }}>
+            <div style={{ marginBottom: '1.1rem' }}>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem' }}>
                 Feedback / Reason *
               </label>
-              <textarea
+              <input
+                type="text"
                 value={modalReason}
                 onChange={e => setModalReason(e.target.value)}
-                placeholder={confirmModal === 'reject' ? 'State clear policy or security violation...' : 'Detail required code or permission updates...'}
-                rows={3}
+                placeholder={confirmModal === 'reject' ? 'e.g. Security Vulnerability or Policy Violation in POS sandbox' : 'e.g. Missing required permissions or manifest update'}
+                style={{
+                  width: '100%',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.84rem',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1.1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem' }}>
+                Detailed Description & Guidance
+              </label>
+              <textarea
+                value={modalDetail}
+                onChange={e => setModalDetail(e.target.value)}
+                placeholder="Explain the issue thoroughly so the developer can reproduce and fix it (e.g. steps taken, expected behavior vs observed bug, security policy reference)..."
+                rows={4}
                 style={{
                   width: '100%',
                   padding: '0.75rem',
                   borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   fontSize: '0.82rem',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  lineHeight: 1.5
                 }}
               />
+            </div>
+
+            {/* Screenshot attachment section */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.4rem' }}>
+                Audit Screenshots & Proof (Image Upload / Paste URL)
+              </label>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <label style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  padding: '0.5rem 0.85rem',
+                  borderRadius: '8px',
+                  border: '1px dashed #cbd5e1',
+                  backgroundColor: '#f8fafc',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  color: '#475569',
+                  cursor: 'pointer'
+                }}>
+                  📷 Upload Image File
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = ev => {
+                        const base64 = ev.target?.result as string;
+                        if (base64) {
+                          setModalScreenshots(prev => [...prev, base64]);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+              </div>
+
+              {/* Uploaded Screenshots Preview */}
+              {modalScreenshots.length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))', gap: '0.65rem' }}>
+                  {modalScreenshots.map((shot, idx) => (
+                    <div key={idx} style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid #cbd5e1', aspectRatio: '16/10' }}>
+                      <img src={shot} alt={`Proof ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        type="button"
+                        onClick={() => setModalScreenshots(prev => prev.filter((_, i) => i !== idx))}
+                        style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          background: 'rgba(15, 23, 42, 0.75)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '0.7rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 type="button"
-                onClick={() => setConfirmModal(null)}
+                onClick={() => {
+                  setConfirmModal(null);
+                  setModalReason('');
+                  setModalDetail('');
+                  setModalScreenshots([]);
+                }}
                 style={{ padding: '0.55rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', cursor: 'pointer' }}
               >
                 Cancel
@@ -768,7 +890,7 @@ export default function ReviewQueuePage() {
               <button
                 type="button"
                 disabled={submittingAction !== null}
-                onClick={() => handleDecision(confirmModal, modalReason)}
+                onClick={() => handleDecision(confirmModal, modalReason, modalDetail, modalScreenshots)}
                 style={{
                   padding: '0.55rem 1.3rem',
                   borderRadius: '8px',

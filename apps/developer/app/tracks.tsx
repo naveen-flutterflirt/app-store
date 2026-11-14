@@ -13,6 +13,18 @@ export interface AppVersionTrackItem {
   app_id: string;
   app_name: string;
   package_id: string;
+  slug?: string;
+  last_review?: {
+    decision: string;
+    notes: string;
+    checklist?: {
+      rejection_reason?: string;
+      rejection_screenshots?: string[];
+      detailed_description?: string;
+      [key: string]: any;
+    };
+    created_at: string;
+  } | null;
 }
 
 interface TestingTracksViewProps {
@@ -33,6 +45,7 @@ export function TestingTracksView({
   const [selectedTrack, setSelectedTrack] = useState<'internal' | 'beta' | 'production'>('internal');
   const [selectedAppId, setSelectedAppId] = useState<string>('all');
   const [promotingId, setPromotingId] = useState<string | null>(null);
+  const [viewingFeedback, setViewingFeedback] = useState<any | null>(null);
 
   // Filter submissions by track
   const internalVersions = submissions.filter(s => s.channel === 'internal');
@@ -420,6 +433,27 @@ export function TestingTracksView({
                         </button>
                       )}
 
+                      {selectedTrack === 'production' && (ver.status === 'rejected' || ver.status === 'changes_requested') && (
+                        <button
+                          onClick={() => setViewingFeedback(ver)}
+                          style={{
+                            padding: '0.45rem 0.85rem',
+                            borderRadius: '8px',
+                            border: '1px solid #fecaca',
+                            backgroundColor: '#fef2f2',
+                            color: '#b91c1c',
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem'
+                          }}
+                        >
+                          <span>🔍</span> View Rejection Reason & Proof
+                        </button>
+                      )}
+
                       {selectedTrack === 'production' && ver.status === 'in_review' && (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                           <span style={{
@@ -466,6 +500,166 @@ export function TestingTracksView({
           </tbody>
         </table>
       </div>
+
+      {/* Rejection / Changes Requested Detailed Modal */}
+      {viewingFeedback && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 300,
+          padding: '1rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            padding: '2rem',
+            width: '600px',
+            maxWidth: '95vw',
+            maxHeight: '88vh',
+            overflowY: 'auto',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid #fee2e2'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontSize: '1.4rem' }}>⚠️</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#991b1b' }}>
+                    Review Feedback & Rejection Details
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                    {viewingFeedback.app_name} (v{viewingFeedback.version})
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingFeedback(null)}
+                style={{ background: 'none', border: 'none', fontSize: '1.25rem', color: '#64748b', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Status & Review Date */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.75rem 1rem',
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '10px',
+              marginBottom: '1.25rem'
+            }}>
+              <div>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b91c1c', textTransform: 'uppercase' }}>
+                  Status: {viewingFeedback.status.toUpperCase()}
+                </span>
+                <div style={{ fontSize: '0.78rem', color: '#7f1d1d', marginTop: '2px' }}>
+                  Action required by developer before resubmission
+                </div>
+              </div>
+              {viewingFeedback.last_review?.created_at && (
+                <div style={{ fontSize: '0.75rem', color: '#991b1b' }}>
+                  {new Date(viewingFeedback.last_review.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </div>
+              )}
+            </div>
+
+            {/* Main Reason */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
+                Rejection Reason / Finding:
+              </label>
+              <div style={{
+                padding: '0.85rem 1rem',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                fontSize: '0.88rem',
+                color: '#0f172a',
+                fontWeight: 600,
+                lineHeight: 1.5
+              }}>
+                {viewingFeedback.last_review?.checklist?.rejection_reason || viewingFeedback.last_review?.notes || 'Violates application sandbox security or listing guidelines.'}
+              </div>
+            </div>
+
+            {/* Detailed Description */}
+            {viewingFeedback.last_review?.checklist?.detailed_description && (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
+                  Detailed Description & Remediation Steps:
+                </label>
+                <div style={{
+                  padding: '0.85rem 1rem',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '0.84rem',
+                  color: '#334155',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: 1.6
+                }}>
+                  {viewingFeedback.last_review.checklist.detailed_description}
+                </div>
+              </div>
+            )}
+
+            {/* Screenshots Attachments */}
+            {viewingFeedback.last_review?.checklist?.rejection_screenshots && viewingFeedback.last_review.checklist.rejection_screenshots.length > 0 && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                  Audit Screenshots & Bug Proof ({viewingFeedback.last_review.checklist.rejection_screenshots.length}):
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
+                  {viewingFeedback.last_review.checklist.rejection_screenshots.map((shot: string, i: number) => (
+                    <a
+                      key={i}
+                      href={shot}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'block',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        border: '1px solid #cbd5e1',
+                        aspectRatio: '16/10',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)'
+                      }}
+                    >
+                      <img src={shot} alt={`Proof ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+              <button
+                onClick={() => setViewingFeedback(null)}
+                style={{
+                  padding: '0.55rem 1.4rem',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

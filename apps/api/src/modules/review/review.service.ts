@@ -7,6 +7,8 @@ export interface ReviewDecisionDto {
   decision: 'approve' | 'request_changes' | 'reject';
   reviewer: string;
   notes?: string;
+  rejectionReason?: string;
+  rejectionScreenshots?: string[];
   checklist?: Record<string, boolean>;
 }
 
@@ -74,6 +76,14 @@ export class ReviewService {
     }
 
     const reviewer = dto.reviewer || 'reviewer@flutterflirt.com';
+    const notesText = (dto.notes || dto.rejectionReason || 'Review decision recorded.').trim();
+
+    // Prepare checklist JSON with rejection metadata if applicable
+    const checklistPayload = {
+      ...(dto.checklist || { listing_accurate: true, privacy_ok: true, permissions_justified: true }),
+      ...(dto.rejectionReason ? { rejection_reason: dto.rejectionReason } : {}),
+      ...(dto.rejectionScreenshots && dto.rejectionScreenshots.length > 0 ? { rejection_screenshots: dto.rejectionScreenshots } : {})
+    };
 
     // 1. Insert review decision
     await query(`
@@ -83,8 +93,8 @@ export class ReviewService {
       versionId,
       reviewer,
       dto.decision,
-      dto.notes || 'Review decision recorded.',
-      JSON.stringify(dto.checklist || { listing_accurate: true, privacy_ok: true, permissions_justified: true })
+      notesText,
+      JSON.stringify(checklistPayload)
     ]);
 
     // 2. Transition version state
@@ -95,7 +105,12 @@ export class ReviewService {
     await query(`
       INSERT INTO store.store_audit (actor, action, entity, entity_id, detail)
       VALUES ($1, 'version.review_decision', 'app_versions', $2, $3)
-    `, [reviewer, versionId, JSON.stringify({ decision: dto.decision, notes: dto.notes })]);
+    `, [reviewer, versionId, JSON.stringify({
+      decision: dto.decision,
+      notes: notesText,
+      rejectionReason: dto.rejectionReason,
+      rejectionScreenshots: dto.rejectionScreenshots
+    })]);
 
     return {
       versionId,

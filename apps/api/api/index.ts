@@ -692,7 +692,19 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       const devId = resolveDeveloperId(req);
       const submissions = await query(`
         SELECT v.id, v.version, v.channel, v.status, v.created_at, v.release_notes, v.rollout_pct,
-               a.id as app_id, a.name as app_name, a.package_id, a.slug
+               a.id as app_id, a.name as app_name, a.package_id, a.slug,
+               (
+                 SELECT json_build_object(
+                   'decision', r.decision,
+                   'notes', r.notes,
+                   'checklist', r.checklist,
+                   'created_at', r.created_at
+                 )
+                 FROM store.version_reviews r
+                 WHERE r.version_id = v.id
+                 ORDER BY r.created_at DESC
+                 LIMIT 1
+               ) as last_review
         FROM store.app_versions v
         JOIN store.apps a ON v.app_id = a.id
         WHERE a.developer_id = $1

@@ -36,6 +36,17 @@ interface SubmissionItem {
   app_name: string;
   package_id: string;
   slug: string;
+  last_review?: {
+    decision: string;
+    notes: string;
+    checklist?: {
+      rejection_reason?: string;
+      rejection_screenshots?: string[];
+      detailed_description?: string;
+      [key: string]: any;
+    };
+    created_at: string;
+  } | null;
 }
 
 export default function DeveloperConsolePage() {
@@ -1100,6 +1111,22 @@ export default function DeveloperConsolePage() {
                                 >
                                   View on Store ↗
                                 </a>
+                              ) : (sub.status === 'rejected' || sub.status === 'changes_requested') ? (
+                                <button
+                                  onClick={() => setActiveTab('tracks')}
+                                  style={{
+                                    fontSize: '0.75rem',
+                                    color: '#f87171',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                                    borderRadius: '6px',
+                                    padding: '4px 8px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  🔍 View Reason & Proof
+                                </button>
                               ) : (
                                 <span style={{
                                   fontSize: '0.75rem',
