@@ -31,7 +31,7 @@ export function TestingTracksView({
   showToast
 }: TestingTracksViewProps) {
   const [selectedTrack, setSelectedTrack] = useState<'internal' | 'beta' | 'production'>('internal');
-  const [selectedAppId, setSelectedAppId] = useState<string>(apps[0]?.id || 'all');
+  const [selectedAppId, setSelectedAppId] = useState<string>('all');
   const [promotingId, setPromotingId] = useState<string | null>(null);
 
   // Filter submissions by track
@@ -72,6 +72,7 @@ export function TestingTracksView({
             : 'Version promoted to Closed Beta Testing Track!',
           'success'
         );
+        setSelectedTrack(targetChannel === 'stable' ? 'production' : 'beta');
         onRefresh();
       } else {
         showToast(data.message || 'Failed to promote track', 'error');
@@ -142,100 +143,135 @@ export function TestingTracksView({
         </button>
       </div>
 
-      {/* Track Selector Tabs */}
-      <div style={{ display: 'flex', gap: '0.6rem', borderBottom: '2px solid #e2e8f0', paddingBottom: '0.75rem' }}>
-        <button
-          onClick={() => setSelectedTrack('internal')}
-          style={{
-            padding: '0.65rem 1.35rem',
-            borderRadius: '12px',
-            border: 'none',
-            backgroundColor: selectedTrack === 'internal' ? '#0f172a' : '#f8fafc',
-            color: selectedTrack === 'internal' ? '#ffffff' : '#64748b',
-            fontSize: '0.85rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            boxShadow: selectedTrack === 'internal' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
-            transition: 'all 0.15s'
-          }}
-        >
-          <span>🧪 Internal Testing</span>
-          <span style={{
-            fontSize: '0.7rem',
-            padding: '2px 7px',
-            borderRadius: '999px',
-            backgroundColor: selectedTrack === 'internal' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
-            color: selectedTrack === 'internal' ? '#ffffff' : '#475569',
-            fontWeight: 700
-          }}>
-            {internalVersions.length}
-          </span>
-        </button>
+      {/* Track Selector Tabs & App Filter */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottom: '2px solid #e2e8f0',
+        paddingBottom: '0.75rem',
+        flexWrap: 'wrap',
+        gap: '0.75rem'
+      }}>
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setSelectedTrack('internal')}
+            style={{
+              padding: '0.65rem 1.35rem',
+              borderRadius: '12px',
+              border: 'none',
+              backgroundColor: selectedTrack === 'internal' ? '#0f172a' : '#f8fafc',
+              color: selectedTrack === 'internal' ? '#ffffff' : '#64748b',
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              boxShadow: selectedTrack === 'internal' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
+              transition: 'all 0.15s'
+            }}
+          >
+            <span>🧪 Internal Testing</span>
+            <span style={{
+              fontSize: '0.7rem',
+              padding: '2px 7px',
+              borderRadius: '999px',
+              backgroundColor: selectedTrack === 'internal' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
+              color: selectedTrack === 'internal' ? '#ffffff' : '#475569',
+              fontWeight: 700
+            }}>
+              {internalVersions.length}
+            </span>
+          </button>
 
-        <button
-          onClick={() => setSelectedTrack('beta')}
-          style={{
-            padding: '0.65rem 1.35rem',
-            borderRadius: '12px',
-            border: 'none',
-            backgroundColor: selectedTrack === 'beta' ? '#0f172a' : '#f8fafc',
-            color: selectedTrack === 'beta' ? '#ffffff' : '#64748b',
-            fontSize: '0.85rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            boxShadow: selectedTrack === 'beta' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
-            transition: 'all 0.15s'
-          }}
-        >
-          <span>👥 Closed Beta Track</span>
-          <span style={{
-            fontSize: '0.7rem',
-            padding: '2px 7px',
-            borderRadius: '999px',
-            backgroundColor: selectedTrack === 'beta' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
-            color: selectedTrack === 'beta' ? '#ffffff' : '#475569',
-            fontWeight: 700
-          }}>
-            {betaVersions.length}
-          </span>
-        </button>
+          <button
+            onClick={() => setSelectedTrack('beta')}
+            style={{
+              padding: '0.65rem 1.35rem',
+              borderRadius: '12px',
+              border: 'none',
+              backgroundColor: selectedTrack === 'beta' ? '#0f172a' : '#f8fafc',
+              color: selectedTrack === 'beta' ? '#ffffff' : '#64748b',
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              boxShadow: selectedTrack === 'beta' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
+              transition: 'all 0.15s'
+            }}
+          >
+            <span>👥 Closed Beta Track</span>
+            <span style={{
+              fontSize: '0.7rem',
+              padding: '2px 7px',
+              borderRadius: '999px',
+              backgroundColor: selectedTrack === 'beta' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
+              color: selectedTrack === 'beta' ? '#ffffff' : '#475569',
+              fontWeight: 700
+            }}>
+              {betaVersions.length}
+            </span>
+          </button>
 
-        <button
-          onClick={() => setSelectedTrack('production')}
-          style={{
-            padding: '0.65rem 1.35rem',
-            borderRadius: '12px',
-            border: 'none',
-            backgroundColor: selectedTrack === 'production' ? '#0f172a' : '#f8fafc',
-            color: selectedTrack === 'production' ? '#ffffff' : '#64748b',
-            fontSize: '0.85rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            boxShadow: selectedTrack === 'production' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
-            transition: 'all 0.15s'
-          }}
-        >
-          <span>🌐 Production Releases</span>
-          <span style={{
-            fontSize: '0.7rem',
-            padding: '2px 7px',
-            borderRadius: '999px',
-            backgroundColor: selectedTrack === 'production' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
-            color: selectedTrack === 'production' ? '#ffffff' : '#475569',
-            fontWeight: 700
-          }}>
-            {productionVersions.length}
-          </span>
-        </button>
+          <button
+            onClick={() => setSelectedTrack('production')}
+            style={{
+              padding: '0.65rem 1.35rem',
+              borderRadius: '12px',
+              border: 'none',
+              backgroundColor: selectedTrack === 'production' ? '#0f172a' : '#f8fafc',
+              color: selectedTrack === 'production' ? '#ffffff' : '#64748b',
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              boxShadow: selectedTrack === 'production' ? '0 4px 12px rgba(15, 23, 42, 0.2)' : 'none',
+              transition: 'all 0.15s'
+            }}
+          >
+            <span>🌐 Production Releases</span>
+            <span style={{
+              fontSize: '0.7rem',
+              padding: '2px 7px',
+              borderRadius: '999px',
+              backgroundColor: selectedTrack === 'production' ? 'rgba(255, 255, 255, 0.2)' : '#e2e8f0',
+              color: selectedTrack === 'production' ? '#ffffff' : '#475569',
+              fontWeight: 700
+            }}>
+              {productionVersions.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Filter by App dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>Filter App:</label>
+          <select
+            value={selectedAppId}
+            onChange={(e) => setSelectedAppId(e.target.value)}
+            style={{
+              padding: '0.5rem 0.85rem',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            <option value="all">All Applications ({apps.length})</option>
+            {apps.map(a => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Track Explanation Card */}

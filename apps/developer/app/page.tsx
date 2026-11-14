@@ -382,7 +382,7 @@ export default function DeveloperConsolePage() {
       if (latestSub) {
         const res = await fetch(`${API_URL}/dev/versions/${latestSub.id}/rollout`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ rolloutPct: manageRollout })
         });
         if (!res.ok) {

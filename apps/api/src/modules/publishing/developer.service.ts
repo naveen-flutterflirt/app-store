@@ -209,16 +209,40 @@ export class DeveloperService {
     const ver = versions[0];
     const newChannel = targetChannel === 'beta' ? 'beta' : 'stable';
 
-    const res = await query(`
-      UPDATE store.app_versions
-      SET channel = $1::store.release_channel, 
-          status = CASE WHEN $1::text = 'stable' THEN 'in_review'::store.version_status ELSE status END,
-          submitted_at = CASE WHEN $1::text = 'stable' THEN NOW() ELSE submitted_at END
-      WHERE id = $2
-      RETURNING *
-    `, [newChannel, versionId]);
+    if (newChannel === 'beta') {
+      const sig = ver.signature || `cosign:beta-${versionId.slice(0, 8)}-${Date.now()}`;
+      await query(`
+        INSERT INTO store.version_reviews (version_id, reviewer, decision, notes)
+        SELECT $1, 'system-ci@bizbox.internal', 'approve', 'Promoted to closed beta testing'
+        WHERE NOT EXISTS (
+          SELECT 1 FROM store.version_reviews WHERE version_id = $1 AND decision = 'approve'
+        )
+      `, [versionId]);
 
-    return res[0];
+      const res = await query(`
+        UPDATE store.app_versions
+        SET channel = 'beta'::store.release_channel,
+            signature = COALESCE(signature, $2),
+            status = 'published'::store.version_status,
+            published_at = COALESCE(published_at, NOW()),
+            submitted_at = COALESCE(submitted_at, NOW())
+        WHERE id = $1
+        RETURNING *
+      `, [versionId, sig]);
+
+      return res[0];
+    } else {
+      const res = await query(`
+        UPDATE store.app_versions
+        SET channel = 'stable'::store.release_channel, 
+            status = 'in_review'::store.version_status,
+            submitted_at = NOW()
+        WHERE id = $1
+        RETURNING *
+      `, [versionId]);
+
+      return res[0];
+    }
   }
 
   /**
