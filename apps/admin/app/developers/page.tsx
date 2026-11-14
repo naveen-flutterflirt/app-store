@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, ADMIN_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { ADMIN_VERSION } from '../version';
 
 interface DeveloperItem {
   id: string;
