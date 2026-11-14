@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { API_URL, ADMIN_URL, STORE_URL } from './config';
+import { API_URL, STORE_URL } from './config';
 
 export interface AppVersionTrackItem {
   id: string;

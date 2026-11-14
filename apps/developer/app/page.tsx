@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from './config';
+import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL } from './config';
 import { useAuthGuard } from './useAuthGuard';
 import { TestingTracksView } from './tracks';
 import { DeveloperBuilderGuide } from './builderGuide';
@@ -1365,11 +1365,22 @@ export default function DeveloperConsolePage() {
                   <select
                     value={targetAppId}
                     onChange={e => {
-                      setTargetAppId(e.target.value);
-                      const a = apps.find(x => x.id === e.target.value);
+                      const newId = e.target.value;
+                      setTargetAppId(newId);
+                      const a = apps.find(x => x.id === newId);
                       if (a) {
                         const parts = (a.last_version || '1.0.0').split('.');
-                        setNewVersionStr(`${parts[0] || '1'}.${parts[1] || '0'}.${parseInt(parts[2] || '0', 10) + 1}`);
+                        const newV = `${parts[0] || '1'}.${parts[1] || '0'}.${parseInt(parts[2] || '0', 10) + 1}`;
+                        setNewVersionStr(newV);
+                        setCustomManifestJson(JSON.stringify({
+                          id: a.package_id || 'in.developer.app',
+                          name: a.name,
+                          version: newV,
+                          runtime: a.category === 'kitchen' ? 'hybrid' : 'cloud',
+                          minPlatform: '1.4.0',
+                          ui: { entry: '/index.html', slots: ['console.dashboard.widget', 'pos.order.action'] },
+                          scopes: [{ scope: 'orders:read', reason: 'Display active table orders on KDS ticket screen' }]
+                        }, null, 2));
                       }
                     }}
                     style={{ width: '100%', padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', backgroundColor: '#ffffff' }}
@@ -1652,8 +1663,11 @@ export default function DeveloperConsolePage() {
                     View in Beta Track →
                   </button>
                 ) : (
-                  <a
-                    href={`${ADMIN_URL}/review-queue`}
+                  <button
+                    onClick={() => {
+                      setPublishModalOpen(false);
+                      setActiveTab('tracks');
+                    }}
                     style={{
                       padding: '0.55rem 1.15rem',
                       borderRadius: '8px',
@@ -1661,12 +1675,12 @@ export default function DeveloperConsolePage() {
                       backgroundColor: '#0f172a',
                       color: '#ffffff',
                       fontSize: '0.82rem',
-                      fontWeight: 600,
-                      textDecoration: 'none'
+                      fontWeight: 700,
+                      cursor: 'pointer'
                     }}
                   >
-                    Review in Admin Queue →
-                  </a>
+                    View in Production Track →
+                  </button>
                 )
               ) : null}
             </div>
