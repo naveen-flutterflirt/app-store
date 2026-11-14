@@ -388,20 +388,22 @@ export function TestingTracksView({
                       )}
 
                       {selectedTrack === 'production' && ver.status === 'in_review' && (
-                        <a
-                          href={`${ADMIN_URL}/review-queue`}
-                          style={{
-                            padding: '0.45rem 0.85rem',
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <span style={{
+                            padding: '0.4rem 0.75rem',
                             borderRadius: '8px',
-                            backgroundColor: '#0f172a',
-                            color: '#ffffff',
-                            fontSize: '0.78rem',
-                            fontWeight: 600,
-                            textDecoration: 'none'
-                          }}
-                        >
-                          Audit in Admin →
-                        </a>
+                            backgroundColor: '#fef3c7',
+                            border: '1px solid #fde68a',
+                            color: '#b45309',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.35rem'
+                          }}>
+                            <span>⏳</span> Queued for Admin Audit
+                          </span>
+                        </div>
                       )}
 
                       {selectedTrack === 'production' && ver.status === 'published' && (

@@ -996,20 +996,22 @@ export default function DeveloperConsolePage() {
                       </td>
                       <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                         {sub.status === 'in_review' ? (
-                          <a
-                            href={`${ADMIN_URL}/review-queue`}
+                          <span
                             style={{
                               padding: '0.35rem 0.65rem',
                               borderRadius: '6px',
-                              backgroundColor: '#0f172a',
-                              color: '#ffffff',
+                              backgroundColor: '#fef3c7',
+                              border: '1px solid #fde68a',
+                              color: '#b45309',
                               fontSize: '0.75rem',
-                              fontWeight: 600,
-                              textDecoration: 'none'
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem'
                             }}
                           >
-                            Audit in Admin →
-                          </a>
+                            <span>⏳</span> Awaiting Admin Audit
+                          </span>
                         ) : sub.status === 'published' ? (
                           <a
                             href={`${STORE_URL}/apps/${sub.slug}`}
@@ -1628,8 +1630,12 @@ export default function DeveloperConsolePage() {
                     View in Beta Track →
                   </button>
                 ) : (
-                  <a
-                    href={`${ADMIN_URL}/review-queue`}
+                  <button
+                    onClick={() => {
+                      setShowPublishModal(false);
+                      setActiveTab('tracks');
+                      showToast('Build submitted to Production track! It is now queued for Admin Audit.', 'success');
+                    }}
                     style={{
                       padding: '0.55rem 1.15rem',
                       borderRadius: '8px',
@@ -1637,12 +1643,12 @@ export default function DeveloperConsolePage() {
                       backgroundColor: '#0f172a',
                       color: '#ffffff',
                       fontSize: '0.82rem',
-                      fontWeight: 600,
-                      textDecoration: 'none'
+                      fontWeight: 700,
+                      cursor: 'pointer'
                     }}
                   >
-                    Review in Admin Queue →
-                  </a>
+                    View in Production Track →
+                  </button>
                 )
               ) : null}
             </div>
