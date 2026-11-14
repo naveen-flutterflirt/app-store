@@ -15,6 +15,9 @@ interface DevApp {
   slug: string;
   category: string;
   status: string;
+  runtime?: string;
+  pricing_tier?: string;
+  price_monthly?: number;
   last_version: string;
   rollout_pct: number;
   installs: number;
@@ -446,146 +449,215 @@ export default function DeveloperConsolePage() {
   }
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '100vh' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#090d16', color: '#f8fafc', minHeight: '100vh', display: 'flex' }}>
       <style>{`
         @keyframes shimmer {
           0% { background-position: -400px 0; }
           100% { background-position: 400px 0; }
         }
         .skeleton {
-          background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+          background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 75%);
           background-size: 800px 100%;
           animation: shimmer 1.5s infinite;
           border-radius: 6px;
         }
-        @media (max-width: 860px) {
-          .nav-desktop { display: none !important; }
-          .nav-mobile-btn { display: inline-flex !important; }
-          .dev-main { padding: 1.25rem 1rem !important; }
-          .dev-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .dev-header-actions { width: 100% !important; justify-content: flex-start !important; margin-top: 0.75rem !important; }
+        .dev-sidebar {
+          width: 260px;
+          background-color: #0c1222;
+          border-right: 1px solid rgba(255, 255, 255, 0.08);
+          display: flex;
+          flex-direction: column;
+          justifyContent: space-between;
+          position: sticky;
+          top: 0;
+          height: 100vh;
+          flex-shrink: 0;
+          box-sizing: border-box;
+          z-index: 100;
         }
-        @media (max-width: 540px) {
-          .dev-stats-grid { grid-template-columns: 1fr !important; }
-          .modal-two-col { grid-template-columns: 1fr !important; }
+        .dev-content-area {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          background-color: #090d16;
         }
-        @media (min-width: 861px) {
-          .nav-mobile-btn { display: none !important; }
-          .nav-mobile-drawer { display: none !important; }
+        .nav-item-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          gap: 0.85rem;
+          padding: 0.75rem 1rem;
+          border-radius: 10px;
+          border: none;
+          background: transparent;
+          color: #94a3b8;
+          font-size: 0.88rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          text-align: left;
+        }
+        .nav-item-btn:hover {
+          background-color: rgba(255, 255, 255, 0.04);
+          color: #ffffff;
+        }
+        .nav-item-btn.active {
+          background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+          border: 1px solid rgba(99, 102, 241, 0.3);
+          color: #ffffff;
+          font-weight: 700;
+        }
+        @media (max-width: 900px) {
+          .dev-sidebar {
+            position: fixed;
+            left: -280px;
+            transition: left 0.25s ease;
+          }
+          .dev-sidebar.open {
+            left: 0;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+          }
+          .mobile-top-bar {
+            display: flex !important;
+          }
+        }
+        @media (min-width: 901px) {
+          .mobile-top-bar {
+            display: none !important;
+          }
         }
       `}</style>
 
-      {/* Light Navbar */}
-      <header style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '0 1.5rem',
-        minHeight: '56px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href={DEV_URL} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
-            <span style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              color: '#10b981',
-              backgroundColor: '#ecfdf5',
-              border: '1px solid #a7f3d0',
-              padding: '1px 6px',
-              borderRadius: '4px'
-            }}>Developer</span>
+      {/* LEFT SIDEBAR NAVIGATION */}
+      <aside className={`dev-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+        <div style={{ padding: '1.75rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          {/* Brand Identity */}
+          <a href={DEV_URL} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 900,
+              fontSize: '1.15rem',
+              color: '#ffffff',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)'
+            }}>
+              B
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>BizBox</span>
+              <span style={{
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                color: '#a855f7',
+                backgroundColor: 'rgba(168, 85, 247, 0.12)',
+                padding: '2px 6px',
+                borderRadius: '5px',
+                border: '1px solid rgba(168, 85, 247, 0.25)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em'
+              }}>
+                Developer
+              </span>
+            </div>
           </a>
-          <nav className="nav-desktop" style={{ display: 'flex', gap: '0.4rem' }}>
+
+          {/* Left Vertical Menu */}
+          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 0.5rem 0.4rem' }}>
+              WORKSPACE
+            </div>
             <button
-              onClick={() => setActiveTab('apps')}
-              style={{
-                padding: '0.35rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeTab === 'apps' ? '#f1f5f9' : 'transparent',
-                color: activeTab === 'apps' ? '#0f172a' : '#64748b',
-                fontWeight: activeTab === 'apps' ? 700 : 500,
-                fontSize: '0.8rem',
-                cursor: 'pointer'
-              }}
+              onClick={() => { setActiveTab('apps'); setMobileMenuOpen(false); }}
+              className={`nav-item-btn ${activeTab === 'apps' ? 'active' : ''}`}
             >
-              Apps & Revenue
+              <span style={{ fontSize: '1.1rem' }}>📦</span>
+              <span>Apps & Inventory</span>
             </button>
+
             <button
-              onClick={() => setActiveTab('tracks')}
-              style={{
-                padding: '0.35rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeTab === 'tracks' ? '#f1f5f9' : 'transparent',
-                color: activeTab === 'tracks' ? '#0f172a' : '#64748b',
-                fontWeight: activeTab === 'tracks' ? 700 : 500,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem'
-              }}
+              onClick={() => { setActiveTab('tracks'); setMobileMenuOpen(false); }}
+              className={`nav-item-btn ${activeTab === 'tracks' ? 'active' : ''}`}
             >
-              <span>Testing Tracks</span>
-              <span style={{ fontSize: '0.65rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>Google Play</span>
+              <span style={{ fontSize: '1.1rem' }}>🚀</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+                <span>Release Tracks</span>
+                <span style={{ fontSize: '0.62rem', backgroundColor: 'rgba(14, 165, 233, 0.15)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid rgba(14, 165, 233, 0.25)' }}>Play</span>
+              </div>
             </button>
+
             <button
-              onClick={() => setActiveTab('payouts')}
-              style={{
-                padding: '0.35rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeTab === 'payouts' ? '#f1f5f9' : 'transparent',
-                color: activeTab === 'payouts' ? '#0f172a' : '#64748b',
-                fontWeight: activeTab === 'payouts' ? 700 : 500,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem'
-              }}
+              onClick={() => { setActiveTab('payouts'); setMobileMenuOpen(false); }}
+              className={`nav-item-btn ${activeTab === 'payouts' ? 'active' : ''}`}
             >
-              <span>Earnings & Payouts</span>
-              <span style={{ fontSize: '0.65rem', backgroundColor: '#dcfce7', color: '#15803d', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>80% Bank</span>
+              <span style={{ fontSize: '1.1rem' }}>💳</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+                <span>Earnings & Bank</span>
+                <span style={{ fontSize: '0.62rem', backgroundColor: 'rgba(52, 211, 153, 0.15)', color: '#34d399', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid rgba(52, 211, 153, 0.25)' }}>80%</span>
+              </div>
             </button>
+
             <button
-              onClick={() => setActiveTab('guide')}
-              style={{
-                padding: '0.35rem 0.75rem',
-                borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeTab === 'guide' ? '#f1f5f9' : 'transparent',
-                color: activeTab === 'guide' ? '#0f172a' : '#64748b',
-                fontWeight: activeTab === 'guide' ? 700 : 500,
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem'
-              }}
+              onClick={() => { setActiveTab('guide'); setMobileMenuOpen(false); }}
+              className={`nav-item-btn ${activeTab === 'guide' ? 'active' : ''}`}
             >
-              <span>Builder Guide & SDK</span>
+              <span style={{ fontSize: '1.1rem' }}>📖</span>
+              <span>Builder Guide</span>
             </button>
-            <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Public Store ↗</a>
+
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '1rem 0.5rem 0.4rem' }}>
+              RESOURCES
+            </div>
+            <a
+              href={STORE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="nav-item-btn"
+              style={{ textDecoration: 'none' }}
+            >
+              <span style={{ fontSize: '1.1rem' }}>🏪</span>
+              <span>Public Storefront ↗</span>
+            </a>
           </nav>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0.75rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
+
+        {/* Developer Profile Footer */}
+        <div style={{
+          padding: '1.25rem 1.5rem',
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.85rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              backgroundColor: '#a855f7',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.9rem',
+              fontWeight: 800
+            }}>
               {user.name.slice(0, 1).toUpperCase()}
             </div>
-            <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{user.name}</div>
-              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{user.role} • 80% RevShare</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user.name}
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Verified Partner</div>
             </div>
           </div>
+
           <button
             onClick={() => {
               localStorage.removeItem('bizbox_token');
@@ -593,444 +665,466 @@ export default function DeveloperConsolePage() {
               window.location.href = '/login';
             }}
             style={{
-              padding: '0.35rem 0.65rem',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: '#dc2626',
-              cursor: 'pointer'
+              width: '100%',
+              padding: '0.55rem',
+              borderRadius: '8px',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              color: '#f87171',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.4rem',
+              transition: 'background-color 0.15s'
             }}
-            title="Sign out of Developer console"
           >
-            Sign Out
+            <span>🚪</span>
+            <span>Sign Out</span>
           </button>
+        </div>
+      </aside>
+
+      {/* RIGHT MAIN CONTENT AREA */}
+      <div className="dev-content-area">
+        {/* Mobile Header Bar */}
+        <header className="mobile-top-bar" style={{
+          height: '56px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: '#0c1222',
+          padding: '0 1.25rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          position: 'sticky',
+          top: 0,
+          zIndex: 90
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>BizBox</span>
+            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#a855f7', backgroundColor: 'rgba(168, 85, 247, 0.12)', padding: '2px 6px', borderRadius: '4px' }}>Dev</span>
+          </div>
           <button
-            className="nav-mobile-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             style={{
               padding: '0.4rem 0.65rem',
               borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              color: '#ffffff',
               fontSize: '1.1rem',
-              cursor: 'pointer',
-              color: '#0f172a'
+              cursor: 'pointer'
             }}
-            aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? '✕' : '☰'}
           </button>
-        </div>
-      </header>
+        </header>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="nav-mobile-drawer" style={{
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e2e8f0',
-          padding: '1rem 1.5rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.5rem'
-        }}>
-          <a href={DEV_URL} style={{ padding: '0.5rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, textDecoration: 'none' }}>Developer Console</a>
-          <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.5rem', borderRadius: '6px', color: '#0f172a', fontWeight: 500, textDecoration: 'none' }}>Public Store ↗</a>
-          <button
-            onClick={() => {
-              localStorage.removeItem('bizbox_token');
-              localStorage.removeItem('bizbox_user');
-              window.location.href = '/login';
-            }}
-            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.5rem', borderRadius: '6px', color: '#dc2626', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
-          >
-            Sign Out
-          </button>
-        </div>
-      )}
-
-      {/* Main Container */}
-      <main className="dev-main" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2.5rem' }}>
-        {activeTab === 'tracks' ? (
-          <TestingTracksView
-            apps={apps}
-            submissions={submissions}
-            onRefresh={loadDeveloperData}
-            onOpenPublish={(app, defaultTrack) => handleOpenPublishModal(app, defaultTrack || 'internal')}
-            showToast={showToast}
-          />
-        ) : activeTab === 'payouts' ? (
-          <DeveloperPayoutsView showToast={showToast} />
-        ) : activeTab === 'guide' ? (
-          <DeveloperBuilderGuide />
-        ) : (
-          <>
-            {/* Header Bar */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: '#0f172a' }}>Developer Console</h1>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
-                  Publish, release, and manage your BizBox apps. Every version passes automated 6-step CI security scans and Ed25519 cryptographic signing before rollout.
-                </p>
-              </div>
-              <div className="dev-header-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => setShowNewAppModal(true)}
-                  style={{
-                    padding: '0.6rem 1.25rem',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: '#0f172a',
-                    color: '#ffffff',
-                    fontSize: '0.84rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(15, 23, 42, 0.15)'
-                  }}
-                >
-                  + Create New App
-                </button>
-              </div>
-            </div>
-
-        {/* 4 Modernized Stats Cards (100% Dynamic) */}
-        <div className="dev-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '18px',
-            padding: '1.4rem',
-            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.04)',
-            transition: 'transform 0.15s, box-shadow 0.15s'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Active Installs</span>
-              <span style={{ fontSize: '1.1rem' }}>📱</span>
-            </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>{totalInstalls}</div>
-            <div style={{ fontSize: '0.72rem', color: totalInstalls > 0 ? '#16a34a' : '#64748b', fontWeight: 600 }}>
-              {totalInstalls > 0 ? `↑ Active on verified POS` : 'No live installs yet'}
-            </div>
-          </div>
-
-          <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #fbcfe8',
-            borderRadius: '18px',
-            padding: '1.4rem',
-            boxShadow: '0 4px 16px -4px rgba(236, 72, 153, 0.08)',
-            background: 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <span style={{ fontSize: '0.72rem', color: '#be185d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Monthly Revenue</span>
-              <span style={{ fontSize: '1.1rem' }}>💰</span>
-            </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
-              ₹{Number(totalMrr).toLocaleString()}
-            </div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>Your share: <strong>80%</strong> • TDS: 10%</div>
-          </div>
-
-          <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '18px',
-            padding: '1.4rem',
-            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.04)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Store Rating</span>
-              <span style={{ fontSize: '1.1rem' }}>⭐</span>
-            </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
-              {apps.length > 0 && Number(avgRatingVal) > 0 ? `${avgRatingVal} ★` : '—'}
-            </div>
-            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>
-              {totalReviewsCount > 0 ? `${totalReviewsCount} verified merchant reviews` : 'Awaiting reviews'}
-            </div>
-          </div>
-
-          <div style={{
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            borderRadius: '18px',
-            padding: '1.4rem',
-            boxShadow: '0 4px 16px -4px rgba(0, 0, 0, 0.04)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Next Payout</span>
-              <span style={{ fontSize: '1.1rem' }}>🏦</span>
-            </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>
-              ₹{Number(estPayout).toLocaleString()}
-            </div>
-            <div style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 600 }}>1st of month • Automated Direct Bank</div>
-          </div>
-        </div>
-
-        {/* Your Apps Table */}
-        <div style={{ marginBottom: '2.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#0f172a' }}>
-              Your apps ({apps.length})
-            </h2>
-            <button
-              onClick={() => loadDeveloperData()}
-              style={{
-                fontSize: '0.75rem',
-                color: '#0284c7',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
-            >
-              ↻ Refresh
-            </button>
-          </div>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-            <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>App</th>
-                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Live Version</th>
-                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Rollout</th>
-                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Installs</th>
-                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  [1, 2, 3].map((i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div className="skeleton" style={{ width: '36px', height: '36px', borderRadius: '8px' }} />
-                          <div style={{ flex: 1 }}>
-                            <div className="skeleton" style={{ width: '130px', height: '14px', marginBottom: '0.3rem' }} />
-                            <div className="skeleton" style={{ width: '85px', height: '10px' }} />
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem' }}><div className="skeleton" style={{ width: '45px', height: '14px' }} /></td>
-                      <td style={{ padding: '1rem 1.25rem' }}><div className="skeleton" style={{ width: '90px', height: '10px' }} /></td>
-                      <td style={{ padding: '1rem 1.25rem' }}><div className="skeleton" style={{ width: '30px', height: '14px' }} /></td>
-                      <td style={{ padding: '1rem 1.25rem' }}><div className="skeleton" style={{ width: '65px', height: '18px', borderRadius: '999px' }} /></td>
-                      <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}><div className="skeleton" style={{ width: '50px', height: '26px', display: 'inline-block', borderRadius: '6px' }} /></td>
-                    </tr>
-                  ))
-                ) : apps.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
-                      No apps created yet. Click "+ New app" above to get started.
-                    </td>
-                  </tr>
-                ) : (
-                  apps.map((app) => (
-                    <tr
-                      key={app.id}
-                      onClick={() => setSelectedApp(app)}
-                      style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', transition: 'background-color 0.15s' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fdf2f8'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
-                    >
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                          <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.7rem' }}>
-                            {app.name.slice(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a' }}>{app.name}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{app.package_id}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>v{app.last_version}</td>
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <div style={{ width: '80px', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
-                            <div style={{ width: `${app.rollout_pct}%`, height: '100%', backgroundColor: '#0284c7' }} />
-                          </div>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#0f172a' }}>{app.rollout_pct}%</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem', fontSize: '0.82rem', color: '#475569' }}>{app.installs}</td>
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <span style={{
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
-                          padding: '3px 8px',
-                          borderRadius: '999px',
-                          backgroundColor: app.status === 'listed' ? '#dcfce7' : (app.status === 'draft' ? '#fef3c7' : '#f1f5f9'),
-                          color: app.status === 'listed' ? '#15803d' : (app.status === 'draft' ? '#b45309' : '#475569')
-                        }}>
-                          ● {app.status === 'listed' ? 'Published' : app.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleOpenPublishModal(app); }}
-                            style={{
-                              padding: '0.35rem 0.65rem',
-                              borderRadius: '6px',
-                              border: '1px solid #fbcfe8',
-                              backgroundColor: '#fdf2f8',
-                              color: '#ec4899',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            + Release
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setSelectedApp(app); }}
-                            style={{
-                              padding: '0.35rem 0.65rem',
-                              borderRadius: '6px',
-                              border: '1px solid #e2e8f0',
-                              backgroundColor: '#ffffff',
-                              color: '#0f172a',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                          >
-                            Manage
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setAppToDelete(app); }}
-                            style={{
-                              padding: '0.35rem 0.65rem',
-                              borderRadius: '6px',
-                              border: '1px solid #fee2e2',
-                              backgroundColor: '#fff5f5',
-                              color: '#dc2626',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}
-                            title="Delete app from database"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Dynamic Submissions History Table */}
-        <div>
-          <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#0f172a' }}>
-            Version Submissions History ({submissions.length})
-          </h2>
-          {submissions.length === 0 ? (
-            <div style={{ backgroundColor: '#ffffff', border: '1px dashed #cbd5e1', borderRadius: '14px', padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-              <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 600, color: '#0f172a' }}>No active submissions pending.</p>
-              <p style={{ margin: 0, fontSize: '0.8rem' }}>Click <strong>Publish new version</strong> to run automated CI checks and submit to FlutterFlirt reviewers.</p>
-            </div>
+        {/* Main Viewport Container */}
+        <main className="dev-main" style={{ maxWidth: '1240px', margin: '0 auto', width: '100%', padding: '2.5rem 2rem', boxSizing: 'border-box' }}>
+          {activeTab === 'tracks' ? (
+            <TestingTracksView
+              apps={apps}
+              submissions={submissions}
+              onRefresh={loadDeveloperData}
+              onOpenPublish={(app, defaultTrack) => handleOpenPublishModal(app, defaultTrack || 'internal')}
+              showToast={showToast}
+            />
+          ) : activeTab === 'payouts' ? (
+            <DeveloperPayoutsView showToast={showToast} />
+          ) : activeTab === 'guide' ? (
+            <DeveloperBuilderGuide />
           ) : (
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-              <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>App & Version</th>
-                    <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Submitted At</th>
-                    <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Release Notes</th>
-                    <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                    <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Review Queue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {submissions.map((sub) => (
-                    <tr key={sub.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>
-                          {sub.app_name} <span style={{ color: '#0284c7' }}>v{sub.version}</span>
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{sub.package_id}</div>
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#475569' }}>
-                        {new Date(sub.created_at).toLocaleDateString()} {new Date(sub.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#334155', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {sub.release_notes || 'Standard release version'}
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem' }}>
-                        <span style={{
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
-                          padding: '3px 8px',
-                          borderRadius: '999px',
-                          backgroundColor:
-                            sub.status === 'published' ? '#dcfce7' :
-                            sub.status === 'in_review' ? '#fef3c7' :
-                            sub.status === 'rejected' ? '#fee2e2' : '#f1f5f9',
-                          color:
-                            sub.status === 'published' ? '#15803d' :
-                            sub.status === 'in_review' ? '#b45309' :
-                            sub.status === 'rejected' ? '#b91c1c' : '#475569'
-                        }}>
-                          ● {sub.status === 'in_review' ? 'In Review Queue' : sub.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
-                        {sub.status === 'in_review' ? (
-                          <span
-                            style={{
-                              padding: '0.35rem 0.65rem',
-                              borderRadius: '6px',
-                              backgroundColor: '#fef3c7',
-                              border: '1px solid #fde68a',
-                              color: '#b45309',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.3rem'
-                            }}
-                          >
-                            <span>⏳</span> Awaiting Admin Audit
-                          </span>
-                        ) : sub.status === 'published' ? (
-                          <a
-                            href={`${STORE_URL}/apps/${sub.slug}`}
-                            style={{
-                              padding: '0.35rem 0.65rem',
-                              borderRadius: '6px',
-                              border: '1px solid #e2e8f0',
-                              backgroundColor: '#ffffff',
-                              color: '#0f172a',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              textDecoration: 'none'
-                            }}
-                          >
-                            View on Store
-                          </a>
-                        ) : (
-                          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Archived</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-          </>
-        )}
-      </main>
+            <>
+              {/* Header Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1.25rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.4rem' }}>
+                    <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+                      Apps & Revenue Management
+                    </h1>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, backgroundColor: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '2px 8px', borderRadius: '999px' }}>
+                      {apps.length} Applications
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.88rem', color: '#94a3b8' }}>
+                    Publish, configure, and monitor your cloud, edge, and hybrid POS extensions.
+                  </p>
+                </div>
+                <div className="dev-header-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setShowNewAppModal(true)}
+                    style={{
+                      padding: '0.65rem 1.35rem',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                      color: '#ffffff',
+                      fontSize: '0.88rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}
+                  >
+                    <span>+</span>
+                    <span>Create New App</span>
+                  </button>
+                </div>
+              </div>
 
+              {/* 4 Modernized Stats Cards (Dark Glassmorphic Theme) */}
+              <div className="dev-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
+                <div style={{
+                  backgroundColor: '#111827',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Active Installs</span>
+                    <span style={{ fontSize: '1.2rem' }}>📱</span>
+                  </div>
+                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>{totalInstalls}</div>
+                  <div style={{ fontSize: '0.75rem', color: totalInstalls > 0 ? '#34d399' : '#64748b', fontWeight: 600 }}>
+                    {totalInstalls > 0 ? `↑ Active on verified POS` : 'No live installs yet'}
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: '#111827',
+                  border: '1px solid rgba(168, 85, 247, 0.25)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.1)',
+                  background: 'radial-gradient(ellipse at top right, rgba(168, 85, 247, 0.1) 0%, #111827 80%)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#c084fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Monthly Revenue</span>
+                    <span style={{ fontSize: '1.2rem' }}>💰</span>
+                  </div>
+                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>
+                    ₹{Number(totalMrr).toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
+                    Your share: <strong style={{ color: '#34d399' }}>80%</strong> • TDS: 10%
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: '#111827',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Est. Bank Payout</span>
+                    <span style={{ fontSize: '1.2rem' }}>🏦</span>
+                  </div>
+                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#34d399', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>
+                    ₹{Number(estPayout).toLocaleString()}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
+                    Scheduled 1st of every month
+                  </div>
+                </div>
+
+                <div style={{
+                  backgroundColor: '#111827',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '16px',
+                  padding: '1.5rem',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Store Rating</span>
+                    <span style={{ fontSize: '1.2rem' }}>⭐</span>
+                  </div>
+                  <div style={{ fontSize: '1.9rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.3rem', letterSpacing: '-0.02em' }}>
+                    {avgRatingVal} <span style={{ fontSize: '1.1rem', color: '#64748b' }}>/ 5.0</span>
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
+                    From {totalReviewsCount} merchant reviews
+                  </div>
+                </div>
+              </div>
+
+              {/* Your Apps Table */}
+              <div style={{ marginBottom: '2.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                    Your Applications ({apps.length})
+                  </h2>
+                  <button
+                    onClick={() => loadDeveloperData()}
+                    style={{
+                      fontSize: '0.78rem',
+                      color: '#818cf8',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                  >
+                    🔄 Refresh Apps
+                  </button>
+                </div>
+
+                <div style={{
+                  backgroundColor: '#111827',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)'
+                }}>
+                  <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                        <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>App Name</th>
+                        <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Runtime</th>
+                        <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Pricing</th>
+                        <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Installs</th>
+                        <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Status</th>
+                        <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {loading ? (
+                        [1, 2, 3].map((n) => (
+                          <tr key={n} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                            <td colSpan={6} style={{ padding: '1.25rem' }}>
+                              <div className="skeleton" style={{ height: '24px', width: '100%' }} />
+                            </td>
+                          </tr>
+                        ))
+                      ) : apps.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} style={{ padding: '3.5rem', textAlign: 'center', color: '#64748b' }}>
+                            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📦</div>
+                            <div style={{ fontWeight: 700, color: '#ffffff', marginBottom: '0.25rem' }}>No Applications Registered</div>
+                            <div style={{ fontSize: '0.85rem' }}>Click &quot;+ Create New App&quot; above to register your first POS or Kitchen extension.</div>
+                          </td>
+                        </tr>
+                      ) : (
+                        apps.map((app) => (
+                          <tr
+                            key={app.id}
+                            style={{
+                              borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                              transition: 'background-color 0.15s ease'
+                            }}
+                          >
+                            <td style={{ padding: '1rem 1.25rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{
+                                  width: '36px',
+                                  height: '36px',
+                                  borderRadius: '8px',
+                                  backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                                  border: '1px solid rgba(99, 102, 241, 0.3)',
+                                  color: '#818cf8',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 800,
+                                  fontSize: '0.85rem'
+                                }}>
+                                  {app.name.slice(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#ffffff' }}>{app.name}</div>
+                                  <div style={{ fontSize: '0.72rem', color: '#64748b', fontFamily: 'monospace' }}>{app.package_id}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem' }}>
+                              <span style={{
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                color: '#cbd5e1',
+                                textTransform: 'capitalize'
+                              }}>
+                                {app.runtime || 'cloud'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600 }}>
+                              {app.pricing_tier === 'paid' ? `₹${app.price_monthly}/mo` : 'Free'}
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.85rem', color: '#f8fafc', fontWeight: 600 }}>
+                              {app.installs || 0}
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem' }}>
+                              <span style={{
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                padding: '3px 8px',
+                                borderRadius: '999px',
+                                backgroundColor: app.status === 'listed' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                color: app.status === 'listed' ? '#34d399' : '#fbbf24',
+                                border: `1px solid ${app.status === 'listed' ? 'rgba(52, 211, 153, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`
+                              }}>
+                                ● {app.status === 'listed' ? 'Published' : app.status}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
+                              <div style={{ display: 'inline-flex', gap: '0.45rem' }}>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleOpenPublishModal(app); }}
+                                  style={{
+                                    padding: '0.35rem 0.65rem',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(168, 85, 247, 0.3)',
+                                    backgroundColor: 'rgba(168, 85, 247, 0.12)',
+                                    color: '#c084fc',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  + Release
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setSelectedApp(app); }}
+                                  style={{
+                                    padding: '0.35rem 0.65rem',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    color: '#ffffff',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Manage
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setAppToDelete(app); }}
+                                  style={{
+                                    padding: '0.35rem 0.65rem',
+                                    borderRadius: '6px',
+                                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                                    color: '#f87171',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                  }}
+                                  title="Delete app from database"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Dynamic Submissions History Table */}
+              <div>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 1rem 0', color: '#ffffff' }}>
+                  Version Submissions History ({submissions.length})
+                </h2>
+                {submissions.length === 0 ? (
+                  <div style={{ backgroundColor: '#111827', border: '1px dashed rgba(255, 255, 255, 0.15)', borderRadius: '16px', padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', fontWeight: 600, color: '#ffffff' }}>No active submissions pending.</p>
+                    <p style={{ margin: 0, fontSize: '0.8rem' }}>Create releases in Testing Tracks to run automated CI checks.</p>
+                  </div>
+                ) : (
+                  <div style={{ backgroundColor: '#111827', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <table style={{ width: '100%', minWidth: '680px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                          <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>App & Version</th>
+                          <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Submitted At</th>
+                          <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Release Notes</th>
+                          <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Status</th>
+                          <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', textAlign: 'right' }}>Review Queue</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {submissions.map((sub) => (
+                          <tr key={sub.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
+                            <td style={{ padding: '1rem 1.25rem' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#ffffff' }}>
+                                {sub.app_name} <span style={{ color: '#818cf8' }}>v{sub.version}</span>
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{sub.package_id}</div>
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#94a3b8' }}>
+                              {new Date(sub.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#cbd5e1', maxWidth: '280px' }}>
+                              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {sub.release_notes || 'Performance updates, security patches, and platform optimization.'}
+                              </div>
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem' }}>
+                              <span style={{
+                                padding: '3px 8px',
+                                borderRadius: '999px',
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                backgroundColor: sub.status === 'published' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                                color: sub.status === 'published' ? '#34d399' : '#fbbf24',
+                                border: `1px solid ${sub.status === 'published' ? 'rgba(52, 211, 153, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`
+                              }}>
+                                ● {sub.status === 'in_review' ? 'In Admin Review' : sub.status}
+                              </span>
+                            </td>
+                            <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
+                              {sub.status === 'published' ? (
+                                <a
+                                  href={`${STORE_URL}/apps/${sub.slug}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  style={{
+                                    fontSize: '0.75rem',
+                                    color: '#818cf8',
+                                    fontWeight: 600,
+                                    textDecoration: 'none'
+                                  }}
+                                >
+                                  View on Store ↗
+                                </a>
+                              ) : (
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  color: '#fbbf24',
+                                  fontWeight: 600,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem'
+                                }}>
+                                  <span>⏳</span> Awaiting Admin Audit
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </main>
+      </div>
+    
       {/* Toast Notification */}
       {toast && (
         <div style={{
