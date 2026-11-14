@@ -20,6 +20,13 @@ interface DeveloperItem {
   live_apps: number;
   total_installs: number;
   est_mrr: string;
+  payout_ref?: string | null;
+  bank_account_holder?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  pan_number?: string | null;
+  gstin?: string | null;
   apps_list: Array<{
     id: string;
     name: string;
@@ -372,6 +379,65 @@ export default function AdminDevelopersPage() {
                 >
                   ✕
                 </button>
+              </div>
+
+              {/* Bank & Tax Details Card */}
+              <div style={{
+                marginBottom: '1.5rem',
+                padding: '1.25rem',
+                borderRadius: '12px',
+                backgroundColor: selectedDev.bank_account_number ? '#f0fdf4' : '#f8fafc',
+                border: selectedDev.bank_account_number ? '1px solid #bbf7d0' : '1px dashed #cbd5e1'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.1rem' }}>🏦</span>
+                    <h3 style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                      Banking & Statutory Payout Details
+                    </h3>
+                  </div>
+                  {selectedDev.bank_account_number ? (
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '999px' }}>
+                      ✓ VERIFIED SETTLEMENT ACCOUNT
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '0.68rem', fontWeight: 700, backgroundColor: '#f1f5f9', color: '#64748b', padding: '2px 8px', borderRadius: '999px' }}>
+                      PENDING SETUP
+                    </span>
+                  )}
+                </div>
+
+                {selectedDev.bank_account_number ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Account Holder</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>{selectedDev.bank_account_holder || '—'}</div>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Bank & Account No.</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+                        {selectedDev.bank_name || 'Bank'}: <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{selectedDev.bank_account_number}</code>
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>IFSC Code</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+                        <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{selectedDev.bank_ifsc || '—'}</code>
+                      </div>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>PAN (Tax TDS 194J) / GSTIN</div>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
+                        <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{selectedDev.pan_number || '—'}</code>
+                        {selectedDev.gstin && <span style={{ fontSize: '0.72rem', color: '#64748b', marginLeft: '6px' }}>({selectedDev.gstin})</span>}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>
+                    Developer has not yet configured their bank account for automated royalty settlements.
+                  </p>
+                )}
               </div>
 
               <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.75rem' }}>

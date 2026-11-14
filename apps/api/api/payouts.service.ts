@@ -74,9 +74,11 @@ export class PayoutsService {
         bankDetails: dev.bank_account_number ? {
           accountHolder: dev.bank_account_holder,
           bankName: dev.bank_name,
+          accountNumber: dev.bank_account_number,
           accountNumberMasked: `****${dev.bank_account_number.slice(-4)}`,
           ifsc: dev.bank_ifsc,
-          pan: dev.pan_number ? `${dev.pan_number.slice(0, 2)}****${dev.pan_number.slice(-2)}` : null
+          pan: dev.pan_number,
+          gstin: dev.gstin
         } : null,
         gstin: dev.gstin
       },

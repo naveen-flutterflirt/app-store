@@ -10,6 +10,15 @@ interface EarningsData {
     revenueSharePct: number;
     payoutConfigured: boolean;
     payoutRef: string | null;
+    bankDetails?: {
+      accountHolder: string;
+      bankName: string;
+      accountNumber: string;
+      accountNumberMasked: string;
+      ifsc: string;
+      pan: string | null;
+      gstin: string | null;
+    } | null;
     gstin: string | null;
   };
   metrics: {
@@ -58,6 +67,19 @@ export function DeveloperPayoutsView({ showToast }: DeveloperPayoutsViewProps) {
   const [bankName, setBankName] = useState('');
   const [panNumber, setPanNumber] = useState('');
   const [gstin, setGstin] = useState('');
+
+  const openBankModal = () => {
+    if (data?.developer?.bankDetails) {
+      const b = data.developer.bankDetails;
+      setAccountHolder(b.accountHolder || '');
+      setBankName(b.bankName || '');
+      setAccountNumber(b.accountNumber || '');
+      setIfscCode(b.ifsc || '');
+      setPanNumber(b.pan || '');
+      setGstin(b.gstin || '');
+    }
+    setShowBankModal(true);
+  };
 
   const getAuthHeaders = (): Record<string, string> => {
     if (typeof window === 'undefined') return {};
@@ -227,7 +249,7 @@ export function DeveloperPayoutsView({ showToast }: DeveloperPayoutsViewProps) {
                 </div>
               </div>
               <button
-                onClick={() => setShowBankModal(true)}
+                onClick={openBankModal}
                 style={{
                   padding: '0.35rem 0.75rem',
                   borderRadius: '6px',
@@ -243,7 +265,7 @@ export function DeveloperPayoutsView({ showToast }: DeveloperPayoutsViewProps) {
             </div>
           ) : (
             <button
-              onClick={() => setShowBankModal(true)}
+              onClick={openBankModal}
               style={{
                 padding: '0.75rem 1.5rem',
                 borderRadius: '10px',
@@ -510,7 +532,7 @@ export function DeveloperPayoutsView({ showToast }: DeveloperPayoutsViewProps) {
                   Bank Account Number *
                 </label>
                 <input
-                  type="password"
+                  type="text"
                   required
                   value={accountNumber}
                   onChange={e => setAccountNumber(e.target.value)}
