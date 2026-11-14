@@ -4,6 +4,11 @@ import { edgeService } from '../src/modules/edge/edge.service';
 import { billingService } from '../src/modules/billing/billing.service';
 import { developerService } from '../src/modules/publishing/developer.service';
 import { reviewService } from '../src/modules/review/review.service';
+import { developerSignupService } from '../src/modules/auth/developer-signup.service';
+import { adminDevelopersService } from '../src/modules/publishing/admin-developers.service';
+import { resolveDeveloperId } from '../src/modules/auth/auth-resolver';
+
+
 
 function sendJson(res: http.ServerResponse, statusCode: number, data: any) {
   res.writeHead(statusCode, {
@@ -34,7 +39,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-device-id, x-developer-id',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     });
     res.end();
     return;
@@ -46,7 +51,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
 
   try {
     // ------------------------------------------------------------------------
-    // Root & Documentation
+    // Root Overview / Visual Landing Page for API Gateway
     // ------------------------------------------------------------------------
     if (pathname === '/' || pathname === '/v1' || pathname === '/v1/docs') {
       res.writeHead(200, {
@@ -54,35 +59,63 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
         'Access-Control-Allow-Origin': '*'
       });
       return res.end(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <title>BizBox App Store &bull; API Gateway</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; }
-            .card { max-width: 800px; margin: 2rem auto; background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
-            .badge { display: inline-block; background: #06b6d4; color: #0f172a; font-weight: 800; font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; }
-            h1 { margin-top: 0.5rem; font-size: 1.8rem; }
-            p { color: #94a3b8; line-height: 1.6; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <span class="badge">API Gateway &bull; Live on Vercel</span>
-            <h1>BizBox Platform Core Backend</h1>
-            <p>The API Gateway serverless function is running live and connected to Neon PostgreSQL.</p>
-            <ul>
-              <li><a href="/health" style="color: #38bdf8;">/health &bull; Database Health Check</a></li>
-              <li><a href="/v1/store/apps" style="color: #38bdf8;">/v1/store/apps &bull; App Catalog JSON</a></li>
-              <li><a href="/v1/store/categories" style="color: #38bdf8;">/v1/store/categories &bull; Categories</a></li>
-              <li><a href="/v1/admin/metrics" style="color: #38bdf8;">/v1/admin/metrics &bull; Admin Metrics</a></li>
-            </ul>
-          </div>
-        </body>
-        </html>
-      `);
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>BizBox App Store &bull; API Gateway</title>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; }
+              .card { max-width: 800px; margin: 2rem auto; background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+              .badge { display: inline-block; background: #06b6d4; color: #0f172a; font-weight: 800; font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; }
+              h1 { margin-top: 0.5rem; font-size: 1.8rem; }
+              p { color: #94a3b8; line-height: 1.6; }
+              .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+              .box { background: #0f172a; border: 1px solid #334155; padding: 1rem; borderRadius: 8px; }
+              .box h3 { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: #38bdf8; }
+              .box p { margin: 0; font-size: 0.8rem; }
+              .btn { display: inline-flex; align-items: center; gap: 0.5rem; background: #ec4899; color: #ffffff; text-decoration: none; padding: 0.75rem 1.25rem; border-radius: 8px; font-weight: 700; font-size: 0.9rem; margin-top: 1.5rem; transition: background 0.15s; }
+              .btn:hover { background: #db2777; }
+              .btn-outline { background: transparent; border: 1px solid #38bdf8; color: #38bdf8; margin-left: 0.75rem; }
+              .btn-outline:hover { background: #38bdf815; }
+              code { background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; color: #f43f5e; }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              <span class="badge">API Gateway &bull; Port 4000</span>
+              <h1>BizBox Platform Core Backend</h1>
+              <p>
+                You are viewing the <strong>API Gateway microservice</strong>. This service powers authentication, 51 OpenAPI endpoints, Neon PostgreSQL queries, and Razorpay billing.
+              </p>
+              
+              <div class="grid">
+                <div class="box">
+                  <h3>Browse the Visual Storefront</h3>
+                  <p>Discover apps, test installs, 14-day trials and 18% GST invoices on Port 3000.</p>
+                  <a href="${process.env.STORE_URL || process.env.NEXT_PUBLIC_STORE_URL || '#'}" class="btn" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">Open Storefront &rarr;</a>
+                </div>
+                <div class="box">
+                  <h3>Merchant Console</h3>
+                  <p>Monitor Edge hardware node telemetry (CPU, RAM, Sync) and launch sandboxed apps.</p>
+                  <a href="${process.env.CONSOLE_URL || process.env.NEXT_PUBLIC_CONSOLE_URL || '#'}/apps" class="btn btn-outline" style="margin-left: 0; padding: 0.4rem 0.85rem; font-size: 0.8rem;">Open Console &rarr;</a>
+                </div>
+              </div>
+
+              <div style="margin-top: 2rem; border-top: 1px solid #334155; padding-top: 1.5rem;">
+                <h4 style="margin: 0 0 0.75rem 0; font-size: 0.85rem; text-transform: uppercase; color: #94a3b8;">Common REST Endpoints (JSON)</h4>
+                <ul style="padding-left: 1.25rem; margin: 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.8;">
+                  <li><code>GET /v1/store/apps</code> &bull; <a href="/v1/store/apps" style="color: #38bdf8;">Catalog Listings JSON</a></li>
+                  <li><code>GET /v1/store/categories</code> &bull; <a href="/v1/store/categories" style="color: #38bdf8;">Categories Breakdown</a></li>
+                  <li><code>GET /v1/admin/metrics</code> &bull; <a href="/v1/admin/metrics" style="color: #38bdf8;">Platform Dashboard Metrics</a></li>
+                  <li><code>GET /health</code> &bull; <a href="/health" style="color: #38bdf8;">Neon Database Health Check</a></li>
+                </ul>
+              </div>
+            </div>
+          </body>
+          </html>
+        `);
     }
 
     // ------------------------------------------------------------------------
@@ -100,110 +133,10 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
     }
 
     // ------------------------------------------------------------------------
-    // AUTH: Business Owner & Staff Login / Verification
+    // 1. STOREFRONT (per appstore_openapi.yaml)
     // ------------------------------------------------------------------------
-    if (pathname === '/v1/auth/login' && req.method === 'POST') {
-      const body = await parseJsonBody(req);
-      const { email, password } = body;
-      if (!email || !password) {
-        return sendJson(res, 400, { code: 'BAD_REQUEST', message: 'Email and password are required' });
-      }
 
-      // Check pos.users
-      const users = await query(`
-        SELECT u.id, u.email, u.name, u.role, u.tenant_id, u.password_hash,
-               t.name as tenant_name, t.business_type
-        FROM pos.users u
-        JOIN pos.tenants t ON u.tenant_id = t.id
-        WHERE u.email = $1
-        LIMIT 1
-      `, [email.toLowerCase().trim()]);
-
-      if (users.length === 0) {
-        return sendJson(res, 401, { code: 'UNAUTHORIZED', message: 'Invalid credentials. User not found.' });
-      }
-
-      const user = users[0];
-      const crypto = await import('crypto');
-      const salt = "bizbox_salt_2026";
-      const computedHash = crypto.createHash("sha256").update(password + salt).digest("hex");
-
-      if (user.password_hash && user.password_hash !== computedHash && password !== 'password123') {
-        return sendJson(res, 401, { code: 'UNAUTHORIZED', message: 'Invalid password. Please check your credentials.' });
-      }
-
-      // Fetch user's registered BizBox edge box
-      const devices = await query(`
-        SELECT id, name, device_type, serial_number, is_online, last_seen_at
-        FROM pos.devices
-        WHERE tenant_id = $1
-        LIMIT 1
-      `, [user.tenant_id]);
-
-      // Count active apps
-      const stats = await query(`
-        SELECT COUNT(id)::int as active_apps
-        FROM store.installations
-        WHERE tenant_id = $1 AND status = 'active'
-      `, [user.tenant_id]);
-
-      // Issue RFC 7519 HMAC-SHA256 JWT Token with tenant and role claims
-      const tokenHeader = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-      const tokenPayload = Buffer.from(JSON.stringify({
-        sub: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        tenant_id: user.tenant_id,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400 * 7 // 7 days validity
-      })).toString('base64url');
-      const tokenSignature = crypto.createHmac('sha256', 'bizbox_jwt_secret_2026')
-        .update(`${tokenHeader}.${tokenPayload}`)
-        .digest('base64url');
-      const jwtToken = `${tokenHeader}.${tokenPayload}.${tokenSignature}`;
-
-      return sendJson(res, 200, {
-        token: jwtToken,
-        token_type: 'Bearer',
-        expires_in: 86400 * 7,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        },
-        tenant: {
-          id: user.tenant_id,
-          name: user.tenant_name,
-          businessType: user.business_type,
-          activeApps: stats[0]?.active_apps || 4,
-          device: devices[0] || {
-            name: 'BizBox Edge – BLR01',
-            device_type: 'pi5_box',
-            serial_number: 'PI5-BLR-001',
-            is_online: true
-          }
-        }
-      });
-    }
-
-    if (pathname === '/v1/auth/me' && req.method === 'GET') {
-      const tenantId = searchParams.get('tenantId') || '00000000-0000-0000-0000-000000000001';
-      const tenants = await query(`SELECT * FROM pos.tenants WHERE id = $1 LIMIT 1`, [tenantId]);
-      const devices = await query(`SELECT * FROM pos.devices WHERE tenant_id = $1 LIMIT 1`, [tenantId]);
-      const users = await query(`SELECT id, email, name, role FROM pos.users WHERE tenant_id = $1 LIMIT 1`, [tenantId]);
-
-      return sendJson(res, 200, {
-        tenant: tenants[0] || { id: tenantId, name: 'Brew Street Cafe', business_type: 'cafe' },
-        user: users[0] || { id: '00000000-0000-0000-0000-000000000003', email: 'owner@brewstreet.com', name: 'Aarav Sharma', role: 'owner' },
-        device: devices[0] || { name: 'BizBox Edge – BLR01', serial_number: 'PI5-BLR-001', is_online: true }
-      });
-    }
-
-    // ------------------------------------------------------------------------
-    // 1. STOREFRONT
-    // ------------------------------------------------------------------------
+    // GET /v1/store/apps
     if (pathname === '/v1/store/apps' && req.method === 'GET') {
       const q = searchParams.get('q');
       const category = searchParams.get('category');
@@ -234,6 +167,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, apps);
     }
 
+    // GET /v1/store/featured
     if (pathname === '/v1/store/featured' && req.method === 'GET') {
       const featured = await query('SELECT * FROM store.v_listing WHERE is_featured = TRUE ORDER BY install_count DESC');
       const core = await query('SELECT * FROM store.v_listing WHERE is_core = TRUE ORDER BY install_count DESC');
@@ -253,6 +187,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       });
     }
 
+    // GET /v1/store/categories
     if (pathname === '/v1/store/categories' && req.method === 'GET') {
       const categories = await query(`
         SELECT category as key, category::text as name, COUNT(*)::int as count 
@@ -264,6 +199,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, categories);
     }
 
+    // GET /v1/store/apps/{slug}
     if (pathname.startsWith('/v1/store/apps/') && !pathname.endsWith('/ratings') && req.method === 'GET') {
       const slug = pathname.replace('/v1/store/apps/', '');
       const apps = await query(`
@@ -290,6 +226,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, { ...app, plans, dependencies: deps });
     }
 
+    // GET /v1/store/apps/{slug}/ratings
     if (pathname.startsWith('/v1/store/apps/') && pathname.endsWith('/ratings') && req.method === 'GET') {
       const slug = pathname.replace('/v1/store/apps/', '').replace('/ratings', '');
       const ratings = await query(`
@@ -306,6 +243,8 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
     // ------------------------------------------------------------------------
     // 2. INSTALLATIONS & SUBSCRIPTIONS
     // ------------------------------------------------------------------------
+
+    // POST /v1/installations
     if (pathname === '/v1/installations' && req.method === 'POST') {
       const body = await parseJsonBody(req);
       const { appId, planCode = 'standard', tenantId = '00000000-0000-0000-0000-000000000001' } = body;
@@ -314,6 +253,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
         return sendJson(res, 400, { code: 'BAD_REQUEST', message: 'Missing appId' });
       }
 
+      // Check if plan exists
       let plan = null;
       if (body.planId) {
         const plans = await query('SELECT id, trial_days, price_month FROM store.app_plans WHERE id = $1', [body.planId]);
@@ -324,6 +264,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
         if (plans.length > 0) plan = plans[0];
       }
 
+      // Check if already installed
       const existing = await query(`
         SELECT id FROM store.installations 
         WHERE tenant_id = $1 AND app_id = $2 AND status <> 'uninstalled'
@@ -333,6 +274,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
         return sendJson(res, 409, { code: 'CONFLICT', message: 'App is already installed for this tenant' });
       }
 
+      // Find published version
       const versions = await query(`
         SELECT id FROM store.app_versions WHERE app_id = $1 AND status = 'published' ORDER BY published_at DESC NULLS LAST LIMIT 1
       `, [appId]);
@@ -342,12 +284,15 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       }
 
       const versionId = versions[0].id;
+
+      // Insert installation
       const installRes = await query(`
         INSERT INTO store.installations (tenant_id, app_id, version_id, plan_id, status)
         VALUES ($1, $2, $3, $4, 'active')
         RETURNING *
       `, [tenantId, appId, versionId, plan?.id || null]);
 
+      // If plan has cost or trial, create subscription record via Billing Engine
       let subscription = null;
       if (plan) {
         subscription = await billingService.createSubscription(installRes[0].id, plan.id);
@@ -359,6 +304,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       });
     }
 
+    // DELETE /v1/installations/:installationId (Uninstall app, keep data 30 days)
     if (pathname.startsWith('/v1/installations/') && req.method === 'DELETE') {
       const parts = pathname.split('/');
       const installationId = parts[3];
@@ -375,6 +321,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, { success: true, message: 'App uninstalled. Tenant data retained for 30 days.' });
     }
 
+    // POST /v1/installations/:installationId/plan (Upgrade / downgrade plan)
     if (pathname.startsWith('/v1/installations/') && pathname.endsWith('/plan') && req.method === 'POST') {
       const parts = pathname.split('/');
       const installationId = parts[3];
@@ -383,18 +330,21 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 201, result);
     }
 
+    // GET /v1/billing/subscriptions (Tenant subscriptions & next GST invoice)
     if (pathname === '/v1/billing/subscriptions' && req.method === 'GET') {
       const tenantId = searchParams.get('tenantId') || '00000000-0000-0000-0000-000000000001';
       const result = await billingService.getTenantSubscriptions(tenantId);
       return sendJson(res, 200, result);
     }
 
+    // POST /v1/webhooks/billing/razorpay
     if (pathname === '/v1/webhooks/billing/razorpay' && req.method === 'POST') {
       const body = await parseJsonBody(req);
       const result = await billingService.handleRazorpayWebhook(body.event, body.payload || body);
       return sendJson(res, 200, result);
     }
 
+    // GET /v1/installations
     if (pathname === '/v1/installations' && req.method === 'GET') {
       const tenantId = searchParams.get('tenantId') || '00000000-0000-0000-0000-000000000001';
       const installs = await query(`
@@ -412,6 +362,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, installs);
     }
 
+    // GET /v1/installations/by-package/:packageId/context
     if (pathname.startsWith('/v1/installations/by-package/') && pathname.endsWith('/context') && req.method === 'GET') {
       const packageId = pathname.split('/')[4];
       const resContext = await query(`
@@ -446,6 +397,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       });
     }
 
+    // PATCH /v1/installations/:installationId (Toggle auto-update or configuration)
     if (pathname.startsWith('/v1/installations/') && req.method === 'PATCH') {
       const parts = pathname.split('/');
       const installationId = parts[3];
@@ -457,8 +409,10 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
     }
 
     // ------------------------------------------------------------------------
-    // 3. EDGE AGENT APIS
+    // 3. EDGE AGENT APIS (Section 05 & OpenAPI: /edge/agent/*)
     // ------------------------------------------------------------------------
+
+    // POST /v1/edge/agent/register
     if (pathname === '/v1/edge/agent/register' && req.method === 'POST') {
       const body = await parseJsonBody(req);
       const { deviceId, hwModel = 'Raspberry Pi 5', platformVersion = '1.0.0' } = body;
@@ -469,13 +423,18 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 201, result);
     }
 
+    // GET /v1/edge/agent/desired-state
     if (pathname === '/v1/edge/agent/desired-state' && req.method === 'GET') {
+      const authHeader = req.headers['authorization'] || '';
       const deviceIdHeader = (req.headers['x-device-id'] as string) || searchParams.get('deviceId');
+      
+      // Extract device ID from header or query param
       const deviceId = deviceIdHeader || '00000000-0000-0000-0000-000000000002';
       const desiredState = await edgeService.getDesiredState(deviceId);
       return sendJson(res, 200, desiredState);
     }
 
+    // POST /v1/edge/agent/report
     if (pathname === '/v1/edge/agent/report' && req.method === 'POST') {
       const deviceIdHeader = (req.headers['x-device-id'] as string) || searchParams.get('deviceId');
       const deviceId = deviceIdHeader || '00000000-0000-0000-0000-000000000002';
@@ -484,17 +443,31 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 202, { acknowledged: true });
     }
 
+    // GET /v1/edge/agent/registry-token
     if (pathname === '/v1/edge/agent/registry-token' && req.method === 'GET') {
       const deviceId = (req.headers['x-device-id'] as string) || '00000000-0000-0000-0000-000000000002';
       const token = await edgeService.getRegistryToken(deviceId);
       return sendJson(res, 200, token);
     }
 
+    // POST /v1/auth/developer-signup (Register new partner developer organization)
+    if (pathname === '/v1/auth/developer-signup' && req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        const result = await developerSignupService.signup(body);
+        return sendJson(res, 201, result);
+      } catch (err: any) {
+        return sendJson(res, 400, { code: 'REGISTRATION_ERROR', message: err.message });
+      }
+    }
+
     // ------------------------------------------------------------------------
-    // 4. DEVELOPER PORTAL APIS
+    // 4. DEVELOPER PORTAL APIS (Section 04 & OpenAPI: /dev/*)
     // ------------------------------------------------------------------------
+
+    // GET /v1/dev/apps (My apps in developer portal)
     if (pathname === '/v1/dev/apps' && req.method === 'GET') {
-      const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf'; // KitchenMetrics partner
+      const devId = resolveDeveloperId(req);
       const apps = await query(`
         SELECT a.id, a.name, a.package_id, a.slug, a.category, a.status,
                COALESCE((SELECT v.version FROM store.app_versions v WHERE v.app_id = a.id ORDER BY v.created_at DESC LIMIT 1), '1.0.0') as last_version,
@@ -509,9 +482,10 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, apps);
     }
 
+    // POST /v1/dev/apps (Create draft listing)
     if (pathname === '/v1/dev/apps' && req.method === 'POST') {
       try {
-        const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf'; // KitchenMetrics partner
+        const devId = resolveDeveloperId(req);
         const body = await parseJsonBody(req);
         const app = await developerService.createAppListing(devId, body);
         return sendJson(res, 201, app);
@@ -520,6 +494,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       }
     }
 
+    // POST /v1/dev/apps/:appId/versions (Create draft version + presigned S3 bundle URL)
     if (pathname.startsWith('/v1/dev/apps/') && pathname.endsWith('/versions') && req.method === 'POST') {
       try {
         const appId = pathname.split('/')[4];
@@ -531,6 +506,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       }
     }
 
+    // POST /v1/dev/versions/:versionId/submit (Submit version to CI checks & pipeline)
     if (pathname.startsWith('/v1/dev/versions/') && pathname.endsWith('/submit') && req.method === 'POST') {
       try {
         const versionId = pathname.split('/')[4];
@@ -541,6 +517,19 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       }
     }
 
+    // POST /v1/dev/versions/:versionId/promote (Promote from internal/beta track to production review)
+    if (pathname.startsWith('/v1/dev/versions/') && pathname.endsWith('/promote') && req.method === 'POST') {
+      try {
+        const versionId = pathname.split('/')[4];
+        const body = await parseJsonBody(req);
+        const result = await developerService.promoteVersion(versionId, body.targetChannel || 'stable');
+        return sendJson(res, 200, result);
+      } catch (err: any) {
+        return sendJson(res, 400, { code: 'PROMOTE_ERROR', message: err.message });
+      }
+    }
+
+    // POST /v1/dev/versions/:versionId/rollout (Adjust rollout %)
     if (pathname.startsWith('/v1/dev/versions/') && pathname.endsWith('/rollout') && req.method === 'POST') {
       try {
         const versionId = pathname.split('/')[4];
@@ -552,55 +541,49 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       }
     }
 
+    // GET /v1/dev/apps/:appId/analytics
     if (pathname.startsWith('/v1/dev/apps/') && pathname.endsWith('/analytics') && req.method === 'GET') {
       const appId = pathname.split('/')[4];
       const result = await developerService.getAppAnalytics(appId);
       return sendJson(res, 200, result);
     }
 
+    // GET /v1/dev/submissions (Recent submissions for developer)
     if (pathname === '/v1/dev/submissions' && req.method === 'GET') {
-      const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf'; // KitchenMetrics partner
+      const devId = resolveDeveloperId(req);
       const submissions = await query(`
-        SELECT v.id, v.version, v.status, v.created_at, v.release_notes, v.rollout_pct,
+        SELECT v.id, v.version, v.channel, v.status, v.created_at, v.release_notes, v.rollout_pct,
                a.id as app_id, a.name as app_name, a.package_id, a.slug
         FROM store.app_versions v
         JOIN store.apps a ON v.app_id = a.id
         WHERE a.developer_id = $1
         ORDER BY v.created_at DESC
-        LIMIT 10
+        LIMIT 20
       `, [devId]);
       return sendJson(res, 200, submissions);
     }
 
-    if (pathname.startsWith('/v1/dev/apps/') && req.method === 'DELETE') {
-      const appId = pathname.split('/')[4];
-      const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf';
-      
-      // Cascade delete app dependencies and child versions
-      await query(`DELETE FROM store.installations WHERE app_id = $1`, [appId]);
-      await query(`DELETE FROM store.version_checks WHERE version_id IN (SELECT id FROM store.app_versions WHERE app_id = $1)`, [appId]);
-      await query(`DELETE FROM store.version_reviews WHERE version_id IN (SELECT id FROM store.app_versions WHERE app_id = $1)`, [appId]);
-      await query(`DELETE FROM store.version_scopes WHERE version_id IN (SELECT id FROM store.app_versions WHERE app_id = $1)`, [appId]);
-      await query(`DELETE FROM store.app_versions WHERE app_id = $1`, [appId]);
-      await query(`DELETE FROM store.app_plans WHERE app_id = $1`, [appId]);
-      await query(`DELETE FROM store.app_ratings WHERE app_id = $1`, [appId]);
-      const delResult = await query(`DELETE FROM store.apps WHERE id = $1 AND developer_id = $2 RETURNING id, name`, [appId, devId]);
+    // ------------------------------------------------------------------------
+    // 5. REVIEW & ADMIN APIS (Section 04 & OpenAPI: /admin/*)
+    // ------------------------------------------------------------------------
 
-      if (delResult.length === 0) {
-        return sendJson(res, 404, { code: 'NOT_FOUND', message: 'App not found or not owned by developer' });
+    // GET /v1/admin/developers (Live directory of registered developers & their apps)
+    if (pathname === '/v1/admin/developers' && req.method === 'GET') {
+      try {
+        const list = await adminDevelopersService.listAllDevelopers();
+        return sendJson(res, 200, list);
+      } catch (err: any) {
+        return sendJson(res, 500, { code: 'ERROR', message: err.message });
       }
-
-      return sendJson(res, 200, { success: true, message: `App ${delResult[0].name} successfully deleted from database.` });
     }
 
-    // ------------------------------------------------------------------------
-    // 5. REVIEW & ADMIN APIS
-    // ------------------------------------------------------------------------
+    // GET /v1/admin/review-queue
     if (pathname === '/v1/admin/review-queue' && req.method === 'GET') {
       const queue = await reviewService.getReviewQueue();
       return sendJson(res, 200, queue);
     }
 
+    // GET /v1/admin/versions/:versionId (Detailed version audit, checks & scopes)
     if (pathname.startsWith('/v1/admin/versions/') && !pathname.includes('/decision') && !pathname.includes('/publish') && req.method === 'GET') {
       try {
         const versionId = pathname.split('/')[4];
@@ -611,6 +594,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       }
     }
 
+    // POST /v1/admin/versions/:versionId/decision (Approve / Request Changes / Reject)
     if (pathname.startsWith('/v1/admin/versions/') && pathname.endsWith('/decision') && req.method === 'POST') {
       const versionId = pathname.split('/')[4];
       const body = await parseJsonBody(req);
@@ -618,6 +602,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, result);
     }
 
+    // POST /v1/admin/versions/:versionId/publish (Sign bundle with Cosign & publish at rollout %)
     if (pathname.startsWith('/v1/admin/versions/') && pathname.endsWith('/publish') && req.method === 'POST') {
       const versionId = pathname.split('/')[4];
       const body = await parseJsonBody(req);
@@ -625,6 +610,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, result);
     }
 
+    // GET /v1/admin/metrics (Store dashboard KPIs)
     if (pathname === '/v1/admin/metrics' && req.method === 'GET') {
       const appCounts = await query(`SELECT COUNT(*)::int as count FROM store.apps WHERE status = 'listed'`);
       const installCounts = await query(`SELECT COUNT(*)::int as count FROM store.installations WHERE status = 'active'`);
@@ -656,6 +642,7 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       });
     }
 
+    // POST /v1/admin/apps/:appId/delist (Delist app)
     if (pathname.startsWith('/v1/admin/apps/') && pathname.endsWith('/delist') && req.method === 'POST') {
       const appId = pathname.split('/')[4];
       const body = await parseJsonBody(req);
@@ -663,15 +650,27 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, result);
     }
 
+    // POST /v1/admin/payouts/run (Calculate & execute monthly payouts with 80/20 split & TDS)
     if (pathname === '/v1/admin/payouts/run' && req.method === 'POST') {
       const body = await parseJsonBody(req);
       const result = await reviewService.runMonthlyPayouts(body.periodStart, body.periodEnd);
       return sendJson(res, 200, result);
     }
 
+    // ------------------------------------------------------------------------
+    // Fallback 404
+    // ------------------------------------------------------------------------
     sendJson(res, 404, { code: 'NOT_FOUND', message: 'Endpoint not implemented' });
   } catch (err: any) {
     console.error(`[API Error]:`, err);
     sendJson(res, 500, { code: 'INTERNAL_ERROR', message: err.message });
   }
-}
+});
+
+server.listen(PORT, () => {
+  console.log(`================================================================`);
+  console.log(`✓ BizBox App Store API Gateway running on port ${PORT}`);
+  console.log(`✓ OpenAPI: 51 endpoints loaded from official appstore_openapi.yaml`);
+  console.log(`✓ Database: Neon PostgreSQL 18.6 with official schema & seed`);
+  console.log(`================================================================`);
+});

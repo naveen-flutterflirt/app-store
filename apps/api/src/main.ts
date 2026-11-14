@@ -4,6 +4,9 @@ import { edgeService } from './modules/edge/edge.service';
 import { billingService } from './modules/billing/billing.service';
 import { developerService } from './modules/publishing/developer.service';
 import { reviewService } from './modules/review/review.service';
+import { developerSignupService } from './modules/auth/developer-signup.service';
+import { adminDevelopersService } from './modules/publishing/admin-developers.service';
+import { resolveDeveloperId } from './modules/auth/auth-resolver';
 
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -12,7 +15,7 @@ function sendJson(res: http.ServerResponse, statusCode: number, data: any) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-device-id, x-developer-id',
   });
   res.end(JSON.stringify(data, null, 2));
 }
@@ -447,13 +450,24 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, token);
     }
 
+    // POST /v1/auth/developer-signup (Register new partner developer organization)
+    if (pathname === '/v1/auth/developer-signup' && req.method === 'POST') {
+      try {
+        const body = await parseJsonBody(req);
+        const result = await developerSignupService.signup(body);
+        return sendJson(res, 201, result);
+      } catch (err: any) {
+        return sendJson(res, 400, { code: 'REGISTRATION_ERROR', message: err.message });
+      }
+    }
+
     // ------------------------------------------------------------------------
     // 4. DEVELOPER PORTAL APIS (Section 04 & OpenAPI: /dev/*)
     // ------------------------------------------------------------------------
 
     // GET /v1/dev/apps (My apps in developer portal)
     if (pathname === '/v1/dev/apps' && req.method === 'GET') {
-      const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf'; // KitchenMetrics partner
+      const devId = resolveDeveloperId(req);
       const apps = await query(`
         SELECT a.id, a.name, a.package_id, a.slug, a.category, a.status,
                COALESCE((SELECT v.version FROM store.app_versions v WHERE v.app_id = a.id ORDER BY v.created_at DESC LIMIT 1), '1.0.0') as last_version,
@@ -471,7 +485,7 @@ const server = http.createServer(async (req, res) => {
     // POST /v1/dev/apps (Create draft listing)
     if (pathname === '/v1/dev/apps' && req.method === 'POST') {
       try {
-        const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf'; // KitchenMetrics partner
+        const devId = resolveDeveloperId(req);
         const body = await parseJsonBody(req);
         const app = await developerService.createAppListing(devId, body);
         return sendJson(res, 201, app);
@@ -536,7 +550,7 @@ const server = http.createServer(async (req, res) => {
 
     // GET /v1/dev/submissions (Recent submissions for developer)
     if (pathname === '/v1/dev/submissions' && req.method === 'GET') {
-      const devId = (req.headers['x-developer-id'] as string) || '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf'; // KitchenMetrics partner
+      const devId = resolveDeveloperId(req);
       const submissions = await query(`
         SELECT v.id, v.version, v.channel, v.status, v.created_at, v.release_notes, v.rollout_pct,
                a.id as app_id, a.name as app_name, a.package_id, a.slug
@@ -552,6 +566,16 @@ const server = http.createServer(async (req, res) => {
     // ------------------------------------------------------------------------
     // 5. REVIEW & ADMIN APIS (Section 04 & OpenAPI: /admin/*)
     // ------------------------------------------------------------------------
+
+    // GET /v1/admin/developers (Live directory of registered developers & their apps)
+    if (pathname === '/v1/admin/developers' && req.method === 'GET') {
+      try {
+        const list = await adminDevelopersService.listAllDevelopers();
+        return sendJson(res, 200, list);
+      } catch (err: any) {
+        return sendJson(res, 500, { code: 'ERROR', message: err.message });
+      }
+    }
 
     // GET /v1/admin/review-queue
     if (pathname === '/v1/admin/review-queue' && req.method === 'GET') {

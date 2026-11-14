@@ -97,12 +97,25 @@ export default function DeveloperConsolePage() {
     { name: 'Permissions & data use audit', desc: 'Granular justification for requested scopes' }
   ];
 
+  const getAuthHeaders = (): Record<string, string> => {
+    if (typeof window === 'undefined') return {};
+    const token = localStorage.getItem('bizbox_token');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
   const loadDeveloperData = () => {
     if (!authorized) return;
     setLoading(true);
+    const headers = getAuthHeaders();
     Promise.all([
-      fetch(`${API_URL}/dev/apps`).then(r => r.json()),
-      fetch(`${API_URL}/dev/submissions`).then(r => r.json())
+      fetch(`${API_URL}/dev/apps`, { headers }).then(r => r.json()),
+      fetch(`${API_URL}/dev/submissions`, { headers }).then(r => r.json())
     ])
       .then(([appsData, subsData]) => {
         if (Array.isArray(appsData)) {
@@ -161,7 +174,7 @@ export default function DeveloperConsolePage() {
     try {
       const res = await fetch(`${API_URL}/dev/apps`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           name: trimmedName,
           tagline: newAppTagline.trim() || 'Custom business application for BizBox',
@@ -395,7 +408,7 @@ export default function DeveloperConsolePage() {
     try {
       const res = await fetch(`${API_URL}/dev/apps/${appToDelete.id}`, {
         method: 'DELETE',
-        headers: { 'x-developer-id': '60fba5bd-cbc8-4c28-8a53-b6e8e3d45bdf' }
+        headers: getAuthHeaders()
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

@@ -224,8 +224,16 @@ export default function DeveloperLoginPage() {
             </button>
           </form>
 
+          {/* New Developer Register Link */}
+          <div style={{ marginTop: '1.5rem', textAlign: 'center', backgroundColor: '#fdf2f8', padding: '0.85rem', borderRadius: '10px', border: '1px solid #fbcfe8' }}>
+            <span style={{ fontSize: '0.82rem', color: '#831843' }}>New to BizBox Platform? </span>
+            <a href="/signup" style={{ color: '#ec4899', fontWeight: 800, textDecoration: 'none', fontSize: '0.82rem' }}>
+              Create Developer Account →
+            </a>
+          </div>
+
           {/* Footer Assistance */}
-          <div style={{ marginTop: '2rem', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem' }}>
+          <div style={{ marginTop: '1.5rem', textAlign: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem' }}>
             <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
               Are you an outlet merchant?{' '}
               <a href="https://app-store-742z.vercel.app/login" style={{ color: '#ec4899', fontWeight: 700, textDecoration: 'none' }}>
