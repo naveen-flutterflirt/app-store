@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, ADMIN_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { AdminHeader } from '../components/AdminHeader';
 import { ADMIN_VERSION } from '../version';
 
 interface DeveloperItem {
@@ -118,61 +119,9 @@ export default function AdminDevelopersPage() {
   const totalActiveInstalls = developers.reduce((acc, d) => acc + (Number(d.total_installs) || 0), 0);
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '100vh' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
       {/* Top Navbar */}
-      <header style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '0 1.5rem',
-        minHeight: '56px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href={`${ADMIN_URL}/dashboard`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
-            <span style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              color: '#ec4899',
-              backgroundColor: '#fdf2f8',
-              border: '1px solid #fbcfe8',
-              padding: '1px 6px',
-              borderRadius: '4px'
-            }}>Admin</span>
-          </a>
-          <nav style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Review queue
-            </a>
-            <a href={`${ADMIN_URL}/developers`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span>Developers & Partners</span>
-              <span style={{ backgroundColor: '#0284c7', color: '#ffffff', fontSize: '0.65rem', fontWeight: 800, padding: '1px 5px', borderRadius: '999px' }}>
-                {totalRegisteredDevs}
-              </span>
-            </a>
-            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Store Metrics
-            </a>
-            <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Public Store ↗
-            </a>
-          </nav>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0.75rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#ec4899', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>F</div>
-            <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>FlutterFlirt Admin</div>
-              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Store Platform Lead</div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AdminHeader currentTab="developers" devCount={totalRegisteredDevs} />
 
       {/* Main Container */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -208,7 +157,7 @@ export default function AdminDevelopersPage() {
 
         {/* 3 Overview KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.35rem', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.35rem', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               Total Registered Developers
             </div>
@@ -216,7 +165,7 @@ export default function AdminDevelopersPage() {
             <div style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 600, marginTop: '0.2rem' }}>Verified Partner Organizations</div>
           </div>
 
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.35rem', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.35rem', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               Total Ecosystem Apps
             </div>
@@ -224,7 +173,7 @@ export default function AdminDevelopersPage() {
             <div style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 600, marginTop: '0.2rem' }}>Production, Beta & Sandbox Packages</div>
           </div>
 
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.35rem', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.35rem', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               Ecosystem POS Installs
             </div>
@@ -254,10 +203,10 @@ export default function AdminDevelopersPage() {
         </div>
 
         {/* Developers Table */}
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #fbcfe8' }}>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Developer / Company</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Contact Email</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Bank Account & Payout</th>
@@ -460,23 +409,23 @@ export default function AdminDevelopersPage() {
 
                 {selectedDev.bank_account_number ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem' }}>
-                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #fbcfe8' }}>
                       <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Account Holder</div>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>{selectedDev.bank_account_holder || '—'}</div>
                     </div>
-                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #fbcfe8' }}>
                       <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Bank & Account No.</div>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
                         {selectedDev.bank_name || 'Bank'}: <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{selectedDev.bank_account_number}</code>
                       </div>
                     </div>
-                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #fbcfe8' }}>
                       <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>IFSC Code</div>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
                         <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{selectedDev.bank_ifsc || '—'}</code>
                       </div>
                     </div>
-                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #fbcfe8' }}>
                       <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>PAN (Tax TDS 194J) / GSTIN</div>
                       <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '2px' }}>
                         <code style={{ backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{selectedDev.pan_number || '—'}</code>
@@ -508,7 +457,7 @@ export default function AdminDevelopersPage() {
                       justifyContent: 'space-between',
                       padding: '0.85rem 1rem',
                       borderRadius: '10px',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid #fbcfe8',
                       backgroundColor: '#f8fafc'
                     }}>
                       <div>

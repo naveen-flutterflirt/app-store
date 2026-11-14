@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { AdminHeader } from '../components/AdminHeader';
 
 interface QueueItem {
   version_id: string;
@@ -264,7 +265,7 @@ export default function ReviewQueuePage() {
   };
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '100vh' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
       <style>{`
         @keyframes shimmer {
           0% { background-position: -400px 0; }
@@ -290,99 +291,13 @@ export default function ReviewQueuePage() {
         }
       `}</style>
       {/* Light Navbar */}
-      <header style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '0 1.5rem',
-        minHeight: '56px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href={`${ADMIN_URL}/review-queue`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
-            <span style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              color: '#ec4899',
-              backgroundColor: '#fdf2f8',
-              border: '1px solid #fbcfe8',
-              padding: '1px 6px',
-              borderRadius: '4px'
-            }}>Admin</span>
-          </a>
-          <nav className="nav-desktop" style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              Review queue
-              <span style={{ backgroundColor: '#fef3c7', color: '#b45309', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '999px' }}>
-                {queue.length}
-              </span>
-            </a>
-            <a href={`${ADMIN_URL}/developers`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Developers & Partners
-            </a>
-            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Store Metrics</a>
-            <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Public Store ↗</a>
-          </nav>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0.75rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#ec4899', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
-              {user.name.slice(0, 1).toUpperCase()}
-            </div>
-            <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>{user.name}</div>
-              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Store reviewer ({user.role})</div>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              localStorage.removeItem('bizbox_token');
-              localStorage.removeItem('bizbox_user');
-              window.location.href = '/login';
-            }}
-            style={{
-              padding: '0.35rem 0.65rem',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: '#dc2626',
-              cursor: 'pointer'
-            }}
-            title="Sign out of Admin console"
-          >
-            Sign Out
-          </button>
-          <button
-            className="nav-mobile-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{
-              padding: '0.4rem 0.65rem',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontSize: '1.1rem',
-              cursor: 'pointer',
-              color: '#0f172a'
-            }}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? '✕' : '☰'}
-          </button>
-        </div>
-      </header>
+      <AdminHeader currentTab="review" pendingReviewsCount={queue.length} />
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="nav-mobile-drawer" style={{
           backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: '1px solid #fbcfe8',
           padding: '1rem 1.5rem',
           display: 'flex',
           flexDirection: 'column',
@@ -414,7 +329,7 @@ export default function ReviewQueuePage() {
         </div>
 
         {loading ? (
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '2rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '2rem' }}>
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
               <div className="skeleton" style={{ width: '48px', height: '48px', borderRadius: '10px' }} />
               <div style={{ flex: 1 }}>
@@ -461,7 +376,7 @@ export default function ReviewQueuePage() {
             )}
 
             {selectedItem && (
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '1.5rem', marginBottom: '1.5rem' }}>
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '10px', backgroundColor: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
@@ -749,7 +664,7 @@ export default function ReviewQueuePage() {
             maxHeight: '90vh',
             overflowY: 'auto',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '1px solid #e2e8f0'
+            border: '1px solid #fbcfe8'
           }}>
             <h3 style={{ margin: '0 0 0.4rem 0', fontSize: '1.2rem', fontWeight: 800, color: confirmModal === 'reject' ? '#991b1b' : '#0f172a' }}>
               {confirmModal === 'reject' ? 'Reject Version' : 'Request Changes'}

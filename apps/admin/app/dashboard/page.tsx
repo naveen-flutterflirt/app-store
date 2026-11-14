@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { AdminHeader } from '../components/AdminHeader';
 
 interface MetricsData {
   listed_apps: number;
@@ -56,7 +57,7 @@ export default function DashboardPage() {
   const maxVal = 8800;
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '100vh' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
       <style>{`
         @keyframes shimmer {
           0% { background-position: -400px 0; }
@@ -84,97 +85,13 @@ export default function DashboardPage() {
         }
       `}</style>
       {/* Light Navbar */}
-      <header style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '0 1.5rem',
-        minHeight: '56px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href={`${ADMIN_URL}/dashboard`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
-            <span style={{
-              fontSize: '0.65rem',
-              fontWeight: 700,
-              color: '#ec4899',
-              backgroundColor: '#fdf2f8',
-              border: '1px solid #fbcfe8',
-              padding: '1px 6px',
-              borderRadius: '4px'
-            }}>Admin</span>
-          </a>
-          <nav className="nav-desktop" style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              Review queue
-              <span style={{ backgroundColor: '#fef3c7', color: '#b45309', fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '999px' }}>
-                {metrics?.pending_reviews ?? 0}
-              </span>
-            </a>
-            <a href={`${ADMIN_URL}/developers`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Developers & Partners
-            </a>
-            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none' }}>Store Metrics</a>
-            <a href={STORE_URL} target="_blank" rel="noreferrer" style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>Public Store ↗</a>
-          </nav>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0.75rem', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-            <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#ec4899', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>F</div>
-            <div style={{ textAlign: 'left', lineHeight: 1.2 }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a' }}>FlutterFlirt Admin</div>
-              <div style={{ fontSize: '0.65rem', color: '#64748b' }}>Store team (admin)</div>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              localStorage.removeItem('bizbox_token');
-              localStorage.removeItem('bizbox_user');
-              window.location.href = '/login';
-            }}
-            style={{
-              padding: '0.35rem 0.65rem',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: '#dc2626',
-              cursor: 'pointer'
-            }}
-            title="Sign out of Admin console"
-          >
-            Sign Out
-          </button>
-          <button
-            className="nav-mobile-btn"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{
-              padding: '0.4rem 0.65rem',
-              borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              fontSize: '1.1rem',
-              cursor: 'pointer',
-              color: '#0f172a'
-            }}
-            aria-label="Toggle navigation menu"
-          >
-            {mobileMenuOpen ? '✕' : '☰'}
-          </button>
-        </div>
-      </header>
+      <AdminHeader currentTab="metrics" />
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="nav-mobile-drawer" style={{
           backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e2e8f0',
+          borderBottom: '1px solid #fbcfe8',
           padding: '1rem 1.5rem',
           display: 'flex',
           flexDirection: 'column',
@@ -209,7 +126,7 @@ export default function DashboardPage() {
         <div className="dash-kpis-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2.5rem' }}>
           {loading ? (
             [1, 2, 3, 4].map((i) => (
-              <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
+              <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '14px', padding: '1.25rem' }}>
                 <div className="skeleton" style={{ width: '60%', height: '10px', marginBottom: '0.85rem' }} />
                 <div className="skeleton" style={{ width: '45%', height: '28px', marginBottom: '0.5rem' }} />
                 <div className="skeleton" style={{ width: '70%', height: '10px' }} />
@@ -217,28 +134,28 @@ export default function DashboardPage() {
             ))
           ) : (
             <>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '14px', padding: '1.25rem' }}>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Listed apps</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>
                   {metrics?.listed_apps || 22}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#64748b' }}>20 first-party • 2 partner</div>
               </div>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '14px', padding: '1.25rem' }}>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Active installs</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>
                   {metrics?.active_installs?.toLocaleString() || '18,963'}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#16a34a' }}>+ 4.1% this month</div>
               </div>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '14px', padding: '1.25rem' }}>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>App billing / month</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>
                   ₹{metrics?.mrr || '89.7L'}
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Gross MRR incl. GST</div>
               </div>
-              <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.25rem' }}>
+              <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '14px', padding: '1.25rem' }}>
                 <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.35rem' }}>Pending reviews</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem' }}>
                   {metrics?.pending_reviews || 1}
@@ -252,7 +169,7 @@ export default function DashboardPage() {
         {/* Installs by Category (Bar Chart) & Top Earning Apps */}
         <div className="dash-two-col" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '2rem' }}>
           {/* Bar Chart Container */}
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.75rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.75rem' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 1.5rem 0', color: '#0f172a' }}>
               Installs by category
             </h3>
@@ -293,7 +210,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Top Earning Apps */}
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.75rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.75rem' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 1.5rem 0', color: '#0f172a' }}>
               Top earning apps
             </h3>

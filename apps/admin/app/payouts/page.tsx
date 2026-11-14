@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { API_URL, ADMIN_URL, STORE_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { AdminHeader } from '../components/AdminHeader';
 
 interface DeveloperPayoutItem {
   developerId: string;
@@ -139,41 +140,9 @@ export default function AdminPayoutsPage() {
   };
 
   return (
-    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#f8fafc', color: '#0f172a', minHeight: '100vh' }}>
+    <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
       {/* Top Header */}
-      <header style={{
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid #e2e8f0',
-        padding: '0 1.5rem',
-        minHeight: '56px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-          <a href={`${ADMIN_URL}/dashboard`} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>BizBox</span>
-            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ec4899', backgroundColor: '#fdf2f8', border: '1px solid #fbcfe8', padding: '1px 6px', borderRadius: '4px' }}>Admin</span>
-          </a>
-          <nav style={{ display: 'flex', gap: '0.5rem' }}>
-            <a href={`${ADMIN_URL}/review-queue`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Review queue
-            </a>
-            <a href={`${ADMIN_URL}/developers`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Developers & Partners
-            </a>
-            <a href={`${ADMIN_URL}/payouts`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', backgroundColor: '#f1f5f9', color: '#0f172a', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}>
-              Developer Payouts & Settlement
-            </a>
-            <a href={`${ADMIN_URL}/dashboard`} style={{ padding: '0.35rem 0.65rem', borderRadius: '6px', color: '#64748b', fontSize: '0.8rem', textDecoration: 'none' }}>
-              Store Metrics
-            </a>
-          </nav>
-        </div>
-      </header>
+      <AdminHeader currentTab="payouts" />
 
       {/* Main Content */}
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -218,7 +187,7 @@ export default function AdminPayoutsPage() {
 
         {/* 4 Overview Financial Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.25rem', marginBottom: '2rem' }}>
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.35rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.35rem' }}>
             <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               Total Merchant Gross Sales
             </div>
@@ -228,7 +197,7 @@ export default function AdminPayoutsPage() {
             <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.2rem' }}>From POS App Store Purchases</div>
           </div>
 
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.35rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.35rem' }}>
             <div style={{ fontSize: '0.72rem', color: '#0284c7', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               Platform Margin (20%)
             </div>
@@ -238,7 +207,7 @@ export default function AdminPayoutsPage() {
             <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.2rem' }}>BizBox Net Operating Profit</div>
           </div>
 
-          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.35rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', padding: '1.35rem' }}>
             <div style={{ fontSize: '0.72rem', color: '#b91c1c', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.35rem' }}>
               TDS Withheld (10%)
             </div>
@@ -262,8 +231,8 @@ export default function AdminPayoutsPage() {
         </div>
 
         {/* Live Developers Settlement Table */}
-        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', marginBottom: '2.5rem' }}>
-          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', overflow: 'hidden', marginBottom: '2.5rem' }}>
+          <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #fbcfe8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
               Partner Developers Settlement Ledger
             </h2>
@@ -274,7 +243,7 @@ export default function AdminPayoutsPage() {
 
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #fbcfe8' }}>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Developer</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Linked Bank & IFSC</th>
                 <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Gross Sales</th>
@@ -406,7 +375,7 @@ export default function AdminPayoutsPage() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #fbcfe8' }}>
                   <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Beneficiary Legal Name</div>
                   <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginTop: '0.15rem' }}>
                     {selectedBankModal.bank?.accountHolder || selectedBankModal.name}
@@ -414,13 +383,13 @@ export default function AdminPayoutsPage() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #fbcfe8' }}>
                     <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Bank Name</div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '0.15rem' }}>
                       {selectedBankModal.bank?.bankName || 'HDFC Bank'}
                     </div>
                   </div>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #fbcfe8' }}>
                     <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>IFSC Code</div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '0.15rem' }}>
                       <code>{selectedBankModal.bank?.ifsc || 'N/A'}</code>
@@ -428,7 +397,7 @@ export default function AdminPayoutsPage() {
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #fbcfe8' }}>
                   <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Account Number</div>
                   <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', marginTop: '0.15rem', fontFamily: 'monospace' }}>
                     {selectedBankModal.bank?.fullAccountNumber || selectedBankModal.payoutRef}
@@ -436,13 +405,13 @@ export default function AdminPayoutsPage() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #fbcfe8' }}>
                     <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Income Tax PAN</div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '0.15rem' }}>
                       <code>{selectedBankModal.bank?.pan || 'N/A'}</code>
                     </div>
                   </div>
-                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #fbcfe8' }}>
                     <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>GSTIN</div>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', marginTop: '0.15rem' }}>
                       <code>{selectedBankModal.bank?.gstin || 'Not registered'}</code>
