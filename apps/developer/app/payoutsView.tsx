@@ -116,8 +116,48 @@ export function DeveloperPayoutsView({ showToast }: DeveloperPayoutsViewProps) {
 
   if (loading) {
     return (
-      <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
-        Loading monetization and revenue ledger...
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+        <style>{`
+          @keyframes shimmerPayout {
+            0% { opacity: 0.5; }
+            50% { opacity: 0.9; }
+            100% { opacity: 0.5; }
+          }
+          .payout-skel {
+            animation: shimmerPayout 1.5s infinite;
+            background: #e2e8f0;
+            border-radius: 8px;
+          }
+        `}</style>
+        {/* Banner Skeleton */}
+        <div style={{ height: '110px', backgroundColor: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+            <div className="payout-skel" style={{ width: '220px', height: '18px' }} />
+            <div className="payout-skel" style={{ width: '380px', height: '12px' }} />
+          </div>
+          <div className="payout-skel" style={{ width: '130px', height: '36px', borderRadius: '10px' }} />
+        </div>
+
+        {/* 4 Stat Cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.5rem' }}>
+              <div className="payout-skel" style={{ width: '100px', height: '12px', marginBottom: '0.75rem' }} />
+              <div className="payout-skel" style={{ width: '130px', height: '24px', marginBottom: '0.5rem' }} />
+              <div className="payout-skel" style={{ width: '160px', height: '10px' }} />
+            </div>
+          ))}
+        </div>
+
+        {/* Table Skeleton */}
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1.5rem' }}>
+          <div className="payout-skel" style={{ width: '180px', height: '18px', marginBottom: '1.25rem' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="payout-skel" style={{ height: '48px', width: '100%', borderRadius: '10px' }} />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

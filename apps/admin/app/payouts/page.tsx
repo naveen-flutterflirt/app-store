@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, ADMIN_URL, STORE_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
+import { PageSkeleton } from '../components/PageSkeleton';
 
 interface DeveloperPayoutItem {
   developerId: string;
@@ -121,9 +122,10 @@ export default function AdminPayoutsPage() {
 
   if (checking || !authorized) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
-        Verifying administrator permissions...
-      </div>
+      <PageSkeleton
+        title="Admin Financial Ledger & Settlements"
+        subtitle="Verifying cryptographic tokens and banking settlement permissions..."
+      />
     );
   }
 

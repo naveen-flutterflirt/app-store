@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
+import { PageSkeleton } from '../components/PageSkeleton';
 
 interface QueueItem {
   version_id: string;
@@ -137,9 +138,10 @@ export default function ReviewQueuePage() {
 
   if (checking || !authorized) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#090d16', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontFamily: 'sans-serif' }}>
-        Verifying administrator permissions...
-      </div>
+      <PageSkeleton
+        title="Admin Review & Audit Queue"
+        subtitle="Verifying reviewer security credentials and signing keys..."
+      />
     );
   }
 

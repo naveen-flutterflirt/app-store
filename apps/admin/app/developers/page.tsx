@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, ADMIN_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
+import { PageSkeleton } from '../components/PageSkeleton';
 
 interface DeveloperItem {
   id: string;
@@ -61,9 +62,10 @@ export default function AdminDevelopersPage() {
 
   if (checking || !authorized) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontFamily: 'sans-serif' }}>
-        Verifying administrator permissions...
-      </div>
+      <PageSkeleton
+        title="Partner Developers Directory"
+        subtitle="Verifying cryptographic tokens and directory access permissions..."
+      />
     );
   }
 

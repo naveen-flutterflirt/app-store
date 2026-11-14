@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../../config';
 import { useAuthGuard } from '../../useAuthGuard';
+import { PageSkeleton } from '../../components/PageSkeleton';
 
 interface InstalledApp {
   id: string;
@@ -156,9 +157,10 @@ export default function MyAppsPage() {
 
   if (checking || !authorized) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontFamily: 'sans-serif' }}>
-        Verifying business owner credentials...
-      </div>
+      <PageSkeleton
+        title="Restaurant Business Applications"
+        subtitle="Verifying business owner credentials and tenant edge states..."
+      />
     );
   }
 

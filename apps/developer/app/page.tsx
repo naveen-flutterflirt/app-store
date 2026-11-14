@@ -6,6 +6,7 @@ import { TestingTracksView } from './tracks';
 import { DeveloperBuilderGuide } from './builderGuide';
 import { AppDetailModal } from './appDetailModal';
 import { DeveloperPayoutsView } from './payoutsView';
+import { PageSkeleton } from './components/PageSkeleton';
 
 interface DevApp {
   id: string;
@@ -437,9 +438,10 @@ export default function DeveloperConsolePage() {
 
   if (checking || !authorized) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#064e3b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontFamily: 'sans-serif' }}>
-        Verifying partner developer permissions...
-      </div>
+      <PageSkeleton
+        title="Developer Console Workspace"
+        subtitle="Verifying cryptographic tokens and active developer authorizations..."
+      />
     );
   }
 
