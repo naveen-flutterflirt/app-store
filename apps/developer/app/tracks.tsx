@@ -46,6 +46,31 @@ export function TestingTracksView({
   const [selectedAppId, setSelectedAppId] = useState<string>('all');
   const [promotingId, setPromotingId] = useState<string | null>(null);
   const [viewingFeedback, setViewingFeedback] = useState<any | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
+
+  const openFeedbackModal = async (ver: any) => {
+    setViewingFeedback(ver);
+    if (!ver.last_review) {
+      setLoadingFeedback(true);
+      try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('bizbox_token') : null;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const res = await fetch(`${API_URL}/dev/versions/${ver.id}/feedback`, { headers });
+        const resJson = await res.json();
+        if (resJson?.review) {
+          setViewingFeedback((prev: any) => ({
+            ...prev,
+            last_review: resJson.review
+          }));
+        }
+      } catch (e) {
+        console.error('Error fetching review feedback:', e);
+      } finally {
+        setLoadingFeedback(false);
+      }
+    }
+  };
 
   // Filter submissions by track
   const internalVersions = submissions.filter(s => s.channel === 'internal');
@@ -435,7 +460,7 @@ export function TestingTracksView({
 
                       {selectedTrack === 'production' && (ver.status === 'rejected' || ver.status === 'changes_requested') && (
                         <button
-                          onClick={() => setViewingFeedback(ver)}
+                          onClick={() => openFeedbackModal(ver)}
                           style={{
                             padding: '0.45rem 0.85rem',
                             borderRadius: '8px',

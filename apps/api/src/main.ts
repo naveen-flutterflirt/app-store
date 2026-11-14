@@ -680,6 +680,26 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // GET /v1/dev/versions/:versionId/feedback (Fetch reviewer decision, notes, detailed description, and screenshots)
+    if (pathname.startsWith('/v1/dev/versions/') && pathname.endsWith('/feedback') && req.method === 'GET') {
+      try {
+        const versionId = pathname.split('/')[4];
+        const reviews = await query(`
+          SELECT r.id, r.decision, r.notes, r.checklist, r.created_at, r.reviewer
+          FROM store.version_reviews r
+          WHERE r.version_id = $1
+          ORDER BY r.created_at DESC
+          LIMIT 1
+        `, [versionId]);
+        if (reviews.length === 0) {
+          return sendJson(res, 200, { review: null });
+        }
+        return sendJson(res, 200, { review: reviews[0] });
+      } catch (err: any) {
+        return sendJson(res, 500, { code: 'FEEDBACK_ERROR', message: err.message });
+      }
+    }
+
     // GET /v1/dev/apps/:appId/analytics
     if (pathname.startsWith('/v1/dev/apps/') && pathname.endsWith('/analytics') && req.method === 'GET') {
       const appId = pathname.split('/')[4];
