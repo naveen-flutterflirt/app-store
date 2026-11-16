@@ -16,7 +16,7 @@ export class S3StorageService {
 
   /**
    * Upload a base64 encoded or binary buffer file directly to S3 bizbox-assets bucket
-   * returns public HTTPS URL
+   * and returns a secure, authenticated AWS SigV4 presigned download URL (valid for 7 days)
    */
   async uploadAuditImage(dataUriOrBase64: string, filename?: string): Promise<string> {
     let contentType = 'image/png';
@@ -40,7 +40,6 @@ export class S3StorageService {
     const host = `${this.bucket}.s3.${this.region}.amazonaws.com`;
 
     if (!this.accessKey || !this.secretKey) {
-      // Fallback data URI if S3 keys not present
       return `data:${contentType};base64,${buffer.toString('base64')}`;
     }
 
@@ -65,7 +64,7 @@ export class S3StorageService {
 
     const authHeader = `AWS4-HMAC-SHA256 Credential=${this.accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const req = https.request({
         host,
         path: `/${key}`,
@@ -80,13 +79,14 @@ export class S3StorageService {
         }
       }, (res) => {
         if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(`https://${host}/${key}`);
+          // Generate SigV4 presigned download URL for instant loading in browsers without 403
+          const presignedGetUrl = this.getPresignedGetUrl(key);
+          resolve(presignedGetUrl);
         } else {
           let errBody = '';
           res.on('data', chunk => { errBody += chunk; });
           res.on('end', () => {
             console.error(`S3 upload error: ${res.statusCode} ${errBody}`);
-            // Fallback to data URI if S3 PUT fails
             resolve(`data:${contentType};base64,${buffer.toString('base64')}`);
           });
         }
@@ -94,13 +94,43 @@ export class S3StorageService {
 
       req.on('error', (err) => {
         console.error('S3 request error:', err);
-        // Fallback to data URI
         resolve(`data:${contentType};base64,${buffer.toString('base64')}`);
       });
 
       req.write(buffer);
       req.end();
     });
+  }
+
+  /**
+   * Generates a 7-day valid AWS SigV4 signed URL for secure image viewing in Admin & Developer portals
+   */
+  getPresignedGetUrl(key: string, expiresInSeconds: number = 604800): string {
+    const host = `${this.bucket}.s3.${this.region}.amazonaws.com`;
+    const now = new Date();
+    const amzDate = now.toISOString().replace(/[:\-]|\.\d{3}/g, '');
+    const dateStamp = amzDate.substring(0, 8);
+    const credentialScope = `${dateStamp}/${this.region}/s3/aws4_request`;
+
+    const queryParams = [
+      `X-Amz-Algorithm=AWS4-HMAC-SHA256`,
+      `X-Amz-Credential=${encodeURIComponent(this.accessKey + '/' + credentialScope)}`,
+      `X-Amz-Date=${amzDate}`,
+      `X-Amz-Expires=${expiresInSeconds}`,
+      `X-Amz-SignedHeaders=host`
+    ].sort().join('&');
+
+    const canonicalRequest = `GET\n/${key}\n${queryParams}\nhost:${host}\n\nhost\nUNSIGNED-PAYLOAD`;
+    const stringToSign = `AWS4-HMAC-SHA256\n${amzDate}\n${credentialScope}\n${crypto.createHash('sha256').update(canonicalRequest).digest('hex')}`;
+
+    const sign = (sec: string | Buffer, msg: string) => crypto.createHmac('sha256', sec).update(msg).digest();
+    const kDate = sign('AWS4' + this.secretKey, dateStamp);
+    const kRegion = sign(kDate, this.region);
+    const kService = sign(kRegion, 's3');
+    const kSigning = sign(kService, 'aws4_request');
+    const signature = crypto.createHmac('sha256', kSigning).update(stringToSign).digest('hex');
+
+    return `https://${host}/${key}?${queryParams}&X-Amz-Signature=${signature}`;
   }
 }
 
