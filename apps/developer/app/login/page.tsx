@@ -229,7 +229,7 @@ export default function DeveloperLoginPage() {
 
         {/* Footer info */}
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem', color: '#94a3b8' }}>
-          <div>© {new Date().getFullYear()} BizBox POS Technologies</div>
+          <div>© 2026 BizBox POS Technologies</div>
           <div style={{ display: 'flex', gap: '1.25rem' }}>
             <a href={`${STORE_URL}/api-docs`} target="_blank" rel="noreferrer" style={{ color: '#db2777', textDecoration: 'none', fontWeight: 700 }}>API Docs ↗</a>
             <a href="https://flutterflirt.com" target="_blank" rel="noreferrer" style={{ color: '#64748b', textDecoration: 'none' }}>FlutterFlirt Ecosystem</a>

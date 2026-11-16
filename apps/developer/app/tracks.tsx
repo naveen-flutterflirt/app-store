@@ -457,7 +457,7 @@ export function TestingTracksView({
                   </td>
 
                   <td style={{ padding: '1.1rem 1.25rem', fontSize: '0.8rem', color: '#64748b' }}>
-                    {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Just now'}
+                    {item.created_at ? item.created_at.slice(0, 10) : 'Just now'}
                   </td>
 
                   <td style={{ padding: '1.1rem 1.25rem', textAlign: 'right' }}>

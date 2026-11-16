@@ -1050,7 +1050,7 @@ export default function DeveloperConsolePage() {
                               <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{sub.package_id}</div>
                             </td>
                             <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#94a3b8' }}>
-                              {new Date(sub.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                              {sub.created_at ? sub.created_at.slice(0, 10) : 'Recent'}
                             </td>
                             <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#64748b', maxWidth: '280px' }}>
                               <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

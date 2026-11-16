@@ -183,7 +183,7 @@ export default function DeveloperSignupPage() {
 
         {/* Footer info */}
         <div style={{ position: 'relative', zIndex: 1, fontSize: '0.78rem', color: '#94a3b8' }}>
-          © {new Date().getFullYear()} BizBox POS Technologies • Enterprise Restaurant Suite
+          © 2026 BizBox POS Technologies • Enterprise Restaurant Suite
         </div>
       </div>
 

@@ -12,8 +12,8 @@ export function PageSkeleton({
     <div
       style={{
         fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-        backgroundColor: '#090d16',
-        color: '#f8fafc',
+        backgroundColor: '#faf5f8',
+        color: '#0f172a',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column'
@@ -47,8 +47,8 @@ export function PageSkeleton({
       {/* Top Navbar Skeleton */}
       <header
         style={{
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: '#0c1222',
+          borderBottom: '1px solid #fce7f3',
+          backgroundColor: '#ffffff',
           padding: '1rem 2rem',
           display: 'flex',
           alignItems: 'center',
@@ -75,7 +75,7 @@ export function PageSkeleton({
           <div style={{ maxWidth: '600px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
               <div className="sk-pulse" style={{ width: '22px', height: '22px', borderRadius: '6px' }} />
-              <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#f8fafc' }}>
+              <h1 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#0f172a' }}>
                 {title}
               </h1>
             </div>
