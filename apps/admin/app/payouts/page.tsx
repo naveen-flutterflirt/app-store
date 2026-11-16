@@ -86,13 +86,38 @@ export default function AdminPayoutsPage() {
   const [confirmPayoutModal, setConfirmPayoutModal] = useState<DeveloperPayoutItem | null>(null);
   const [noBankAlertModal, setNoBankAlertModal] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
-  const [localPaidDevIds, setLocalPaidDevIds] = useState<Set<string>>(new Set());
+  const [localPaidDevIds, setLocalPaidDevIds] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bizbox_paid_devs_cache');
+        if (stored) return new Set(JSON.parse(stored));
+      } catch (e) {}
+    }
+    return new Set();
+  });
 
   const fetchOverview = () => {
     setLoading(true);
     fetch(`${API_URL}/admin/payouts/overview`)
       .then(res => res.json())
       .then(resData => {
+        // Automatically check if any developer has a 'paid' record in the monthly history
+        if (resData && Array.isArray(resData.history)) {
+          const paidDevNames = new Set(
+            resData.history
+              .filter((h: any) => h.status === 'paid')
+              .map((h: any) => h.developer_name?.toLowerCase())
+          );
+          if (Array.isArray(resData.developers)) {
+            resData.developers = resData.developers.map((d: any) => {
+              const matchesHistory = paidDevNames.has(d.name?.toLowerCase());
+              if (matchesHistory) {
+                d.isPaid = true;
+              }
+              return d;
+            });
+          }
+        }
         setData(resData);
         setLoading(false);
       })
@@ -132,7 +157,13 @@ export default function AdminPayoutsPage() {
       if (!res.ok) throw new Error(resData.message || 'Payment execution failed');
 
       // Optimistically mark this developer as paid in local state immediately
-      setLocalPaidDevIds(prev => new Set(prev).add(dev.developerId));
+      setLocalPaidDevIds(prev => {
+        const next = new Set(prev).add(dev.developerId);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('bizbox_paid_devs_cache', JSON.stringify(Array.from(next)));
+        }
+        return next;
+      });
 
       // 2. Launch Razorpay Checkout Modal directly for Admin settlement
       const amountPaise = Math.round(dev.netPayable * 100);
