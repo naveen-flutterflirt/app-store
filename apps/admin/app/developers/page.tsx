@@ -206,15 +206,15 @@ export default function AdminDevelopersPage() {
         <div style={{ backgroundColor: '#ffffff', border: '1px solid #fbcfe8', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #fbcfe8' }}>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Developer / Company</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Contact Email</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Bank Account & Payout</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Apps Building</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Live / Testing Split</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Installs</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+              <tr style={{ backgroundColor: '#fff5f9', borderBottom: '1px solid #fce7f3' }}>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800 }}>Developer / Company</th>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800 }}>Contact Email</th>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800 }}>Bank Account & Payout</th>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800 }}>Apps Building</th>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800 }}>Live / Testing Split</th>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800 }}>Installs</th>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800 }}>Status</th>
+                <th style={{ padding: '0.85rem 1.25rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.7rem', fontWeight: 800, textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -239,8 +239,7 @@ export default function AdminDevelopersPage() {
                           width: '36px',
                           height: '36px',
                           borderRadius: '8px',
-                          backgroundColor: '#e0f2fe',
-                          color: '#0284c7',
+                          backgroundColor: '#fdf2f8', color: '#db2777', border: '1px solid #fbcfe8',
                           fontWeight: 800,
                           fontSize: '0.9rem',
                           display: 'flex',
@@ -264,7 +263,7 @@ export default function AdminDevelopersPage() {
                       {dev.bank_account_number ? (
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#16a34a', backgroundColor: '#dcfce7', padding: '1px 6px', borderRadius: '4px' }}>
+                            <span style={{ color: '#15803d', backgroundColor: '#dcfce7', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '999px', fontSize: '0.68rem', fontWeight: 800 }}>
                               ✓ LINKED
                             </span>
                             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a' }}>{dev.bank_name || 'Bank'}</span>
@@ -286,13 +285,13 @@ export default function AdminDevelopersPage() {
                     </td>
                     <td style={{ padding: '1rem 1.25rem' }}>
                       <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 700, backgroundColor: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span style={{ backgroundColor: '#dcfce7', color: '#15803d', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>
                           {dev.live_apps} Published
                         </span>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 700, backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span style={{ backgroundColor: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>
                           {dev.testing_apps} Testing
                         </span>
-                        <span style={{ fontSize: '0.68rem', fontWeight: 700, backgroundColor: '#fef3c7', color: '#b45309', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span style={{ backgroundColor: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700 }}>
                           {dev.draft_apps} Draft
                         </span>
                       </div>
@@ -304,10 +303,11 @@ export default function AdminDevelopersPage() {
                       <span style={{
                         fontSize: '0.72rem',
                         fontWeight: 700,
-                        padding: '3px 8px',
+                        padding: '3px 10px',
                         borderRadius: '999px',
                         backgroundColor: dev.is_verified ? '#dcfce7' : '#f1f5f9',
-                        color: dev.is_verified ? '#15803d' : '#475569'
+                        color: dev.is_verified ? '#15803d' : '#475569',
+                        border: dev.is_verified ? '1px solid #bbf7d0' : '1px solid #e2e8f0'
                       }}>
                         ● {dev.is_verified ? 'Verified Partner' : 'Registered'}
                       </span>
@@ -318,11 +318,7 @@ export default function AdminDevelopersPage() {
                         style={{
                           padding: '0.4rem 0.8rem',
                           borderRadius: '6px',
-                          border: '1px solid #cbd5e1',
-                          backgroundColor: '#ffffff',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          color: '#0284c7',
+                          border: '1px solid #fbcfe8', backgroundColor: '#fdf2f8', fontSize: '0.75rem', fontWeight: 700, color: '#db2777', boxShadow: '0 1px 3px rgba(236, 72, 153, 0.08)',
                           cursor: 'pointer'
                         }}
                       >
@@ -341,8 +337,7 @@ export default function AdminDevelopersPage() {
           <div style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
+            backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -365,7 +360,7 @@ export default function AdminDevelopersPage() {
                     <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                       {selectedDev.name}
                     </h2>
-                    <span style={{ fontSize: '0.7rem', backgroundColor: '#e0f2fe', color: '#0284c7', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.7rem', backgroundColor: '#fdf2f8', color: '#db2777', border: '1px solid #fbcfe8', padding: '2px 8px', borderRadius: '999px', fontWeight: 700 }}>
                       {selectedDev.type}
                     </span>
                   </div>
