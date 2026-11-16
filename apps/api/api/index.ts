@@ -778,6 +778,12 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       return sendJson(res, 200, queue);
     }
 
+    // GET /v1/admin/review-history (Audit log of past approvals, rejections with screenshots)
+    if (pathname === '/v1/admin/review-history' && req.method === 'GET') {
+      const history = await reviewService.getReviewHistory();
+      return sendJson(res, 200, history);
+    }
+
     // GET /v1/admin/versions/:versionId (Detailed version audit, checks & scopes)
     if (pathname.startsWith('/v1/admin/versions/') && !pathname.includes('/decision') && !pathname.includes('/publish') && req.method === 'GET') {
       try {

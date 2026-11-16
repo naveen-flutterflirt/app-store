@@ -2,6 +2,7 @@ import { query } from '../../db';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { s3StorageService } from '../storage/s3.service';
 
 export interface ReviewDecisionDto {
   decision: 'approve' | 'request_changes' | 'reject';
@@ -18,6 +19,24 @@ export class ReviewService {
    */
   async getReviewQueue() {
     return query(`SELECT * FROM store.v_review_queue`);
+  }
+
+  /**
+   * Fetches past reviewed versions (approved, rejected, changes_requested) for admin auditing
+   */
+  async getReviewHistory() {
+    return query(`
+      SELECT r.id, r.version_id, r.reviewer, r.decision, r.notes, r.checklist, r.created_at,
+             v.version, v.channel, v.status,
+             a.id as app_id, a.name as app_name, a.package_id, a.slug,
+             d.id as developer_id, d.name as developer_name, d.email as developer_email
+      FROM store.version_reviews r
+      JOIN store.app_versions v ON r.version_id = v.id
+      JOIN store.apps a ON v.app_id = a.id
+      JOIN store.developers d ON a.developer_id = d.id
+      ORDER BY r.created_at DESC
+      LIMIT 50
+    `);
   }
 
   /**
@@ -78,11 +97,29 @@ export class ReviewService {
     const reviewer = dto.reviewer || 'reviewer@flutterflirt.com';
     const notesText = (dto.notes || dto.rejectionReason || 'Review decision recorded.').trim();
 
+    // Process rejection screenshots (upload base64 to AWS S3 if needed)
+    let processedScreenshots: string[] = [];
+    if (dto.rejectionScreenshots && dto.rejectionScreenshots.length > 0) {
+      processedScreenshots = await Promise.all(
+        dto.rejectionScreenshots.map(async (shot, idx) => {
+          if (shot.startsWith('data:') || shot.length > 500) {
+            try {
+              return await s3StorageService.uploadAuditImage(shot, `audit-${versionId}-${idx + 1}.png`);
+            } catch (e) {
+              console.error('Failed to upload audit screenshot to S3:', e);
+              return shot;
+            }
+          }
+          return shot;
+        })
+      );
+    }
+
     // Prepare checklist JSON with rejection metadata if applicable
     const checklistPayload = {
       ...(dto.checklist || { listing_accurate: true, privacy_ok: true, permissions_justified: true }),
       ...(dto.rejectionReason ? { rejection_reason: dto.rejectionReason } : {}),
-      ...(dto.rejectionScreenshots && dto.rejectionScreenshots.length > 0 ? { rejection_screenshots: dto.rejectionScreenshots } : {})
+      ...(processedScreenshots.length > 0 ? { rejection_screenshots: processedScreenshots } : {})
     };
 
     // 1. Insert review decision
@@ -109,7 +146,7 @@ export class ReviewService {
       decision: dto.decision,
       notes: notesText,
       rejectionReason: dto.rejectionReason,
-      rejectionScreenshots: dto.rejectionScreenshots
+      rejectionScreenshots: processedScreenshots
     })]);
 
     return {
