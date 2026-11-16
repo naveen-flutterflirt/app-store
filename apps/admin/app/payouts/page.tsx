@@ -65,6 +65,8 @@ export default function AdminPayoutsPage() {
   const [loading, setLoading] = useState(true);
   const [payingDevId, setPayingDevId] = useState<string | null>(null);
   const [selectedBankModal, setSelectedBankModal] = useState<DeveloperPayoutItem | null>(null);
+  const [confirmPayoutModal, setConfirmPayoutModal] = useState<DeveloperPayoutItem | null>(null);
+  const [noBankAlertModal, setNoBankAlertModal] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   const fetchOverview = () => {
@@ -85,19 +87,16 @@ export default function AdminPayoutsPage() {
     if (authorized) fetchOverview();
   }, [authorized]);
 
-  const handlePayDirect = async (dev: DeveloperPayoutItem) => {
+  const handlePayDirect = (dev: DeveloperPayoutItem) => {
     if (!dev.bankConfigured) {
-      alert(`${dev.name} has not linked a bank account yet!`);
+      setNoBankAlertModal(dev.name);
       return;
     }
-    const confirmTransfer = confirm(
-      `Confirm direct bank settlement of ₹${dev.netPayable.toLocaleString()} to ${dev.name}?\n` +
-      `Bank: ${dev.bank?.bankName || 'HDFC Bank'}\n` +
-      `A/C: ${dev.bank?.accountNumber || dev.payoutRef}\n` +
-      `IFSC: ${dev.bank?.ifsc || 'N/A'}`
-    );
-    if (!confirmTransfer) return;
+    setConfirmPayoutModal(dev);
+  };
 
+  const executeTransfer = async (dev: DeveloperPayoutItem) => {
+    setConfirmPayoutModal(null);
     setPayingDevId(dev.developerId);
     setFeedback(null);
     try {
@@ -426,6 +425,174 @@ export default function AdminPayoutsPage() {
                   style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation Modal for Direct Settlement */}
+        {confirmPayoutModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 300,
+            padding: '1rem'
+          }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '460px',
+              padding: '1.75rem',
+              boxShadow: '0 25px 50px -12px rgba(236, 72, 153, 0.15)',
+              border: '1px solid #fbcfe8'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.25rem' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  backgroundColor: '#dcfce7',
+                  border: '1px solid #bbf7d0',
+                  color: '#15803d',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.35rem'
+                }}>
+                  💸
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                    Confirm Bank Transfer
+                  </h3>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    Direct NEFT / Razorpay X Payout
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.82rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748b' }}>Recipient:</span>
+                  <strong style={{ color: '#0f172a' }}>{confirmPayoutModal.name}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748b' }}>Bank & IFSC:</span>
+                  <span style={{ color: '#0f172a' }}>{confirmPayoutModal.bank?.bankName || 'HDFC Bank'} ({confirmPayoutModal.bank?.ifsc || 'N/A'})</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748b' }}>Account:</span>
+                  <code style={{ color: '#0f172a' }}>{confirmPayoutModal.bank?.accountNumber || confirmPayoutModal.payoutRef}</code>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #cbd5e1', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
+                  <span style={{ color: '#64748b', fontWeight: 700 }}>Settlement Amount:</span>
+                  <strong style={{ color: '#15803d', fontSize: '1.1rem' }}>₹{confirmPayoutModal.netPayable.toLocaleString()}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setConfirmPayoutModal(null)}
+                  style={{ padding: '0.55rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => executeTransfer(confirmPayoutModal)}
+                  style={{
+                    padding: '0.55rem 1.35rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: '#15803d',
+                    color: '#ffffff',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(21, 128, 61, 0.25)'
+                  }}
+                >
+                  Confirm & Transfer →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Missing Bank Alert Custom Modal */}
+        {noBankAlertModal && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 300,
+            padding: '1rem'
+          }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              width: '100%',
+              maxWidth: '440px',
+              padding: '1.75rem',
+              boxShadow: '0 25px 50px -12px rgba(236, 72, 153, 0.15)',
+              border: '1px solid #fecaca'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1rem' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  backgroundColor: '#fee2e2',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.25rem'
+                }}>
+                  ⚠️
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}>
+                    Bank Account Not Linked
+                  </h3>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    Settlement Blocked
+                  </span>
+                </div>
+              </div>
+
+              <p style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.5, margin: '0 0 1.25rem 0' }}>
+                <strong>{noBankAlertModal}</strong> has not linked a verified Indian bank account or IFSC code in their Developer Console yet. Please request bank account submission before dispatching payouts.
+              </p>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setNoBankAlertModal(null)}
+                  style={{
+                    padding: '0.55rem 1.25rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: '#ec4899',
+                    color: '#ffffff',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Acknowledge
                 </button>
               </div>
             </div>
