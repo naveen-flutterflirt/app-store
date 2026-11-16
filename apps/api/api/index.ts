@@ -756,8 +756,8 @@ export default async function handler(req: http.IncomingMessage, res: http.Serve
       }
     }
 
-    // POST /v1/dev/payout-settings (Update bank account & tax details)
-    if (pathname === '/v1/dev/payout-settings' && req.method === 'POST') {
+    // POST /v1/dev/payout-settings or /v1/dev/payouts/bank-account (Update bank account & tax details)
+    if ((pathname === '/v1/dev/payout-settings' || pathname === '/v1/dev/payouts/bank-account') && req.method === 'POST') {
       try {
         const devId = resolveDeveloperId(req);
         const body = await parseJsonBody(req);
