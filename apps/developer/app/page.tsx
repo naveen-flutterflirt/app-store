@@ -2031,11 +2031,12 @@ export default function DeveloperConsolePage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
                     {selectedProofFeedback.last_review.checklist.rejection_screenshots.map((url: string, idx: number) => (
-                      <div key={idx} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10' }}>
+                      <div key={idx} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10', backgroundColor: '#fdf2f8' }}>
                         <img
                           src={url}
                           alt={`Proof ${idx + 1}`}
                           onClick={() => setFullscreenProofImg(url)}
+                          onError={e => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                           style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
                         />
                       </div>

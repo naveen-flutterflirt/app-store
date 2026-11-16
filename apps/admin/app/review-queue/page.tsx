@@ -962,20 +962,37 @@ export default function ReviewQueuePage() {
                             {screenshots.length > 0 ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 {screenshots.slice(0, 2).map((imgUrl, i) => (
-                                  <img
+                                  <div
                                     key={i}
-                                    src={imgUrl}
-                                    alt="Proof"
                                     onClick={() => setViewingImageModal(imgUrl)}
+                                    title="Click to view full screenshot proof"
                                     style={{
-                                      width: '36px',
-                                      height: '36px',
+                                      width: '44px',
+                                      height: '32px',
                                       borderRadius: '6px',
-                                      objectFit: 'cover',
+                                      overflow: 'hidden',
                                       border: '1px solid #fbcfe8',
-                                      cursor: 'pointer'
+                                      backgroundColor: '#fdf2f8',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      cursor: 'pointer',
+                                      boxShadow: '0 1px 3px rgba(236, 72, 153, 0.1)'
                                     }}
-                                  />
+                                  >
+                                    <img
+                                      src={imgUrl}
+                                      alt={`Proof ${i + 1}`}
+                                      onError={e => {
+                                        (e.currentTarget as HTMLElement).style.display = 'none';
+                                      }}
+                                      style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover'
+                                      }}
+                                    />
+                                  </div>
                                 ))}
                                 {screenshots.length > 2 && (
                                   <span
@@ -1332,11 +1349,12 @@ export default function ReviewQueuePage() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
                     {selectedHistoryItem.checklist.rejection_screenshots.map((url: string, idx: number) => (
-                      <div key={idx} style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10' }}>
+                      <div key={idx} style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10', backgroundColor: '#fdf2f8' }}>
                         <img
                           src={url}
                           alt={`Proof ${idx + 1}`}
                           onClick={() => setViewingImageModal(url)}
+                          onError={e => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
                           style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
                         />
                       </div>
