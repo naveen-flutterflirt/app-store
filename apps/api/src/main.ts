@@ -694,7 +694,11 @@ const server = http.createServer(async (req, res) => {
         if (reviews.length === 0) {
           return sendJson(res, 200, { review: null });
         }
-        return sendJson(res, 200, { review: reviews[0] });
+        const review = reviews[0];
+        if (review && review.checklist) {
+          review.checklist = reviewService.enrichChecklistScreenshots(review.checklist);
+        }
+        return sendJson(res, 200, { review });
       } catch (err: any) {
         return sendJson(res, 500, { code: 'FEEDBACK_ERROR', message: err.message });
       }
@@ -731,7 +735,13 @@ const server = http.createServer(async (req, res) => {
         ORDER BY v.created_at DESC
         LIMIT 20
       `, [devId]);
-      return sendJson(res, 200, submissions);
+      const enrichedSubmissions = submissions.map((s: any) => {
+        if (s.last_review && s.last_review.checklist) {
+          s.last_review.checklist = reviewService.enrichChecklistScreenshots(s.last_review.checklist);
+        }
+        return s;
+      });
+      return sendJson(res, 200, enrichedSubmissions);
     }
 
     // GET /v1/dev/earnings (Developer sales ledger & payout metrics)

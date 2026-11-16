@@ -21,11 +21,27 @@ export class ReviewService {
     return query(`SELECT * FROM store.v_review_queue`);
   }
 
+  enrichChecklistScreenshots(checklist: any): any {
+    if (!checklist || !Array.isArray(checklist.rejection_screenshots)) return checklist;
+    const enriched = checklist.rejection_screenshots.map((url: string) => {
+      if (typeof url !== 'string') return url;
+      if (url.includes('bizbox-assets.s3') || url.startsWith('review-proofs/')) {
+        let key = url;
+        if (url.includes('amazonaws.com/')) {
+          key = url.split('amazonaws.com/')[1].split('?')[0];
+        }
+        return s3StorageService.getPresignedGetUrl(key);
+      }
+      return url;
+    });
+    return { ...checklist, rejection_screenshots: enriched };
+  }
+
   /**
    * Fetches past reviewed versions (approved, rejected, changes_requested) for admin auditing
    */
   async getReviewHistory() {
-    return query(`
+    const rows = await query(`
       SELECT r.id, r.version_id, r.reviewer, r.decision, r.notes, r.checklist, r.created_at,
              v.version, v.channel, v.status,
              a.id as app_id, a.name as app_name, a.package_id, a.slug,
@@ -37,6 +53,11 @@ export class ReviewService {
       ORDER BY r.created_at DESC
       LIMIT 50
     `);
+
+    return rows.map((r: any) => ({
+      ...r,
+      checklist: this.enrichChecklistScreenshots(r.checklist)
+    }));
   }
 
   /**
@@ -81,7 +102,10 @@ export class ReviewService {
       version: versions[0],
       checks,
       scopes,
-      reviews
+      reviews: reviews.map((r: any) => ({
+        ...r,
+        checklist: this.enrichChecklistScreenshots(r.checklist)
+      }))
     };
   }
 

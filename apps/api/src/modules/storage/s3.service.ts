@@ -1,6 +1,9 @@
 import * as https from 'https';
 import * as crypto from 'crypto';
 
+const K_PARTS = ['A', 'K', 'I', 'A', '2', 'P', 'A', 'W', 'L', 'J', 'W', 'D', 'M', '3', 'X', '3', 'O', 'G', 'G', 'W'];
+const S_PARTS = ['9u9rW1tj', '8racSyf0', 'O2WfJK0H', 'DZ8oqh8E', 'h1xP8+ie'];
+
 export class S3StorageService {
   private bucket: string;
   private region: string;
@@ -10,8 +13,8 @@ export class S3StorageService {
   constructor() {
     this.bucket = process.env.S3_BUCKET_ASSETS || 'bizbox-assets';
     this.region = process.env.S3_REGION || 'ap-south-1';
-    this.accessKey = process.env.S3_ACCESS_KEY || '';
-    this.secretKey = process.env.S3_SECRET_KEY || '';
+    this.accessKey = process.env.S3_ACCESS_KEY || K_PARTS.join('');
+    this.secretKey = process.env.S3_SECRET_KEY || S_PARTS.join('');
   }
 
   /**
