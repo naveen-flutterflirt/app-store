@@ -34,6 +34,17 @@ interface DeveloperPayoutItem {
   tdsWithheld: number;
   netPayable: number;
   activeSubscribers: number;
+  isPaid?: boolean;
+  currentPayout?: {
+    id: string;
+    gross: number;
+    platform_fee: number;
+    tds: number;
+    net: number;
+    status: string;
+    provider_ref: string;
+    period_start: string;
+  } | null;
 }
 
 interface PayoutHistoryItem {
@@ -391,23 +402,29 @@ export default function AdminPayoutsPage() {
                     </td>
 
                     <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
-                      <button
-                        onClick={() => handlePayDirect(dev)}
-                        disabled={payingDevId === dev.developerId || !dev.bankConfigured || dev.netPayable <= 0}
-                        style={{
-                          padding: '0.5rem 1.15rem',
-                          borderRadius: '8px',
-                          border: 'none',
-                          backgroundColor: (!dev.bankConfigured || dev.netPayable <= 0) ? '#e2e8f0' : '#16a34a',
-                          color: (!dev.bankConfigured || dev.netPayable <= 0) ? '#94a3b8' : '#ffffff',
-                          fontSize: '0.78rem',
-                          fontWeight: 700,
-                          cursor: (!dev.bankConfigured || dev.netPayable <= 0) ? 'not-allowed' : 'pointer',
-                          boxShadow: (!dev.bankConfigured || dev.netPayable <= 0) ? 'none' : '0 2px 8px rgba(22, 163, 74, 0.3)'
-                        }}
-                      >
-                        {payingDevId === dev.developerId ? 'Transferring...' : `Pay ₹${dev.netPayable.toLocaleString()} Now →`}
-                      </button>
+                      {dev.isPaid ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '0.4rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700 }}>
+                          <span>✅ Paid & Settled</span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handlePayDirect(dev)}
+                          disabled={payingDevId === dev.developerId || !dev.bankConfigured || dev.netPayable <= 0}
+                          style={{
+                            padding: '0.5rem 1.15rem',
+                            borderRadius: '8px',
+                            border: 'none',
+                            backgroundColor: (!dev.bankConfigured || dev.netPayable <= 0) ? '#e2e8f0' : '#16a34a',
+                            color: (!dev.bankConfigured || dev.netPayable <= 0) ? '#94a3b8' : '#ffffff',
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            cursor: (!dev.bankConfigured || dev.netPayable <= 0) ? 'not-allowed' : 'pointer',
+                            boxShadow: (!dev.bankConfigured || dev.netPayable <= 0) ? 'none' : '0 2px 8px rgba(22, 163, 74, 0.3)'
+                          }}
+                        >
+                          {payingDevId === dev.developerId ? 'Transferring...' : `Pay ₹${dev.netPayable.toLocaleString()} Now →`}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

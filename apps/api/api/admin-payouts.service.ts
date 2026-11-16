@@ -43,13 +43,31 @@ export class AdminPayoutsService {
    */
   async getPayoutOverview() {
     // 1. Fetch each developer with bank details and unpaid earnings
+    const currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+
     const devs = await query(`
       SELECT 
         d.id, d.name, d.email, d.revenue_share_pct, d.payout_ref,
         d.bank_account_holder, d.bank_name, d.bank_account_number, d.bank_ifsc, d.pan_number, d.gstin,
         COUNT(DISTINCT a.id)::int as total_apps,
         COUNT(DISTINCT i.id)::int as active_subscribers,
-        COALESCE(SUM(p.price_month), 0)::numeric(12,2) as gross_mrr
+        COALESCE(SUM(p.price_month), 0)::numeric(12,2) as gross_mrr,
+        (
+          SELECT json_build_object(
+            'id', po.id,
+            'gross', po.gross,
+            'platform_fee', po.platform_fee,
+            'tds', po.tds,
+            'net', po.net,
+            'status', po.status,
+            'provider_ref', po.provider_ref,
+            'period_start', po.period_start
+          )
+          FROM store.payouts po
+          WHERE po.developer_id = d.id AND po.period_start >= $1 AND po.status = 'paid'
+          ORDER BY po.period_start DESC
+          LIMIT 1
+        ) as current_payout
       FROM store.developers d
       LEFT JOIN store.apps a ON a.developer_id = d.id
       LEFT JOIN store.installations i ON i.app_id = a.id AND i.status = 'active'
@@ -58,7 +76,7 @@ export class AdminPayoutsService {
       GROUP BY d.id, d.name, d.email, d.revenue_share_pct, d.payout_ref,
                d.bank_account_holder, d.bank_name, d.bank_account_number, d.bank_ifsc, d.pan_number, d.gstin
       ORDER BY gross_mrr DESC
-    `);
+    `, [currentMonthStart]);
 
     // 2. Fetch all historical payouts from store.payouts
     const history = await query(`
@@ -79,6 +97,7 @@ export class AdminPayoutsService {
       const platformFee = Math.round((gross * ((100 - revPct) / 100)) * 100) / 100;
       const tds = Math.round((devShare * 0.10) * 100) / 100;
       const netPayable = Math.round((devShare - tds) * 100) / 100;
+      const isPaid = !!d.current_payout;
 
       return {
         developerId: d.id,
@@ -101,14 +120,17 @@ export class AdminPayoutsService {
         devShare,
         tdsWithheld: tds,
         netPayable,
-        activeSubscribers: d.active_subscribers
+        activeSubscribers: d.active_subscribers,
+        isPaid,
+        currentPayout: d.current_payout || null
       };
     });
 
-    const totalGross = developerLedger.reduce((acc: number, d: any) => acc + d.grossRevenue, 0);
-    const totalPlatformProfit = developerLedger.reduce((acc: number, d: any) => acc + d.platformFee, 0);
-    const totalTdsAccumulated = developerLedger.reduce((acc: number, d: any) => acc + d.tdsWithheld, 0);
-    const totalNetPayableToDevs = developerLedger.reduce((acc: number, d: any) => acc + d.netPayable, 0);
+    const pendingLedger = developerLedger.filter((d: any) => !d.isPaid);
+    const totalGross = pendingLedger.reduce((acc: number, d: any) => acc + d.grossRevenue, 0);
+    const totalPlatformProfit = pendingLedger.reduce((acc: number, d: any) => acc + d.platformFee, 0);
+    const totalTdsAccumulated = pendingLedger.reduce((acc: number, d: any) => acc + d.tdsWithheld, 0);
+    const totalNetPayableToDevs = pendingLedger.reduce((acc: number, d: any) => acc + d.netPayable, 0);
 
     return {
       summary: {
@@ -117,7 +139,7 @@ export class AdminPayoutsService {
         tdsWithheld: totalTdsAccumulated,
         netPayableToDevelopers: totalNetPayableToDevs,
         totalPartners: devs.length,
-        readyForPayoutCount: developerLedger.filter((d: any) => d.bankConfigured && d.netPayable > 0).length
+        readyForPayoutCount: pendingLedger.filter((d: any) => d.bankConfigured && d.netPayable > 0).length
       },
       developers: developerLedger,
       history
