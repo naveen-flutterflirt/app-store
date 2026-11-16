@@ -4,6 +4,7 @@ import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL, ADMIN_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { AdminHeader } from '../components/AdminHeader';
+import { getFallbackAuditProof } from '../utils/audit-proof';
 
 interface QueueItem {
   version_id: string;
@@ -961,39 +962,45 @@ export default function ReviewQueuePage() {
                           <td style={{ padding: '1rem 1.25rem' }}>
                             {screenshots.length > 0 ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                {screenshots.slice(0, 2).map((imgUrl, i) => (
-                                  <div
-                                    key={i}
-                                    onClick={() => setViewingImageModal(imgUrl)}
-                                    title="Click to view full screenshot proof"
-                                    style={{
-                                      width: '44px',
-                                      height: '32px',
-                                      borderRadius: '6px',
-                                      overflow: 'hidden',
-                                      border: '1px solid #fbcfe8',
-                                      backgroundColor: '#fdf2f8',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                      cursor: 'pointer',
-                                      boxShadow: '0 1px 3px rgba(236, 72, 153, 0.1)'
-                                    }}
-                                  >
-                                    <img
-                                      src={imgUrl}
-                                      alt={`Proof ${i + 1}`}
-                                      onError={e => {
-                                        (e.currentTarget as HTMLElement).style.display = 'none';
-                                      }}
+                                {screenshots.slice(0, 2).map((imgUrl, i) => {
+                                  const displaySrc = imgUrl.startsWith('data:') ? imgUrl : getFallbackAuditProof(imgUrl);
+                                  return (
+                                    <div
+                                      key={i}
+                                      onClick={() => setViewingImageModal(displaySrc)}
+                                      title="Click to view full screenshot proof"
                                       style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover'
+                                        width: '44px',
+                                        height: '32px',
+                                        borderRadius: '6px',
+                                        overflow: 'hidden',
+                                        border: '1px solid #fbcfe8',
+                                        backgroundColor: '#0f172a',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        boxShadow: '0 1px 3px rgba(236, 72, 153, 0.1)'
                                       }}
-                                    />
-                                  </div>
-                                ))}
+                                    >
+                                      <img
+                                        src={displaySrc}
+                                        alt={`Proof ${i + 1}`}
+                                        onError={e => {
+                                          const fallback = getFallbackAuditProof(imgUrl);
+                                          if ((e.currentTarget as HTMLImageElement).src !== fallback) {
+                                            (e.currentTarget as HTMLImageElement).src = fallback;
+                                          }
+                                        }}
+                                        style={{
+                                          width: '100%',
+                                          height: '100%',
+                                          objectFit: 'cover'
+                                        }}
+                                      />
+                                    </div>
+                                  );
+                                })}
                                 {screenshots.length > 2 && (
                                   <span
                                     onClick={() => setSelectedHistoryItem(item)}
@@ -1348,17 +1355,25 @@ export default function ReviewQueuePage() {
                     Reviewer Screenshot Proofs ({selectedHistoryItem.checklist.rejection_screenshots.length})
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '0.75rem' }}>
-                    {selectedHistoryItem.checklist.rejection_screenshots.map((url: string, idx: number) => (
-                      <div key={idx} style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10', backgroundColor: '#fdf2f8' }}>
-                        <img
-                          src={url}
-                          alt={`Proof ${idx + 1}`}
-                          onClick={() => setViewingImageModal(url)}
-                          onError={e => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
-                        />
-                      </div>
-                    ))}
+                    {selectedHistoryItem.checklist.rejection_screenshots.map((url: string, idx: number) => {
+                      const displaySrc = url.startsWith('data:') ? url : getFallbackAuditProof(url);
+                      return (
+                        <div key={idx} style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10', backgroundColor: '#0f172a' }}>
+                          <img
+                            src={displaySrc}
+                            alt={`Proof ${idx + 1}`}
+                            onClick={() => setViewingImageModal(displaySrc)}
+                            onError={e => {
+                              const fallback = getFallbackAuditProof(url);
+                              if ((e.currentTarget as HTMLImageElement).src !== fallback) {
+                                (e.currentTarget as HTMLImageElement).src = fallback;
+                              }
+                            }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

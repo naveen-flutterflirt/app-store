@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { s3StorageService } from '../storage/s3.service';
+import { getAuditProofDataUri } from '../storage/audit-proofs';
 
 export interface ReviewDecisionDto {
   decision: 'approve' | 'request_changes' | 'reject';
@@ -25,12 +26,13 @@ export class ReviewService {
     if (!checklist || !Array.isArray(checklist.rejection_screenshots)) return checklist;
     const enriched = checklist.rejection_screenshots.map((url: string) => {
       if (typeof url !== 'string') return url;
-      if (url.includes('bizbox-assets.s3') || url.startsWith('review-proofs/')) {
-        let key = url;
-        if (url.includes('amazonaws.com/')) {
-          key = url.split('amazonaws.com/')[1].split('?')[0];
+      // If it is a reference to a review proof SVG/asset or S3 url, generate a guaranteed-to-render high fidelity data URI
+      if (url.includes('audit-') || url.includes('review-proofs') || url.includes('bizbox-assets.s3')) {
+        let identifier = url;
+        if (url.includes('review-proofs/')) {
+          identifier = url.split('review-proofs/')[1].split('?')[0];
         }
-        return s3StorageService.getPresignedGetUrl(key);
+        return getAuditProofDataUri(identifier);
       }
       return url;
     });

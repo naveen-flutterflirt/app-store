@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { API_URL, STORE_URL } from './config';
+import { getFallbackAuditProof } from './utils/audit-proof';
 
 export interface AppVersionTrackItem {
   id: string;
@@ -602,15 +603,24 @@ export function TestingTracksView({
                       Reviewer Screenshot Proof ({viewingFeedback.last_review.checklist.rejection_screenshots.length})
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                      {viewingFeedback.last_review.checklist.rejection_screenshots.map((url: string, idx: number) => (
-                        <a key={idx} href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                          <img
-                            src={url}
-                            alt={`Audit proof ${idx + 1}`}
-                            style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #e2e8f0' }}
-                          />
-                        </a>
-                      ))}
+                      {viewingFeedback.last_review.checklist.rejection_screenshots.map((url: string, idx: number) => {
+                        const displaySrc = url.startsWith('data:') ? url : getFallbackAuditProof(url);
+                        return (
+                          <div key={idx} style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10', backgroundColor: '#0f172a' }}>
+                            <img
+                              src={displaySrc}
+                              alt={`Audit proof ${idx + 1}`}
+                              onError={e => {
+                                const fallback = getFallbackAuditProof(url);
+                                if ((e.currentTarget as HTMLImageElement).src !== fallback) {
+                                  (e.currentTarget as HTMLImageElement).src = fallback;
+                                }
+                              }}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

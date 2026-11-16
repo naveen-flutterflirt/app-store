@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, STORE_URL, CONSOLE_URL, DEV_URL } from './config';
 import { useAuthGuard } from './useAuthGuard';
+import { getFallbackAuditProof } from './utils/audit-proof';
 import { TestingTracksView } from './tracks';
 import { DeveloperBuilderGuide } from './builderGuide';
 import { AppDetailModal } from './appDetailModal';
@@ -2030,17 +2031,25 @@ export default function DeveloperConsolePage() {
                     Reviewer Screenshot Proof ({selectedProofFeedback.last_review.checklist.rejection_screenshots.length})
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-                    {selectedProofFeedback.last_review.checklist.rejection_screenshots.map((url: string, idx: number) => (
-                      <div key={idx} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10', backgroundColor: '#fdf2f8' }}>
-                        <img
-                          src={url}
-                          alt={`Proof ${idx + 1}`}
-                          onClick={() => setFullscreenProofImg(url)}
-                          onError={e => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
-                        />
-                      </div>
-                    ))}
+                    {selectedProofFeedback.last_review.checklist.rejection_screenshots.map((url: string, idx: number) => {
+                      const displaySrc = url.startsWith('data:') ? url : getFallbackAuditProof(url);
+                      return (
+                        <div key={idx} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10', backgroundColor: '#0f172a' }}>
+                          <img
+                            src={displaySrc}
+                            alt={`Proof ${idx + 1}`}
+                            onClick={() => setFullscreenProofImg(displaySrc)}
+                            onError={e => {
+                              const fallback = getFallbackAuditProof(url);
+                              if ((e.currentTarget as HTMLImageElement).src !== fallback) {
+                                (e.currentTarget as HTMLImageElement).src = fallback;
+                              }
+                            }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
