@@ -8,7 +8,7 @@ interface AdminHeaderProps {
   pendingReviewsCount?: number;
 }
 
-export function AdminHeader({ currentTab, devCount = 13, pendingReviewsCount }: AdminHeaderProps) {
+export function AdminHeader({ currentTab, devCount = 1, pendingReviewsCount }: AdminHeaderProps) {
   return (
     <header style={{
       backgroundColor: '#ffffff',
@@ -83,7 +83,7 @@ export function AdminHeader({ currentTab, devCount = 13, pendingReviewsCount }: 
                 color: '#ffffff',
                 fontSize: '0.65rem',
                 fontWeight: 900,
-                padding: '1px 6px',
+                padding: '2px 8px',
                 borderRadius: '999px'
               }}>
                 {pendingReviewsCount}
@@ -114,7 +114,7 @@ export function AdminHeader({ currentTab, devCount = 13, pendingReviewsCount }: 
               color: currentTab === 'developers' ? '#ffffff' : '#475569',
               fontSize: '0.65rem',
               fontWeight: 800,
-              padding: '1px 6px',
+              padding: '2px 8px',
               borderRadius: '999px'
             }}>
               {devCount}
@@ -144,7 +144,7 @@ export function AdminHeader({ currentTab, devCount = 13, pendingReviewsCount }: 
               fontWeight: 800,
               backgroundColor: '#dcfce7',
               color: '#15803d',
-              padding: '1px 6px',
+              padding: '2px 8px',
               borderRadius: '999px',
               border: '1px solid #bbf7d0'
             }}>

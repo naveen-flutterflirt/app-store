@@ -397,7 +397,7 @@ export default function ReviewQueuePage() {
                         </span>
                       </div>
                       <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.2rem' }}>
-                        by {selectedItem.developer} • submitted {new Date(selectedItem.submitted_at).toLocaleDateString()}
+                        by {selectedItem.developer} • submitted {selectedItem.submitted_at ? selectedItem.submitted_at.slice(0, 10) : 'Recent'}
                       </div>
                     </div>
                   </div>
