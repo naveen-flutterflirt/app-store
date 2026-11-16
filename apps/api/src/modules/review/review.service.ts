@@ -162,6 +162,15 @@ export class ReviewService {
     const newStatus = dto.decision === 'approve' ? 'approved' : (dto.decision === 'request_changes' ? 'changes_requested' : 'rejected');
     await query(`UPDATE store.app_versions SET status = $1 WHERE id = $2`, [newStatus, versionId]);
 
+    // If decision is approve, ensure parent store.apps status is 'listed'
+    if (dto.decision === 'approve') {
+      await query(`
+        UPDATE store.apps 
+        SET status = 'listed'::store.listing_status, updated_at = NOW() 
+        WHERE id = (SELECT app_id FROM store.app_versions WHERE id = $1)
+      `, [versionId]);
+    }
+
     // 3. Audit trail
     await query(`
       INSERT INTO store.store_audit (actor, action, entity, entity_id, detail)
@@ -217,6 +226,13 @@ export class ReviewService {
       UPDATE store.app_versions 
       SET status = 'published'
       WHERE id = $1
+    `, [versionId]);
+
+    // Explicitly ensure store.apps is set to 'listed' status so the app is immediately visible on the public storefront
+    await query(`
+      UPDATE store.apps 
+      SET status = 'listed'::store.listing_status, updated_at = NOW() 
+      WHERE id = (SELECT app_id FROM store.app_versions WHERE id = $1)
     `, [versionId]);
 
     const published = await query(`
