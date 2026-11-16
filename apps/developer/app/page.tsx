@@ -101,6 +101,8 @@ export default function DeveloperConsolePage() {
   const [updatingRollout, setUpdatingRollout] = useState(false);
   const [manageError, setManageError] = useState<string | null>(null);
   const [appToDelete, setAppToDelete] = useState<DevApp | null>(null);
+  const [selectedProofFeedback, setSelectedProofFeedback] = useState<any | null>(null);
+  const [fullscreenProofImg, setFullscreenProofImg] = useState<string | null>(null);
   const [deletingApp, setDeletingApp] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -1085,16 +1087,17 @@ export default function DeveloperConsolePage() {
                                 </a>
                               ) : (sub.status === 'rejected' || sub.status === 'changes_requested') ? (
                                 <button
-                                  onClick={() => setActiveTab('tracks')}
+                                  onClick={() => setSelectedProofFeedback(sub)}
                                   style={{
                                     fontSize: '0.75rem',
-                                    color: '#f87171',
-                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                    border: '1px solid rgba(239, 68, 68, 0.25)',
-                                    borderRadius: '6px',
-                                    padding: '4px 8px',
-                                    fontWeight: 600,
-                                    cursor: 'pointer'
+                                    color: '#be123c',
+                                    backgroundColor: '#fff1f2',
+                                    border: '1px solid #fecdd3',
+                                    borderRadius: '8px',
+                                    padding: '4px 10px',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 1px 3px rgba(225, 29, 72, 0.08)'
                                   }}
                                 >
                                   🔍 View Reason & Proof
@@ -1926,7 +1929,7 @@ export default function DeveloperConsolePage() {
                   borderRadius: '8px',
                   border: 'none',
                   backgroundColor: '#dc2626',
-                  color: '#0f172a',
+                  color: '#ffffff',
                   fontSize: '0.82rem',
                   fontWeight: 700,
                   cursor: deletingApp ? 'not-allowed' : 'pointer',
@@ -1936,6 +1939,174 @@ export default function DeveloperConsolePage() {
                 {deletingApp ? 'Deleting...' : 'Delete Permanently'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection / Review Feedback Direct Modal */}
+      {selectedProofFeedback && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.45)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1.5rem'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            border: '1px solid #fbcfe8',
+            borderRadius: '20px',
+            maxWidth: '660px',
+            width: '100%',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            padding: '2rem',
+            boxShadow: '0 25px 60px -15px rgba(236, 72, 153, 0.25)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #fce7f3', paddingBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>🚨</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#be123c' }}>
+                    Review Decision & Remediation
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                    {selectedProofFeedback.app_name} (v{selectedProofFeedback.version})
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedProofFeedback(null)}
+                style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', width: '32px', height: '32px', fontSize: '1rem', color: '#64748b', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {/* Primary Violation Reason */}
+              <div style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '12px', padding: '1.25rem' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#be123c', textTransform: 'uppercase', marginBottom: '0.4rem', letterSpacing: '0.04em' }}>
+                  Primary Policy / Violation Reason
+                </div>
+                <div style={{ fontSize: '0.96rem', fontWeight: 800, color: '#9f1239', lineHeight: 1.4 }}>
+                  {selectedProofFeedback.last_review?.checklist?.rejection_reason || selectedProofFeedback.last_review?.notes?.split('\n\nDetailed Description:\n')[0] || selectedProofFeedback.last_review?.notes?.split('\n\n')[0] || 'Violation noted by platform reviewer.'}
+                </div>
+              </div>
+
+              {/* Detailed Description */}
+              {(selectedProofFeedback.last_review?.checklist?.detailed_description || selectedProofFeedback.last_review?.notes) && (
+                <div>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.45rem', letterSpacing: '0.04em' }}>
+                    Detailed Remediation Instructions
+                  </div>
+                  <div style={{
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '1.1rem',
+                    fontSize: '0.86rem',
+                    color: '#1e293b',
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: 1.6
+                  }}>
+                    {selectedProofFeedback.last_review?.checklist?.detailed_description || (
+                      selectedProofFeedback.last_review?.notes?.includes('\n\nDetailed Description:\n')
+                        ? selectedProofFeedback.last_review.notes.split('\n\nDetailed Description:\n')[1]
+                        : selectedProofFeedback.last_review?.notes
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Reviewer Screenshot Proofs */}
+              {selectedProofFeedback.last_review?.checklist?.rejection_screenshots && selectedProofFeedback.last_review?.checklist?.rejection_screenshots.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.5rem', letterSpacing: '0.04em' }}>
+                    Reviewer Screenshot Proof ({selectedProofFeedback.last_review.checklist.rejection_screenshots.length})
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
+                    {selectedProofFeedback.last_review.checklist.rejection_screenshots.map((url: string, idx: number) => (
+                      <div key={idx} style={{ position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #fbcfe8', aspectRatio: '16/10' }}>
+                        <img
+                          src={url}
+                          alt={`Proof ${idx + 1}`}
+                          onClick={() => setFullscreenProofImg(url)}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button
+                  onClick={() => setSelectedProofFeedback(null)}
+                  style={{
+                    padding: '0.65rem 1.6rem',
+                    borderRadius: '10px',
+                    border: 'none',
+                    backgroundColor: '#0f172a',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.86rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Understood & Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Proof Image Lightbox */}
+      {fullscreenProofImg && (
+        <div
+          onClick={() => setFullscreenProofImg(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: '2rem'
+          }}
+        >
+          <div style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}>
+            <img
+              src={fullscreenProofImg}
+              alt="Enlarged Proof"
+              style={{ maxWidth: '100%', maxHeight: '85vh', borderRadius: '12px', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}
+            />
+            <button
+              onClick={() => setFullscreenProofImg(null)}
+              style={{
+                position: 'absolute',
+                top: '-14px',
+                right: '-14px',
+                background: '#ffffff',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                fontSize: '1rem',
+                fontWeight: 900,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+              }}
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}
