@@ -815,6 +815,12 @@ const server = http.createServer(async (req, res) => {
       const appCounts = await query(`SELECT COUNT(*)::int as count FROM store.apps WHERE status = 'listed'`);
       const installCounts = await query(`SELECT COUNT(*)::int as count FROM store.installations WHERE status = 'active'`);
       const pendingReviews = await query(`SELECT COUNT(*)::int as count FROM store.v_review_queue`);
+      const mrrResult = await query(`
+        SELECT COALESCE(SUM(p.price_month), 0)::numeric(10,2) as total_mrr
+        FROM store.installations i
+        JOIN store.app_plans p ON i.plan_id = p.id
+        WHERE i.status = 'active'
+      `);
       const categoryInstalls = await query(`
         SELECT a.category, COUNT(i.id)::int as installs 
         FROM store.apps a
@@ -833,10 +839,10 @@ const server = http.createServer(async (req, res) => {
         LIMIT 6
       `);
       return sendJson(res, 200, {
-        listed_apps: appCounts[0]?.count || 22,
-        active_installs: 18963 + (installCounts[0]?.count || 0),
-        mrr: '89.7L',
-        pending_reviews: pendingReviews[0]?.count || 1,
+        listed_apps: appCounts[0]?.count || 0,
+        active_installs: installCounts[0]?.count || 0,
+        mrr: Number(mrrResult[0]?.total_mrr || 0).toLocaleString('en-IN'),
+        pending_reviews: pendingReviews[0]?.count || 0,
         category_distribution: categoryInstalls,
         top_apps: topApps
       });

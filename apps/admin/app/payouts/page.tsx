@@ -140,6 +140,16 @@ export default function AdminPayoutsPage() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
+      <style>{`
+        /* Smooth scrolling container without visible scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       {/* Top Header */}
       <AdminHeader currentTab="payouts" />
 
@@ -240,19 +250,20 @@ export default function AdminPayoutsPage() {
             </span>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #fbcfe8' }}>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Developer</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Linked Bank & IFSC</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Gross Sales</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>BizBox (20%)</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>TDS (10%)</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Net Payable</th>
-                <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <div className="no-scrollbar" style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '680px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #fbcfe8' }}>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Developer</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Linked Bank & IFSC</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Gross Sales</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>BizBox (20%)</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>TDS (10%)</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Net Payable</th>
+                  <th style={{ padding: '0.85rem 1.25rem', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
@@ -341,6 +352,7 @@ export default function AdminPayoutsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Modal: Full Bank & PAN Inspection */}

@@ -128,6 +128,16 @@ export default function AdminDevelopersPage() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
+      <style>{`
+        /* Smooth scrolling container without visible scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       {/* Top Navbar */}
       <AdminHeader currentTab="developers" devCount={totalRegisteredDevs} />
 
@@ -401,7 +411,7 @@ export default function AdminDevelopersPage() {
           </div>
         </div>
 
-        {/* Spacious, Decluttered Developers Table (5 Clean Columns) */}
+        {/* Spacious, Decluttered Developers Table (5 Clean Columns) with Smooth Hidden Scrollbar */}
         <div style={{
           backgroundColor: '#ffffff',
           border: '1px solid #fbcfe8',
@@ -409,9 +419,10 @@ export default function AdminDevelopersPage() {
           overflow: 'hidden',
           boxShadow: '0 4px 20px rgba(236, 72, 153, 0.04)'
         }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#fff5f9', borderBottom: '1px solid #fce7f3' }}>
+          <div className="no-scrollbar" style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '680px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
+                <tr style={{ backgroundColor: '#fff5f9', borderBottom: '1px solid #fce7f3' }}>
                 <th style={{ padding: '1rem 1.5rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', fontSize: '0.72rem', fontWeight: 800, width: '30%' }}>
                   Developer Organization
                 </th>
@@ -663,6 +674,7 @@ export default function AdminDevelopersPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Custom Luxury Modal: Inspect Developer Details & Applications */}
@@ -678,7 +690,7 @@ export default function AdminDevelopersPage() {
             zIndex: 1000,
             padding: '1.25rem'
           }}>
-            <div style={{
+            <div className="no-scrollbar" style={{
               backgroundColor: '#ffffff',
               borderRadius: '20px',
               maxWidth: '740px',

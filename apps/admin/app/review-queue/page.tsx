@@ -301,6 +301,16 @@ export default function ReviewQueuePage() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
+      <style>{`
+        /* Smooth scrolling container without visible scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       {/* Top Navbar */}
       <AdminHeader currentTab="review" pendingReviewsCount={queue.length} />
 
@@ -439,7 +449,7 @@ export default function ReviewQueuePage() {
               <div>
                 {/* Multi-version selector tabs */}
                 {queue.length > 1 && (
-                  <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '0.35rem' }}>
+                  <div className="no-scrollbar" style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.25rem', overflowX: 'auto', paddingBottom: '0.35rem' }}>
                     {queue.map(item => (
                       <button
                         key={item.version_id}
@@ -890,7 +900,7 @@ export default function ReviewQueuePage() {
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>No review decisions recorded yet</div>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
+              <div className="no-scrollbar" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#fff5f9', borderBottom: '1px solid #fce7f3' }}>
@@ -1031,7 +1041,7 @@ export default function ReviewQueuePage() {
             zIndex: 1000,
             padding: '1.25rem'
           }}>
-            <div style={{
+            <div className="no-scrollbar" style={{
               backgroundColor: '#ffffff',
               borderRadius: '20px',
               padding: '2rem',
@@ -1249,7 +1259,7 @@ export default function ReviewQueuePage() {
             zIndex: 1000,
             padding: '1.25rem'
           }}>
-            <div style={{
+            <div className="no-scrollbar" style={{
               backgroundColor: '#ffffff',
               borderRadius: '20px',
               maxWidth: '680px',
@@ -1437,13 +1447,14 @@ export default function ReviewQueuePage() {
                   ✕
                 </button>
               </div>
-              <pre style={{
+              <pre className="no-scrollbar" style={{
                 backgroundColor: '#0f172a',
                 color: '#38bdf8',
                 padding: '1rem',
                 borderRadius: '12px',
                 fontSize: '0.8rem',
                 overflowX: 'auto',
+                overflowY: 'auto',
                 maxHeight: '360px'
               }}>
                 {JSON.stringify(detail?.version?.manifest || {
