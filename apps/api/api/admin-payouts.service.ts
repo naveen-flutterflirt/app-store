@@ -1,4 +1,41 @@
 import { query } from '../src/db';
+import * as https from 'https';
+
+function razorpayHttpsPost(path: string, body: any, auth: string): Promise<any> {
+  return new Promise((resolve) => {
+    const postData = JSON.stringify(body);
+    const req = https.request({
+      hostname: 'api.razorpay.com',
+      port: 443,
+      path,
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData),
+        'User-Agent': 'BizBox-Platform/1.0.0 (NodeJS)'
+      },
+      timeout: 10000
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve({ ok: (res.statusCode || 0) >= 200 && (res.statusCode || 0) < 300, status: res.statusCode, data: JSON.parse(data) });
+        } catch {
+          resolve({ ok: false, status: res.statusCode, data });
+        }
+      });
+    });
+    req.on('error', (err) => resolve({ ok: false, error: err.message }));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve({ ok: false, error: 'TIMEOUT' });
+    });
+    req.write(postData);
+    req.end();
+  });
+}
 
 export class AdminPayoutsService {
   /**
@@ -141,63 +178,47 @@ export class AdminPayoutsService {
         const auth = Buffer.from(`${rzpKey}:${rzpSecret}`).toString('base64');
         const amountPaise = Math.round(net * 100);
 
-        // 1. Create Order in Razorpay
-        const rzpOrderRes = await fetch('https://api.razorpay.com/v1/orders', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            amount: amountPaise,
-            currency: 'INR',
-            receipt: `rcpt_dev_${developerId.slice(0, 8)}_${Date.now().toString().slice(-6)}`,
-            notes: {
-              developer_id: developerId,
-              developer_name: dev.name,
-              bank_name: dev.bank_name || 'Bank',
-              account_last4: (dev.bank_account_number || '').slice(-4),
-              type: 'developer_payout'
-            }
-          })
-        });
+        // 1. Create Order in Razorpay via robust https agent
+        const rzpOrder = await razorpayHttpsPost('/v1/orders', {
+          amount: amountPaise,
+          currency: 'INR',
+          receipt: `rcpt_dev_${developerId.slice(0, 8)}_${Date.now().toString().slice(-6)}`,
+          notes: {
+            developer_id: developerId,
+            developer_name: dev.name,
+            bank_name: dev.bank_name || 'Bank',
+            account_last4: (dev.bank_account_number || '').slice(-4),
+            type: 'developer_payout'
+          }
+        }, auth);
 
-        if (rzpOrderRes.ok) {
-          const orderData: any = await rzpOrderRes.json();
-          razorpayOrderId = orderData.id;
-          providerRef = `RZP_ORD_${orderData.id.replace('order_', '')}`;
+        if (rzpOrder.ok && rzpOrder.data?.id) {
+          razorpayOrderId = rzpOrder.data.id;
+          providerRef = `RZP_ORD_${rzpOrder.data.id.replace('order_', '')}`;
         }
 
-        // 2. Also generate payment link for tracking / disbursement
-        const rzpLinkRes = await fetch('https://api.razorpay.com/v1/payment_links', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json'
+        // 2. Also generate payment link for direct admin settlement checkout
+        const rzpLink = await razorpayHttpsPost('/v1/payment_links', {
+          amount: amountPaise,
+          currency: 'INR',
+          accept_partial: false,
+          description: `Developer Royalty Settlement - ${dev.name}`,
+          customer: {
+            name: dev.name,
+            email: dev.email || 'developer@flutterflirt.com',
+            contact: '+919876543210'
           },
-          body: JSON.stringify({
-            amount: amountPaise,
-            currency: 'INR',
-            accept_partial: false,
-            description: `Developer Royalty Settlement - ${dev.name}`,
-            customer: {
-              name: dev.name,
-              email: dev.email || 'developer@flutterflirt.com',
-              contact: '+919876543210'
-            },
-            notify: { sms: false, email: false },
-            notes: {
-              developer_id: developerId,
-              payout_order_id: razorpayOrderId || '',
-              type: 'developer_payout'
-            }
-          })
-        });
+          notify: { sms: false, email: false },
+          notes: {
+            developer_id: developerId,
+            payout_order_id: razorpayOrderId || '',
+            type: 'developer_payout'
+          }
+        }, auth);
 
-        if (rzpLinkRes.ok) {
-          const linkData: any = await rzpLinkRes.json();
-          razorpayPaymentLink = linkData.short_url;
-          providerRef = `RZP_${linkData.id.replace('plink_', '')}`;
+        if (rzpLink.ok && rzpLink.data?.short_url) {
+          razorpayPaymentLink = rzpLink.data.short_url;
+          providerRef = `RZP_${rzpLink.data.id.replace('plink_', '')}`;
         }
       } catch (err: any) {
         console.warn('[AdminPayoutsService] Razorpay API call notice:', err.message);
