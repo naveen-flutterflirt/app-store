@@ -173,6 +173,8 @@ export class AdminPayoutsService {
     const rzpKey = process.env.RAZORPAY_KEY_ID || 'rzp_test_TyPXUT6fIYnLQ7';
     const rzpSecret = process.env.RAZORPAY_KEY_SECRET || '1FRC5ikxNzGg2gi7hDBNXrif';
 
+    let rzpDebug: any = null;
+
     if (rzpKey && rzpSecret) {
       try {
         const auth = Buffer.from(`${rzpKey}:${rzpSecret}`).toString('base64');
@@ -216,11 +218,14 @@ export class AdminPayoutsService {
           }
         }, auth);
 
+        rzpDebug = { order: rzpOrder, link: rzpLink };
+
         if (rzpLink.ok && rzpLink.data?.short_url) {
           razorpayPaymentLink = rzpLink.data.short_url;
           providerRef = `RZP_${rzpLink.data.id.replace('plink_', '')}`;
         }
       } catch (err: any) {
+        rzpDebug = { catchError: err.message };
         console.warn('[AdminPayoutsService] Razorpay API call notice:', err.message);
       }
     }
@@ -255,6 +260,7 @@ export class AdminPayoutsService {
       message: `Razorpay transfer of ₹${net.toLocaleString()} successfully processed for ${dev.name} (${providerRef})`,
       razorpayOrderId,
       razorpayPaymentLink,
+      rzpDebug,
       payout: res[0]
     };
   }
