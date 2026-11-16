@@ -164,7 +164,7 @@ export function AppDetailModal({
               cursor: 'pointer'
             }}
           >
-            Testing Tracks (Play Store)
+            Release Tracks
           </button>
           <button
             onClick={() => setActiveTab('listing')}

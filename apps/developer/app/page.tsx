@@ -599,7 +599,7 @@ export default function DeveloperConsolePage() {
               <span style={{ fontSize: '1.1rem' }}>🚀</span>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
                 <span>Release Tracks</span>
-                <span style={{ fontSize: '0.62rem', backgroundColor: 'rgba(14, 165, 233, 0.15)', color: '#38bdf8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid rgba(14, 165, 233, 0.25)' }}>Play</span>
+                <span style={{ fontSize: '0.62rem', backgroundColor: 'rgba(236, 72, 153, 0.15)', color: '#ec4899', padding: '2px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid rgba(236, 72, 153, 0.25)' }}>CI/CD</span>
               </div>
             </button>
 
