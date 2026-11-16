@@ -473,10 +473,10 @@ export default function DeveloperConsolePage() {
           border-radius: 6px;
         }
         .dev-sidebar {
-          width: 260px;
-          background-color: #0f172a;
-          border-right: 1px solid #fbcfe8;
-          border-right: 1px solid rgba(255, 255, 255, 0.08);
+          width: 270px;
+          background: linear-gradient(180deg, #ffffff 0%, #fff7fa 100%);
+          border-right: 1px solid #fce7f3;
+          box-shadow: 2px 0 16px rgba(236, 72, 153, 0.04);
           display: flex;
           flex-direction: column;
           justifyContent: space-between;
@@ -503,9 +503,7 @@ export default function DeveloperConsolePage() {
           border-radius: 10px;
           border: none;
           background: transparent;
-          color: #64748b;
-          font-size: 0.88rem;
-          font-weight: 600;
+          color: #475569; font-size: 0.88rem; font-weight: 600;
           cursor: pointer;
           transition: all 0.15s ease;
           text-align: left;
@@ -517,8 +515,9 @@ export default function DeveloperConsolePage() {
         .nav-item-btn.active {
           background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
           border: 1px solid #fbcfe8;
-          color: #0f172a;
+          color: #db2777;
           font-weight: 700;
+          box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
         }
         @media (max-width: 900px) {
           .dev-sidebar {
@@ -556,21 +555,14 @@ export default function DeveloperConsolePage() {
               justifyContent: 'center',
               fontWeight: 900,
               fontSize: '1.15rem',
-              color: '#0f172a',
-              boxShadow: '0 4px 12px rgba(236, 72, 153, 0.35)'
-            }}>
-              B
+              color: '#ffffff', boxShadow: '0 4px 14px rgba(236, 72, 153, 0.4)' }}>B
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
               <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>BizBox</span>
               <span style={{
                 fontSize: '0.65rem',
                 fontWeight: 700,
-                color: '#a855f7',
-                backgroundColor: 'rgba(168, 85, 247, 0.12)',
-                padding: '2px 6px',
-                borderRadius: '5px',
-                border: '1px solid #fbcfe8', boxShadow: '0 4px 16px -2px rgba(236, 72, 153, 0.08)',
+                color: '#db2777', backgroundColor: '#fce7f3', padding: '2px 8px', borderRadius: '6px', border: '1px solid #fbcfe8',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em'
               }}>
@@ -581,7 +573,7 @@ export default function DeveloperConsolePage() {
 
           {/* Left Vertical Menu */}
           <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '0 0.5rem 0.4rem' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 0.5rem 0.4rem' }}>
               WORKSPACE
             </div>
             <button
@@ -622,7 +614,7 @@ export default function DeveloperConsolePage() {
               <span>Builder Guide</span>
             </button>
 
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '1rem 0.5rem 0.4rem' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '1.25rem 0.5rem 0.4rem' }}>
               RESOURCES
             </div>
             <a
@@ -641,8 +633,8 @@ export default function DeveloperConsolePage() {
         {/* Developer Profile Footer */}
         <div style={{
           padding: '1.25rem 1.5rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          borderTop: '1px solid #fce7f3',
+          backgroundColor: '#fffdfd',
           display: 'flex',
           flexDirection: 'column',
           gap: '0.85rem'
@@ -652,8 +644,7 @@ export default function DeveloperConsolePage() {
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              backgroundColor: '#a855f7',
-              color: '#0f172a',
+              backgroundColor: '#fce7f3', color: '#ec4899', border: '1px solid #fbcfe8',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -680,9 +671,7 @@ export default function DeveloperConsolePage() {
               width: '100%',
               padding: '0.55rem',
               borderRadius: '8px',
-              border: '1px solid rgba(239, 68, 68, 0.25)',
-              backgroundColor: 'rgba(239, 68, 68, 0.08)',
-              color: '#f87171',
+              border: '1px solid #fecaca', backgroundColor: '#fff1f2', color: '#e11d48',
               fontSize: '0.78rem',
               fontWeight: 700,
               cursor: 'pointer',
@@ -704,8 +693,7 @@ export default function DeveloperConsolePage() {
         {/* Mobile Header Bar */}
         <header className="mobile-top-bar" style={{
           height: '56px',
-          borderBottom: '1px solid #fbcfe8',
-          backgroundColor: '#0c1222',
+          borderBottom: '1px solid #fce7f3', backgroundColor: '#ffffff',
           padding: '0 1.25rem',
           display: 'flex',
           alignItems: 'center',
@@ -723,9 +711,7 @@ export default function DeveloperConsolePage() {
             style={{
               padding: '0.4rem 0.65rem',
               borderRadius: '6px',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-              color: '#0f172a',
+              border: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#334155',
               fontSize: '1.1rem',
               cursor: 'pointer'
             }}
@@ -757,7 +743,7 @@ export default function DeveloperConsolePage() {
                     <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0, color: '#0f172a', letterSpacing: '-0.02em' }}>
                       Apps & Revenue Management
                     </h1>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, backgroundColor: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', border: '1px solid rgba(99, 102, 241, 0.25)', padding: '2px 8px', borderRadius: '999px' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 800, backgroundColor: '#fce7f3', color: '#db2777', border: '1px solid #fbcfe8', padding: '2px 10px', borderRadius: '999px', boxShadow: '0 2px 6px rgba(236, 72, 153, 0.08)' }}>
                       {apps.length} Applications
                     </span>
                   </div>
@@ -877,11 +863,7 @@ export default function DeveloperConsolePage() {
                     onClick={() => loadDeveloperData()}
                     style={{
                       fontSize: '0.78rem',
-                      color: '#818cf8',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontWeight: 600
+                      color: '#ec4899', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700
                     }}
                   >
                     🔄 Refresh Apps
@@ -938,9 +920,7 @@ export default function DeveloperConsolePage() {
                                   width: '36px',
                                   height: '36px',
                                   borderRadius: '8px',
-                                  backgroundColor: 'rgba(99, 102, 241, 0.15)',
-                                  border: '1px solid rgba(99, 102, 241, 0.3)',
-                                  color: '#818cf8',
+                                  backgroundColor: '#fdf2f8', border: '1px solid #fbcfe8', color: '#ec4899',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -961,8 +941,7 @@ export default function DeveloperConsolePage() {
                                 fontWeight: 700,
                                 padding: '2px 8px',
                                 borderRadius: '4px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                color: '#cbd5e1',
+                                backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0',
                                 textTransform: 'capitalize'
                               }}>
                                 {app.runtime || 'cloud'}
@@ -978,11 +957,11 @@ export default function DeveloperConsolePage() {
                               <span style={{
                                 fontSize: '0.72rem',
                                 fontWeight: 700,
-                                padding: '3px 8px',
+                                padding: '3px 10px',
                                 borderRadius: '999px',
-                                backgroundColor: app.status === 'listed' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                                color: app.status === 'listed' ? '#34d399' : '#fbbf24',
-                                border: `1px solid ${app.status === 'listed' ? 'rgba(52, 211, 153, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`
+                                backgroundColor: app.status === 'listed' ? '#dcfce7' : '#fef3c7',
+                                color: app.status === 'listed' ? '#15803d' : '#b45309',
+                                border: `1px solid ${app.status === 'listed' ? '#bbf7d0' : '#fde68a'}`
                               }}>
                                 ● {app.status === 'listed' ? 'Published' : app.status}
                               </span>
@@ -994,9 +973,7 @@ export default function DeveloperConsolePage() {
                                   style={{
                                     padding: '0.35rem 0.65rem',
                                     borderRadius: '6px',
-                                    border: '1px solid rgba(168, 85, 247, 0.3)',
-                                    backgroundColor: 'rgba(168, 85, 247, 0.12)',
-                                    color: '#c084fc',
+                                    border: '1px solid #fbcfe8', backgroundColor: '#fdf2f8', color: '#db2777',
                                     fontSize: '0.75rem',
                                     fontWeight: 600,
                                     cursor: 'pointer'
@@ -1009,9 +986,7 @@ export default function DeveloperConsolePage() {
                                   style={{
                                     padding: '0.35rem 0.65rem',
                                     borderRadius: '6px',
-                                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                                    color: '#0f172a',
+                                    border: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#334155',
                                     fontSize: '0.75rem',
                                     fontWeight: 600,
                                     cursor: 'pointer'
@@ -1024,9 +999,7 @@ export default function DeveloperConsolePage() {
                                   style={{
                                     padding: '0.35rem 0.65rem',
                                     borderRadius: '6px',
-                                    border: '1px solid rgba(239, 68, 68, 0.25)',
-                                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
-                                    color: '#f87171',
+                                    border: '1px solid #fecaca', backgroundColor: '#fff1f2', color: '#e11d48',
                                     fontSize: '0.75rem',
                                     fontWeight: 600,
                                     cursor: 'pointer'
@@ -1072,27 +1045,27 @@ export default function DeveloperConsolePage() {
                           <tr key={sub.id} style={{ borderBottom: '1px solid #fce7f3' }}>
                             <td style={{ padding: '1rem 1.25rem' }}>
                               <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>
-                                {sub.app_name} <span style={{ color: '#818cf8' }}>v{sub.version}</span>
+                                {sub.app_name} <span style={{ color: '#ec4899', fontWeight: 800 }}>v{sub.version}</span>
                               </div>
                               <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{sub.package_id}</div>
                             </td>
                             <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#94a3b8' }}>
                               {new Date(sub.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                             </td>
-                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#cbd5e1', maxWidth: '280px' }}>
+                            <td style={{ padding: '1rem 1.25rem', fontSize: '0.8rem', color: '#64748b', maxWidth: '280px' }}>
                               <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {sub.release_notes || 'Performance updates, security patches, and platform optimization.'}
                               </div>
                             </td>
                             <td style={{ padding: '1rem 1.25rem' }}>
                               <span style={{
-                                padding: '3px 8px',
+                                padding: '3px 10px',
                                 borderRadius: '999px',
                                 fontSize: '0.72rem',
                                 fontWeight: 700,
-                                backgroundColor: sub.status === 'published' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                                color: sub.status === 'published' ? '#34d399' : '#fbbf24',
-                                border: `1px solid ${sub.status === 'published' ? 'rgba(52, 211, 153, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`
+                                backgroundColor: sub.status === 'published' ? '#dcfce7' : '#fef3c7',
+                                color: sub.status === 'published' ? '#15803d' : '#b45309',
+                                border: `1px solid ${sub.status === 'published' ? '#bbf7d0' : '#fde68a'}`
                               }}>
                                 ● {sub.status === 'in_review' ? 'In Admin Review' : sub.status}
                               </span>
@@ -1105,9 +1078,7 @@ export default function DeveloperConsolePage() {
                                   rel="noreferrer"
                                   style={{
                                     fontSize: '0.75rem',
-                                    color: '#818cf8',
-                                    fontWeight: 600,
-                                    textDecoration: 'none'
+                                    color: '#ec4899', fontWeight: 700, textDecoration: 'none'
                                   }}
                                 >
                                   View on Store ↗
@@ -1131,9 +1102,7 @@ export default function DeveloperConsolePage() {
                               ) : (
                                 <span style={{
                                   fontSize: '0.75rem',
-                                  color: '#fbbf24',
-                                  fontWeight: 600,
-                                  display: 'inline-flex',
+                                  color: '#b45309', backgroundColor: '#fef3c7', padding: '3px 8px', borderRadius: '6px', border: '1px solid #fde68a', fontWeight: 700, display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '0.3rem'
                                 }}>
@@ -1159,19 +1128,20 @@ export default function DeveloperConsolePage() {
           position: 'fixed',
           bottom: '24px',
           right: '24px',
-          backgroundColor: toast.type === 'error' ? '#7f1d1d' : '#0f172a',
-          border: toast.type === 'error' ? '1px solid #b91c1c' : '1px solid #334155',
+          backgroundColor: '#ffffff',
+          border: toast.type === 'error' ? '1px solid #fca5a5' : '1px solid #fbcfe8',
           color: '#0f172a',
           padding: '0.85rem 1.4rem',
-          borderRadius: '10px',
+          borderRadius: '12px',
           fontSize: '0.85rem',
-          fontWeight: 500,
+          fontWeight: 600,
+          boxShadow: '0 10px 25px -5px rgba(236, 72, 153, 0.2)',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
           zIndex: 300
         }}>
-          <span style={{ color: toast.type === 'error' ? '#fca5a5' : '#10b981', fontWeight: 800 }}>
+          <span style={{ color: toast.type === 'error' ? '#ef4444' : '#10b981', fontWeight: 800 }}>
             {toast.type === 'error' ? '✕' : '✓'}
           </span>
           {toast.message}
@@ -1183,8 +1153,7 @@ export default function DeveloperConsolePage() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1398,7 +1367,7 @@ export default function DeveloperConsolePage() {
                 <button
                   type="button"
                   onClick={() => { setShowNewAppModal(false); setNewAppFormError(null); }}
-                  style={{ padding: '0.6rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', cursor: 'pointer' }}
+                  style={{ padding: '0.6rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
                 >
                   Cancel
                 </button>
@@ -1420,8 +1389,7 @@ export default function DeveloperConsolePage() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1603,8 +1571,7 @@ export default function DeveloperConsolePage() {
                         border: '1px solid #cbd5e1',
                         fontFamily: 'monospace',
                         fontSize: '0.75rem',
-                        backgroundColor: '#0f172a',
-                        color: '#38bdf8',
+                        backgroundColor: '#1e293b', color: '#38bdf8',
                         boxSizing: 'border-box'
                       }}
                     />
@@ -1686,7 +1653,7 @@ export default function DeveloperConsolePage() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 onClick={() => setShowPublishModal(false)}
-                style={{ padding: '0.55rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', cursor: 'pointer' }}
+                style={{ padding: '0.55rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
               >
                 Close
               </button>
@@ -1780,8 +1747,7 @@ export default function DeveloperConsolePage() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1859,7 +1825,7 @@ export default function DeveloperConsolePage() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 onClick={() => setShowManageModal(false)}
-                style={{ padding: '0.55rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', cursor: 'pointer' }}
+                style={{ padding: '0.55rem 1.15rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', color: '#475569', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer' }}
               >
                 Close
               </button>
@@ -1891,8 +1857,7 @@ export default function DeveloperConsolePage() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
