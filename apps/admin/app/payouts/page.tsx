@@ -86,6 +86,7 @@ export default function AdminPayoutsPage() {
   const [confirmPayoutModal, setConfirmPayoutModal] = useState<DeveloperPayoutItem | null>(null);
   const [noBankAlertModal, setNoBankAlertModal] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [localPaidDevIds, setLocalPaidDevIds] = useState<Set<string>>(new Set());
 
   const fetchOverview = () => {
     setLoading(true);
@@ -129,6 +130,9 @@ export default function AdminPayoutsPage() {
       });
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.message || 'Payment execution failed');
+
+      // Optimistically mark this developer as paid in local state immediately
+      setLocalPaidDevIds(prev => new Set(prev).add(dev.developerId));
 
       // 2. Launch Razorpay Checkout Modal directly for Admin settlement
       const amountPaise = Math.round(dev.netPayable * 100);
@@ -402,7 +406,7 @@ export default function AdminPayoutsPage() {
                     </td>
 
                     <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
-                      {dev.isPaid ? (
+                      {(dev.isPaid || localPaidDevIds.has(dev.developerId)) ? (
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', backgroundColor: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '0.4rem 0.85rem', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700 }}>
                           <span>✅ Paid & Settled</span>
                         </div>

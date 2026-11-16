@@ -81,3 +81,4 @@ export function getFallbackAuditProof(urlOrIdentifier: string): string {
 </svg>`;
   return `data:image/svg+xml;base64,${typeof window !== 'undefined' ? window.btoa(unescape(encodeURIComponent(svg))) : Buffer.from(svg).toString('base64')}`;
 }
+

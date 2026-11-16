@@ -43,7 +43,10 @@ export class AdminPayoutsService {
    */
   async getPayoutOverview() {
     // 1. Fetch each developer with bank details and unpaid earnings
-    const currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    const now = new Date();
+    const y = now.getUTCFullYear();
+    const m = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const currentMonthStart = `${y}-${m}-01`;
 
     const devs = await query(`
       SELECT 
@@ -184,8 +187,11 @@ export class AdminPayoutsService {
     const net = Math.round((devShare - tds) * 100) / 100;
 
     const now = new Date();
-    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    const y = now.getUTCFullYear();
+    const m = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const periodStart = `${y}-${m}-01`;
+    const lastDay = new Date(Date.UTC(y, now.getUTCMonth() + 1, 0)).getUTCDate();
+    const periodEnd = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
 
     // Razorpay Integration: Create real Razorpay order/payment link for developer payout
     let providerRef = `NEFT_${dev.bank_ifsc?.slice(0, 4) || 'RZP'}_${Date.now().toString().slice(-8)}`;
