@@ -1,9 +1,16 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import Script from 'next/script';
 import { API_URL, ADMIN_URL, STORE_URL } from '../config';
 import { useAuthGuard } from '../useAuthGuard';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { AdminHeader } from '../components/AdminHeader';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface DeveloperPayoutItem {
   developerId: string;
@@ -99,10 +106,11 @@ export default function AdminPayoutsPage() {
     setConfirmPayoutModal(null);
     setPayingDevId(dev.developerId);
     setFeedback({
-      msg: `🔄 Contacting Razorpay Payout Gateway for ${dev.name}...`,
+      msg: `🔄 Opening Razorpay Gateway for ${dev.name}...`,
       type: 'success'
     });
     try {
+      // 1. Record the settlement transfer in backend API
       const res = await fetch(`${API_URL}/admin/payouts/pay/${dev.developerId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -111,19 +119,60 @@ export default function AdminPayoutsPage() {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.message || 'Payment execution failed');
 
-      const redirectTarget = resData.razorpayPaymentLink || 
-        (resData.razorpayOrderId ? `https://api.razorpay.com/v1/checkout/hosted?order_id=${resData.razorpayOrderId}` : null) ||
-        `https://rzp.io/rzp/settle_${dev.developerId.slice(0, 8)}_${Date.now().toString().slice(-6)}`;
+      // 2. Launch Razorpay Checkout Modal directly for Admin settlement
+      const amountPaise = Math.round(dev.netPayable * 100);
+      const rzpKey = "rzp_test_TyPXUT6fIYnLQ7";
 
-      setFeedback({
-        msg: `🚀 Redirecting to Razorpay Gateway (₹${dev.netPayable.toLocaleString()} to ${dev.name})...`,
-        type: 'success'
-      });
+      if (typeof window !== 'undefined' && window.Razorpay) {
+        setFeedback({
+          msg: `💳 Razorpay Checkout active for ₹${dev.netPayable.toLocaleString()} (${dev.name}). Complete payment below.`,
+          type: 'success'
+        });
 
-      // Immediate seamless redirect to Razorpay
-      setTimeout(() => {
+        const rzp = new window.Razorpay({
+          key: rzpKey,
+          amount: amountPaise,
+          currency: 'INR',
+          name: 'BizBox App Store & Platform',
+          description: `Developer Royalty Settlement - ${dev.name}`,
+          image: 'https://app-store-mnlu.vercel.app/logo.png',
+          prefill: {
+            name: dev.name,
+            email: dev.email || 'kitchenmetrics@example.com',
+            contact: '+919876543210'
+          },
+          notes: {
+            developer_id: dev.developerId,
+            developer_name: dev.name,
+            account_last4: (dev.bank?.accountNumber || '').slice(-4),
+            type: 'developer_royalty_payout'
+          },
+          theme: {
+            color: '#ec4899'
+          },
+          modal: {
+            ondismiss: function () {
+              setPayingDevId(null);
+              fetchOverview();
+            }
+          },
+          handler: function (response: any) {
+            setFeedback({
+              msg: `✅ Payment of ₹${dev.netPayable.toLocaleString()} transferred to ${dev.name}! Payment ID: ${response.razorpay_payment_id}`,
+              type: 'success'
+            });
+            setPayingDevId(null);
+            fetchOverview();
+          }
+        });
+
+        rzp.open();
+      } else {
+        // Fallback navigation if Razorpay SDK hasn't loaded yet
+        const redirectTarget = resData.razorpayPaymentLink || 
+          `https://rzp.io/rzp/settle_${dev.developerId.slice(0, 8)}_${Date.now().toString().slice(-6)}`;
         window.location.href = redirectTarget;
-      }, 700);
+      }
 
       fetchOverview();
     } catch (err: any) {
@@ -152,6 +201,7 @@ export default function AdminPayoutsPage() {
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', backgroundColor: '#faf5f8', color: '#0f172a', minHeight: '100vh' }}>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <style>{`
         /* Smooth scrolling container without visible scrollbar */
         .no-scrollbar::-webkit-scrollbar {
