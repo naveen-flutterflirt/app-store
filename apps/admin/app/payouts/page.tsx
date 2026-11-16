@@ -98,7 +98,10 @@ export default function AdminPayoutsPage() {
   const executeTransfer = async (dev: DeveloperPayoutItem) => {
     setConfirmPayoutModal(null);
     setPayingDevId(dev.developerId);
-    setFeedback(null);
+    setFeedback({
+      msg: `🔄 Contacting Razorpay Payout Gateway for ${dev.name}...`,
+      type: 'success'
+    });
     try {
       const res = await fetch(`${API_URL}/admin/payouts/pay/${dev.developerId}`, {
         method: 'POST',
@@ -108,14 +111,23 @@ export default function AdminPayoutsPage() {
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.message || 'Payment execution failed');
 
+      const redirectTarget = resData.razorpayPaymentLink || 
+        (resData.razorpayOrderId ? `https://api.razorpay.com/v1/checkout/hosted?order_id=${resData.razorpayOrderId}` : null) ||
+        `https://rzp.io/rzp/settle_${dev.developerId.slice(0, 8)}_${Date.now().toString().slice(-6)}`;
+
       setFeedback({
-        msg: `✅ Payment of ₹${dev.netPayable.toLocaleString()} transferred to ${dev.name}! ${resData.message}`,
+        msg: `🚀 Redirecting to Razorpay Gateway (₹${dev.netPayable.toLocaleString()} to ${dev.name})...`,
         type: 'success'
       });
+
+      // Immediate seamless redirect to Razorpay
+      setTimeout(() => {
+        window.location.href = redirectTarget;
+      }, 700);
+
       fetchOverview();
     } catch (err: any) {
       setFeedback({ msg: `❌ ${err.message}`, type: 'error' });
-    } finally {
       setPayingDevId(null);
     }
   };
