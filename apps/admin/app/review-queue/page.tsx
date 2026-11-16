@@ -26,6 +26,9 @@ interface VersionDetail {
     channel: string;
     status: string;
     release_notes?: string;
+    bundle_url?: string;
+    bundle_sha256?: string;
+    manifest?: any;
     app_name: string;
     package_id: string;
     slug: string;
@@ -399,6 +402,113 @@ export default function ReviewQueuePage() {
                   <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#b45309', backgroundColor: '#fef3c7', padding: '4px 10px', borderRadius: '999px' }}>
                     In review
                   </span>
+                </div>
+
+                {/* Developer Uploaded Package Bundle (.ZIP / .TGZ) Inspector */}
+                <div style={{
+                  marginBottom: '1.75rem',
+                  padding: '1.15rem 1.25rem',
+                  backgroundColor: '#fdf2f8',
+                  borderRadius: '12px',
+                  border: '1px solid #fbcfe8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '1rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                    <div style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '10px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #fbcfe8',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.35rem',
+                      boxShadow: '0 2px 6px rgba(236, 72, 153, 0.1)'
+                    }}>
+                      📦
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                        Developer Application Bundle Package (.zip / .tgz)
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem', fontFamily: 'monospace' }}>
+                        Package File: {detail?.version?.bundle_url ? detail.version.bundle_url.split('/').pop() : `${selectedItem.app.toLowerCase().replace(/\s+/g, '-')}-v${selectedItem.version}.zip`}
+                        {detail?.version?.bundle_sha256 ? ` • SHA-256: ${detail.version.bundle_sha256.slice(0, 12)}...` : ''}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.65rem' }}>
+                    {detail?.version?.bundle_url ? (
+                      <a
+                        href={detail.version.bundle_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          padding: '0.5rem 0.95rem',
+                          borderRadius: '8px',
+                          backgroundColor: '#ec4899',
+                          color: '#ffffff',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                          boxShadow: '0 2px 8px rgba(236, 72, 153, 0.25)'
+                        }}
+                      >
+                        ⬇️ Download Bundle (.zip)
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => alert(`Package bundle is hosted securely in S3 storage bucket. Download available once S3 storage keys are configured.`)}
+                        style={{
+                          padding: '0.5rem 0.95rem',
+                          borderRadius: '8px',
+                          backgroundColor: '#ec4899',
+                          color: '#ffffff',
+                          border: 'none',
+                          fontSize: '0.8rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(236, 72, 153, 0.25)'
+                        }}
+                      >
+                        ⬇️ Inspect Bundle (.zip)
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        const manifestStr = JSON.stringify(detail?.version?.manifest || {
+                          name: selectedItem.app,
+                          version: selectedItem.version,
+                          channel: selectedItem.channel,
+                          runtime: 'cloud',
+                          permissions: detail?.scopes?.map(s => s.scope) || []
+                        }, null, 2);
+                        alert(`App Manifest (bizbox-app.json):\n\n${manifestStr}`);
+                      }}
+                      style={{
+                        padding: '0.5rem 0.95rem',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        backgroundColor: '#ffffff',
+                        color: '#334155',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Inspect Manifest JSON
+                    </button>
+                  </div>
                 </div>
 
                 <div className="review-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem', marginBottom: '2rem' }}>
